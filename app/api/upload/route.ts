@@ -32,12 +32,12 @@ export async function POST(request: NextRequest) {
 
     const startTime = Date.now();
     const response = await fetch(API_ENDPOINT, {
-      method: "POST",
+      body: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
         "x-api-key": API_KEY,
       },
-      body: JSON.stringify(body),
+      method: "POST",
     });
     const duration = Date.now() - startTime;
 
@@ -49,14 +49,14 @@ export async function POST(request: NextRequest) {
     if (!contentType?.includes("application/json")) {
       const text = await response.text();
       console.error("Non-JSON response:", {
-        status: response.status,
         contentType,
-        preview: text.substring(0, 200),
+        preview: text.slice(0, 200),
+        status: response.status,
       });
       return NextResponse.json(
         {
+          details: text.slice(0, 200),
           error: `External API returned non-JSON response (${response.status}). Check API_ENDPOINT in .env.local`,
-          details: text.substring(0, 200),
         },
         { status: 502 }
       );
@@ -70,8 +70,8 @@ export async function POST(request: NextRequest) {
     console.error("Upload API error:", error);
     return NextResponse.json(
       {
-        error: "Failed to upload resume",
         details: error instanceof Error ? error.message : "Unknown error",
+        error: "Failed to upload resume",
       },
       { status: 500 }
     );

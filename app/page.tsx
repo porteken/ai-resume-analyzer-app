@@ -139,7 +139,19 @@ export default function Home() {
       }
     } catch (error_: unknown) {
       console.error(error_);
-      const errorMessage = error_ instanceof Error ? error_.message : "An unexpected error occurred.";
+      let errorMessage = "An unexpected error occurred.";
+
+      if (error_ instanceof Error) {
+        const message = error_.message.toLowerCase();
+        if (message.includes('failed to fetch') || message.includes('networkerror') || message.includes('abort') || message.includes('load failed') || message.includes('network') || message.includes('cancelled')) {
+          errorMessage = "Failed to upload resume. Please check your connection and try again.";
+        } else if (message.includes('server error') || message.includes('internal server error') || message.includes('500')) {
+          errorMessage = "Internal server error. Please try again later.";
+        } else {
+          errorMessage = error_.message;
+        }
+      }
+
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -182,8 +194,9 @@ export default function Home() {
             />
           </div>
 
-          <Button 
-            className="w-full" 
+          <Button
+            aria-label="Analyze Resume"
+            className="w-full"
             disabled={isLoading || !file || !jobDescription}
             onClick={handleSubmit}
           >
@@ -199,6 +212,10 @@ export default function Home() {
               </>
             )}
           </Button>
+
+          {isLoading && (
+            <p className="text-sm text-center text-muted-foreground">{statusMessage}</p>
+          )}
         </div>
 
         {error && (

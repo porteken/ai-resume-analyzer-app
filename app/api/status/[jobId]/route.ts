@@ -29,10 +29,10 @@ export async function GET(
     console.log("Making request to:", statusUrl);
 
     const response = await fetch(statusUrl, {
-      method: "GET",
       headers: {
         "x-api-key": API_KEY,
       },
+      method: "GET",
     });
 
     
@@ -40,14 +40,14 @@ export async function GET(
     if (!contentType?.includes("application/json")) {
       const text = await response.text();
       console.error("Non-JSON response:", {
-        status: response.status,
         contentType,
-        preview: text.substring(0, 200),
+        preview: text.slice(0, 200),
+        status: response.status,
       });
       return NextResponse.json(
         {
+          details: text.slice(0, 200),
           error: `External API returned non-JSON response (${response.status}). Check API_ENDPOINT in .env.local`,
-          details: text.substring(0, 200),
         },
         { status: 502 }
       );
@@ -59,8 +59,8 @@ export async function GET(
     console.error("Status API error:", error);
     return NextResponse.json(
       {
-        error: "Failed to check status",
         details: error instanceof Error ? error.message : "Unknown error",
+        error: "Failed to check status",
       },
       { status: 500 }
     );

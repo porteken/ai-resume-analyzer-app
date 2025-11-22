@@ -87,6 +87,12 @@ export default [
     },
   },
   {
+    files: ["lib/**/*.{ts,tsx}"],
+    rules: {
+      "unicorn/prevent-abbreviations": "off",
+    },
+  },
+  {
     plugins: {
       "@next/next": nextPlugin,
     },
@@ -120,11 +126,20 @@ export default [
     },
     rules: {
       ...vitest.configs.recommended.rules,
+      "sonarjs/no-nested-functions": "off",
+      "unicorn/filename-case": "off",
+      "unicorn/prevent-abbreviations": "off",
       "vitest/max-nested-describe": ["error", { max: 3 }],
     },
   },
   {
     ...playwright.configs["flat/recommended"],
     files: ["tests/**"],
+  },
+  {
+    files: ["e2e/**/*.{ts,tsx}"],
+    rules: {
+      "import/named": "off",
+    },
   },
 ];
