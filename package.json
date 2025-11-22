@@ -7,14 +7,15 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest",
+    "test:unit": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
-    "playwright:codegen": "playwright codegen http://localhost:3000"
+    "playwright:codegen": "playwright codegen http://localhost:3000",
+    "prepare": "husky"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.8",
