@@ -8,34 +8,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-
-
-
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 
 const convertFileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
 
-    reader.addEventListener('load', () => {
+    reader.addEventListener("load", () => {
       const result = reader.result as string;
       const base64String = result.split(",")[1];
       resolve(base64String);
     });
 
-    reader.addEventListener('error', () => {
-      reject(new Error(`File reading failed: ${reader.error?.message || "Unknown error"}`));
+    reader.addEventListener("error", () => {
+      reject(
+        new Error(
+          `File reading failed: ${reader.error?.message || "Unknown error"}`,
+        ),
+      );
     });
   });
 };
 
-
 const validateFile = (file: File | null): null | string => {
   if (!file) return "Please provide both a PDF resume and a Job Description.";
 
-  const maxSizeBytes = 5 * 1024 * 1024; 
+  const maxSizeBytes = 5 * 1024 * 1024;
   if (file.size > maxSizeBytes) {
     return `File too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Please use a PDF smaller than 5MB.`;
   }
@@ -43,10 +42,8 @@ const validateFile = (file: File | null): null | string => {
   return null;
 };
 
-
 const uploadResume = async (file: File, jobDescription: string) => {
   const pdfBase64 = await convertFileToBase64(file);
-  console.log("PDF size:", file.size, "bytes", "Base64 length:", pdfBase64.length);
 
   const payload = {
     filename: file.name,
@@ -64,16 +61,19 @@ const uploadResume = async (file: File, jobDescription: string) => {
 
   if (!uploadResponse.ok) {
     const errorData = await uploadResponse.json().catch(() => ({}));
-    throw new Error(errorData.error || errorData.details || `Upload failed with status: ${uploadResponse.status}`);
+    throw new Error(
+      errorData.error ||
+        errorData.details ||
+        `Upload failed with status: ${uploadResponse.status}`,
+    );
   }
 
   return uploadResponse.json();
 };
 
-
 const pollForResults = async (
   jobId: string,
-  onProgress: (message: string) => void
+  onProgress: (message: string) => void,
 ): Promise<string> => {
   const statusUrl = `/api/status/${jobId}`;
   const maxAttempts = 150;
@@ -114,7 +114,10 @@ export default function Home() {
   const handleSubmit = async () => {
     const validationError = validateFile(file);
     if (validationError || !jobDescription) {
-      setError(validationError || "Please provide both a PDF resume and a Job Description.");
+      setError(
+        validationError ||
+          "Please provide both a PDF resume and a Job Description.",
+      );
       return;
     }
 
@@ -126,16 +129,20 @@ export default function Home() {
     try {
       setStatusMessage("Reading PDF file...");
       const uploadData = await uploadResume(file!, jobDescription);
-      console.log("Upload response:", uploadData);
 
       if (uploadData.job_id) {
         setStatusMessage("Analyzing...");
-        const analysisResult = await pollForResults(uploadData.job_id, setStatusMessage);
+        const analysisResult = await pollForResults(
+          uploadData.job_id,
+          setStatusMessage,
+        );
         setResult(analysisResult);
       } else if (uploadData.analysis_result) {
         setResult(uploadData.analysis_result);
       } else {
-        throw new Error("Unexpected response format from server. No job_id or analysis_result found.");
+        throw new Error(
+          "Unexpected response format from server. No job_id or analysis_result found.",
+        );
       }
     } catch (error_: unknown) {
       console.error(error_);
@@ -143,9 +150,21 @@ export default function Home() {
 
       if (error_ instanceof Error) {
         const message = error_.message.toLowerCase();
-        if (message.includes('failed to fetch') || message.includes('networkerror') || message.includes('abort') || message.includes('load failed') || message.includes('network') || message.includes('cancelled')) {
-          errorMessage = "Failed to upload resume. Please check your connection and try again.";
-        } else if (message.includes('server error') || message.includes('internal server error') || message.includes('500')) {
+        if (
+          message.includes("failed to fetch") ||
+          message.includes("networkerror") ||
+          message.includes("abort") ||
+          message.includes("load failed") ||
+          message.includes("network") ||
+          message.includes("cancelled")
+        ) {
+          errorMessage =
+            "Failed to upload resume. Please check your connection and try again.";
+        } else if (
+          message.includes("server error") ||
+          message.includes("internal server error") ||
+          message.includes("500")
+        ) {
           errorMessage = "Internal server error. Please try again later.";
         } else {
           errorMessage = error_.message;
@@ -162,11 +181,13 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-6 bg-slate-50">
       <div className="w-full max-w-lg space-y-6 bg-white p-8 rounded-xl shadow-sm border">
-        
         <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold tracking-tight">AI Resume Analyzer</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            AI Resume Analyzer
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Upload resume to match against job description using Gemini 2.5 Flash.
+            Upload resume to match against job description using Gemini 2.5
+            Flash.
           </p>
         </div>
 
@@ -177,7 +198,9 @@ export default function Home() {
               accept=".pdf"
               disabled={isLoading}
               id="resume"
-              onChange={(event) => setFile(event.target.files ? event.target.files[0] : null)}
+              onChange={(event) =>
+                setFile(event.target.files ? event.target.files[0] : null)
+              }
               type="file"
             />
           </div>
@@ -214,7 +237,9 @@ export default function Home() {
           </Button>
 
           {isLoading && (
-            <p className="text-sm text-center text-muted-foreground">{statusMessage}</p>
+            <p className="text-sm text-center text-muted-foreground">
+              {statusMessage}
+            </p>
           )}
         </div>
 
@@ -232,42 +257,57 @@ export default function Home() {
               <span>Analysis Complete</span>
             </div>
             <div className="prose prose-sm max-w-none">
-              {result.split('\n\n').map((section) => {
-                
-                const lines = section.split('\n');
+              {result.split("\n\n").map((section) => {
+                const lines = section.split("\n");
                 const firstLine = lines[0];
 
-                
-                if (firstLine.startsWith('## ')) {
-                  const heading = firstLine.replace('## ', '');
-                  const content = lines.slice(1).join('\n');
+                if (firstLine.startsWith("## ")) {
+                  const heading = firstLine.replace("## ", "");
+                  const content = lines.slice(1).join("\n");
 
                   return (
                     <div className="space-y-2" key={heading}>
                       <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
-                        {heading.includes('Match Score') && <span className="text-2xl">📊</span>}
-                        {heading.includes('Strengths') && <span className="text-2xl">✨</span>}
-                        {heading.includes('Gaps') && <span className="text-2xl">⚠️</span>}
-                        {heading.includes('Recommendations') && <span className="text-2xl">💡</span>}
+                        {heading.includes("Match Score") && (
+                          <span className="text-2xl">📊</span>
+                        )}
+                        {heading.includes("Strengths") && (
+                          <span className="text-2xl">✨</span>
+                        )}
+                        {heading.includes("Gaps") && (
+                          <span className="text-2xl">⚠️</span>
+                        )}
+                        {heading.includes("Recommendations") && (
+                          <span className="text-2xl">💡</span>
+                        )}
                         {heading}
                       </h3>
                       <div className="pl-4">
-                        {content.split('\n').map((line) => {
-
-                          if (line.startsWith('- ')) {
-                            const lineContent = line.replace('- ', '').replaceAll('**', '');
+                        {content.split("\n").map((line) => {
+                          if (line.startsWith("- ")) {
+                            const lineContent = line
+                              .replace("- ", "")
+                              .replaceAll("**", "");
                             return (
-                              <div className="flex gap-2 mb-2" key={lineContent}>
+                              <div
+                                className="flex gap-2 mb-2"
+                                key={lineContent}
+                              >
                                 <span className="text-slate-400 mt-1">•</span>
-                                <span className="text-slate-700 text-sm flex-1">{lineContent}</span>
+                                <span className="text-slate-700 text-sm flex-1">
+                                  {lineContent}
+                                </span>
                               </div>
                             );
                           }
 
                           if (line.trim()) {
-                            const cleanLine = line.replaceAll('**', '');
+                            const cleanLine = line.replaceAll("**", "");
                             return (
-                              <p className="text-slate-700 text-sm mb-2" key={cleanLine}>
+                              <p
+                                className="text-slate-700 text-sm mb-2"
+                                key={cleanLine}
+                              >
                                 {cleanLine}
                               </p>
                             );
@@ -279,7 +319,6 @@ export default function Home() {
                   );
                 }
 
-                
                 if (section.trim()) {
                   return (
                     <p className="text-slate-700 text-sm" key={section}>
