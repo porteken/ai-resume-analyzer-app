@@ -1,6 +1,6 @@
 # AI Resume Analyzer
 
-A modern web application that intelligently analyzes resumes against job descriptions using Google's Gemini 2.5 Flash AI model. Upload a resume PDF, paste a job description, and receive detailed insights on candidate fit, strengths, gaps, and actionable recommendations.
+A modern web application hosted [here](https://ai-resume-analyzer-app-lake.vercel.app/) that intelligently analyzes resumes against job descriptions using Google's Gemini 2.5 Flash AI model. Upload a resume PDF, paste a job description, and receive detailed insights on candidate fit, strengths, gaps, and actionable recommendations.
 
 ## Features
 
