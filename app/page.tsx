@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle, CheckCircle, Loader2, Upload } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -189,6 +190,9 @@ export default function Home() {
             Upload resume to match against job description using Gemini 2.5
             Flash.
           </p>
+          <Link className="text-sm text-blue-600 hover:underline" href="/about">
+            About
+          </Link>
         </div>
 
         <div className="grid gap-6">

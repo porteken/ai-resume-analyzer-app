@@ -14,6 +14,7 @@ A modern web application that intelligently analyzes resumes against job descrip
 ## Tech Stack
 
 Frontend:
+
 - [Next.js 16](https://nextjs.org/) - React framework with App Router
 - [React 19](https://react.dev/) - UI library
 - [TypeScript](https://www.typescriptlang.org/) - Type safety
@@ -22,10 +23,13 @@ Frontend:
 - [Lucide React](https://lucide.dev/) - Icon library
 
 Backend:
-- Next.js API Routes - Serverless backend
+
+- [AWS SAM](https://aws.amazon.com/serverless/sam/) - Serverless Application Model
+- [AWS Lambda](https://aws.amazon.com/lambda/) - Serverless compute
+- [Amazon API Gateway](https://aws.amazon.com/api-gateway/) - API management
 - External AI API integration (Gemini 2.5 Flash)
 - Async job processing with polling
-
+- [Backend API on GitHub](https://github.com/porteken/ai-resume-analyzer-sam)
 
 ## Usage
 
@@ -37,5 +41,3 @@ Backend:
    - Key Strengths (candidate advantages)
    - Gaps & Areas for Development (missing qualifications)
    - Recommendations (actionable next steps)
-
-

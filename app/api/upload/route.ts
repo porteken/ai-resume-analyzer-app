@@ -23,12 +23,6 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-
-    console.log("Making request to:", API_ENDPOINT);
-    console.log("Request payload keys:", Object.keys(body));
-    console.log("PDF size (base64):", body.pdf_base64?.length || 0, "chars");
-
-    const startTime = Date.now();
     const response = await fetch(API_ENDPOINT, {
       body: JSON.stringify(body),
       headers: {
@@ -37,10 +31,6 @@ export async function POST(request: NextRequest) {
       },
       method: "POST",
     });
-    const duration = Date.now() - startTime;
-
-    console.log("Response received in:", duration, "ms");
-    console.log("Response status:", response.status);
 
     const contentType = response.headers.get("content-type");
     if (!contentType?.includes("application/json")) {
@@ -60,7 +50,6 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-    console.log("Response data keys:", Object.keys(data));
 
     return NextResponse.json(data, { status: response.status });
   } catch (error) {

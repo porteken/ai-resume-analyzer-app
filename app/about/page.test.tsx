@@ -1,0 +1,57 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+
+import About from "./page";
+
+describe("About Page Component", () => {
+  it("should render the main heading", () => {
+    render(<About />);
+    expect(screen.getByText("About AI Resume Analyzer")).toBeInTheDocument();
+  });
+
+  it("should render the app description", () => {
+    render(<About />);
+    expect(
+      screen.getByText(
+        /ai resume analyzer is a web application that helps job seekers/i,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/simply upload your resume as a pdf/i),
+    ).toBeInTheDocument();
+  });
+
+  it("should render GitHub links", () => {
+    render(<About />);
+    const frontendLink = screen.getByText("Frontend App on GitHub");
+    expect(frontendLink).toBeInTheDocument();
+    expect(frontendLink).toHaveAttribute(
+      "href",
+      "https://github.com/porteken/ai-resume-analyzer-app",
+    );
+    expect(frontendLink).toHaveAttribute("target", "_blank");
+    expect(frontendLink).toHaveAttribute("rel", "noopener noreferrer");
+
+    const backendLink = screen.getByText("Backend API on GitHub");
+    expect(backendLink).toBeInTheDocument();
+    expect(backendLink).toHaveAttribute(
+      "href",
+      "https://github.com/porteken/ai-resume-analyzer-sam",
+    );
+    expect(backendLink).toHaveAttribute("target", "_blank");
+    expect(backendLink).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("should render contact email link", () => {
+    render(<About />);
+    const emailLink = screen.getByText("porteken@gmail.com");
+    expect(emailLink).toBeInTheDocument();
+    expect(emailLink).toHaveAttribute("href", "mailto:porteken@gmail.com");
+  });
+
+  it("should render project links and contact sections", () => {
+    render(<About />);
+    expect(screen.getByText("Project Links")).toBeInTheDocument();
+    expect(screen.getByText("Contact")).toBeInTheDocument();
+  });
+});
