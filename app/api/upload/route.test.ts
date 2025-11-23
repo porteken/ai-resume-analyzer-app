@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockApiEndpoint = "https://api.example.com/analyze";
 const mockApiKey = "test-api-key";
@@ -16,6 +16,7 @@ describe("Upload API Route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     globalThis.fetch = vi.fn();
+    vi.spyOn(console, "error").mockImplementation(() => {});
 
     POST = vi.fn(async (request: NextRequest) => {
       const body = await request.json();
@@ -61,6 +62,10 @@ describe("Upload API Route", () => {
         );
       }
     });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("should successfully proxy request to external API", async () => {

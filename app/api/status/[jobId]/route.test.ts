@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockApiEndpoint = "https://api.example.com/upload";
 const mockApiKey = "test-api-key";
@@ -19,6 +19,7 @@ describe("Status API Route", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     globalThis.fetch = vi.fn();
+    vi.spyOn(console, "error").mockImplementation(() => {});
 
     GET = vi.fn(
       async (
@@ -69,6 +70,10 @@ describe("Status API Route", () => {
         }
       },
     );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("should construct correct status URL from upload endpoint", async () => {

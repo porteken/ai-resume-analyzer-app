@@ -1,12 +1,98 @@
-export function createBase64PDF(): string {
-  return 'JVBERi0xLjQKJeLjz9MKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFszIDAgUl0KL0NvdW50IDEKL01lZGlhQm94IFswIDAgNjEyIDc5Ml0KPj4KZW5kb2JqCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA0IDAgUgo+Pgo+PgovQ29udGVudHMgNSAwIFIKPj4KZW5kb2JqCjQgMCBvYmoKPDwKL1R5cGUgL0ZvbnQKL1N1YnR5cGUgL1R5cGUxCi9CYXNlRm9udCAvVGltZXMtUm9tYW4KPj4KZW5kb2JqCjUgMCBvYmoKPDwKL0xlbmd0aCA0NAo+PgpzdHJlYW0KQlQKL0YxIDI0IFRmCjEwMCA3MDAgVGQKKEhlbGxvIFdvcmxkKSBUagpFVAplbmRzdHJlYW0KZW5kb2JqCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxMCAwMDAwMCBuIAowMDAwMDAwMDU5IDAwMDAwIG4gCjAwMDAwMDAxNDYgMDAwMDAgbiAKMDAwMDAwMDI3MyAwMDAwMCBuIAowMDAwMDAwMzYxIDAwMDAwIG4gCnRyYWlsZXIKPDwKL1NpemUgNgovUm9vdCAxIDAgUgo+PgpzdGFydHhyZWYKNDU0CiUlRU9G';
+const PDF_CONTENT = `%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+/MediaBox [0 0 612 792]
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/Resources <<
+/Font <<
+/F1 4 0 R
+>>
+>>
+/Contents 5 0 R
+>>
+endobj
+4 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Times-Roman
+>>
+endobj
+5 0 obj
+<<
+/Length 44
+>>
+stream
+BT
+/F1 24 Tf
+100 700 Td
+(Test Resume) Tj
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f
+0000000010 00000 n
+0000000059 00000 n
+0000000146 00000 n
+0000000273 00000 n
+0000000361 00000 n
+trailer
+<<
+/Size 6
+/Root 1 0 R
+>>
+startxref
+454
+%%EOF`;
+
+export function createExactSizePDF(sizeMB: number): Buffer {
+  const basePDF = createTestPDF();
+  const targetSize = sizeMB * 1024 * 1024;
+  const padding = Buffer.alloc(Math.max(0, targetSize - basePDF.length));
+  return Buffer.concat([basePDF, padding]);
+}
+
+export function createLargePDF(): Buffer {
+  const basePDF = createTestPDF();
+  const padding = Buffer.alloc(6 * 1024 * 1024);
+  return Buffer.concat([basePDF, padding]);
 }
 
 export function createMockFile(
-  content: string = 'test content',
-  filename: string = 'test.pdf',
-  mimeType: string = 'application/pdf'
+  content: Buffer | string = "test content",
+  filename: string = "test.pdf",
+  mimeType: string = "application/pdf",
 ): File {
-  const blob = new Blob([content], { type: mimeType });
+  const blobContent =
+    typeof content === "string" ? content : new Uint8Array(content);
+  const blob = new Blob([blobContent], { type: mimeType });
   return new File([blob], filename, { type: mimeType });
+}
+
+export function createMockLargePDFFile(): File {
+  return createMockFile(createLargePDF(), "large.pdf", "application/pdf");
+}
+
+export function createMockPDFFile(): File {
+  return createMockFile(createTestPDF(), "resume.pdf", "application/pdf");
+}
+
+export function createTestPDF(): Buffer {
+  return Buffer.from(PDF_CONTENT);
 }

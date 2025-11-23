@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import {
+  createExactSizePDF,
   createLargePDF,
   createTestPDF,
   fillJobDescription,
@@ -178,15 +179,12 @@ test.describe("Validation Messages", () => {
 
     const errorText = await page.getByText(/file too large/i).textContent();
 
-    // Check that the error message contains a file size in MB format
     expect(errorText).toContain("MB");
-    expect(errorText).toMatch(/\d/); // Just check that there's at least one digit
+    expect(errorText).toMatch(/\d/);
   });
 
   test("should accept file at exactly 5MB limit", async ({ page }) => {
-    const basePDF = createTestPDF();
-    const padding = Buffer.alloc(5 * 1024 * 1024 - basePDF.length);
-    const exactSizePDF = Buffer.concat([basePDF, padding]);
+    const exactSizePDF = createExactSizePDF(5);
 
     await mockAPIResponses.mockImmediateSuccess(page);
 

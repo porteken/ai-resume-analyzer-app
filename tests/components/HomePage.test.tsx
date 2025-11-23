@@ -1,14 +1,20 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Home from "@/app/page";
-import { createMockFile } from "@/tests/mocks/file";
+import { MOCK_RESPONSES } from "@/tests/mocks/api";
+import { createMockLargePDFFile, createMockPDFFile } from "@/tests/mocks/file";
 
 describe("Home Page Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     globalThis.fetch = vi.fn();
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it("should render the main heading", () => {
@@ -32,7 +38,7 @@ describe("Home Page Component", () => {
     const user = userEvent.setup();
     render(<Home />);
 
-    const file = createMockFile("test content", "resume.pdf");
+    const file = createMockPDFFile();
     const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
     const textarea = screen.getByLabelText(/job description/i);
 
@@ -47,8 +53,7 @@ describe("Home Page Component", () => {
     const user = userEvent.setup();
     render(<Home />);
 
-    const largeContent = "x".repeat(6 * 1024 * 1024);
-    const largeFile = createMockFile(largeContent, "large.pdf");
+    const largeFile = createMockLargePDFFile();
     const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
     const textarea = screen.getByLabelText(/job description/i);
 
@@ -67,7 +72,7 @@ describe("Home Page Component", () => {
     const user = userEvent.setup();
     render(<Home />);
 
-    const file = createMockFile("test content", "resume.pdf");
+    const file = createMockPDFFile();
     const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
 
     await user.upload(fileInput, file);
@@ -79,17 +84,15 @@ describe("Home Page Component", () => {
 
   it("should handle successful upload with immediate result", async () => {
     const user = userEvent.setup();
-    const mockAnalysisResult =
-      "## Match Score\n85% match\n\n## Strengths\n- Strong background";
 
     globalThis.fetch = vi.fn().mockResolvedValue({
-      json: async () => ({ analysis_result: mockAnalysisResult }),
+      json: async () => MOCK_RESPONSES.immediateSuccess,
       ok: true,
     });
 
     render(<Home />);
 
-    const file = createMockFile("test content", "resume.pdf");
+    const file = createMockPDFFile();
     const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
     const textarea = screen.getByLabelText(/job description/i);
 
@@ -108,14 +111,12 @@ describe("Home Page Component", () => {
 
   it("should handle async job with polling", async () => {
     const user = userEvent.setup();
-    const mockJobId = "test-job-123";
-    const mockAnalysisResult = "## Match Score\n90% match";
 
     let pollCount = 0;
     globalThis.fetch = vi.fn().mockImplementation((url) => {
       if (url.includes("/api/upload")) {
         return Promise.resolve({
-          json: async () => ({ job_id: mockJobId }),
+          json: async () => MOCK_RESPONSES.asyncJobInitial,
           ok: true,
         });
       }
@@ -123,15 +124,12 @@ describe("Home Page Component", () => {
         pollCount++;
         if (pollCount >= 2) {
           return Promise.resolve({
-            json: async () => ({
-              analysis_result: mockAnalysisResult,
-              status: "completed",
-            }),
+            json: async () => MOCK_RESPONSES.asyncJobComplete,
             ok: true,
           });
         }
         return Promise.resolve({
-          json: async () => ({ status: "processing" }),
+          json: async () => MOCK_RESPONSES.asyncJobProcessing,
           ok: true,
         });
       }
@@ -140,7 +138,7 @@ describe("Home Page Component", () => {
 
     render(<Home />);
 
-    const file = createMockFile("test content", "resume.pdf");
+    const file = createMockPDFFile();
     const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
     const textarea = screen.getByLabelText(/job description/i);
 
@@ -162,17 +160,14 @@ describe("Home Page Component", () => {
     const user = userEvent.setup();
 
     globalThis.fetch = vi.fn().mockResolvedValue({
-      json: async () => ({
-        details: "Internal server error",
-        error: "Server error",
-      }),
+      json: async () => MOCK_RESPONSES.serverError,
       ok: false,
       status: 500,
     });
 
     render(<Home />);
 
-    const file = createMockFile("test content", "resume.pdf");
+    const file = createMockPDFFile();
     const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
     const textarea = screen.getByLabelText(/job description/i);
 
@@ -190,11 +185,11 @@ describe("Home Page Component", () => {
   it("should handle network errors", async () => {
     const user = userEvent.setup();
 
-    global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
 
     render(<Home />);
 
-    const file = createMockFile("test content", "resume.pdf");
+    const file = createMockPDFFile();
     const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
     const textarea = screen.getByLabelText(/job description/i);
 
@@ -212,13 +207,13 @@ describe("Home Page Component", () => {
   it("should disable inputs during loading", async () => {
     const user = userEvent.setup();
 
-    global.fetch = vi.fn().mockImplementation(
+    globalThis.fetch = vi.fn().mockImplementation(
       () =>
         new Promise((resolve) =>
           setTimeout(
             () =>
               resolve({
-                json: async () => ({ analysis_result: "Test result" }),
+                json: async () => MOCK_RESPONSES.immediateSuccess,
                 ok: true,
               }),
             5000,
@@ -228,7 +223,7 @@ describe("Home Page Component", () => {
 
     render(<Home />);
 
-    const file = createMockFile("test content", "resume.pdf");
+    const file = createMockPDFFile();
     const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
     const textarea = screen.getByLabelText(/job description/i);
 
@@ -247,27 +242,15 @@ describe("Home Page Component", () => {
 
   it("should display markdown sections correctly", async () => {
     const user = userEvent.setup();
-    const mockAnalysisResult = `## Match Score
-85% match to job requirements
-
-## Strengths
-- Strong technical skills
-- Good experience
-
-## Gaps
-- Missing cloud experience
-
-## Recommendations
-- Add AWS certifications`;
 
     globalThis.fetch = vi.fn().mockResolvedValue({
-      json: async () => ({ analysis_result: mockAnalysisResult }),
+      json: async () => MOCK_RESPONSES.immediateSuccess,
       ok: true,
     });
 
     render(<Home />);
 
-    const file = createMockFile("test content", "resume.pdf");
+    const file = createMockPDFFile();
     const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
     const textarea = screen.getByLabelText(/job description/i);
 
@@ -287,18 +270,17 @@ describe("Home Page Component", () => {
 
   it("should handle failed job status", async () => {
     const user = userEvent.setup();
-    const mockJobId = "test-job-failed";
 
     globalThis.fetch = vi.fn().mockImplementation((url) => {
       if (url.includes("/api/upload")) {
         return Promise.resolve({
-          json: async () => ({ job_id: mockJobId }),
+          json: async () => MOCK_RESPONSES.failedJobInitial,
           ok: true,
         });
       }
       if (url.includes("/api/status")) {
         return Promise.resolve({
-          json: async () => ({ error: "PDF parsing failed", status: "failed" }),
+          json: async () => MOCK_RESPONSES.failedJobStatus,
           ok: true,
         });
       }
@@ -307,7 +289,7 @@ describe("Home Page Component", () => {
 
     render(<Home />);
 
-    const file = createMockFile("test content", "resume.pdf");
+    const file = createMockPDFFile();
     const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
     const textarea = screen.getByLabelText(/job description/i);
 
