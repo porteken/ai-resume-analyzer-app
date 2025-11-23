@@ -148,6 +148,7 @@ test.describe("Resume Upload - Mobile", () => {
 
   test("should work on mobile viewport", async ({ page }) => {
     await page.goto("/");
+    await mockAPIResponses.mockImmediateSuccess(page);
 
     await expect(
       page.getByRole("heading", { name: /ai resume analyzer/i }),
