@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 import {
   createExactSizePDF,
@@ -7,6 +7,7 @@ import {
   fillJobDescription,
   mockAPIResponses,
   submitForm,
+  test,
   uploadFile,
 } from "./helpers/fixtures";
 

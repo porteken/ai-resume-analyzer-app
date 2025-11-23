@@ -1,4 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
+
+import { test } from "./helpers/fixtures";
 
 test.describe("About Page", () => {
   test("should display the about page with title and description", async ({

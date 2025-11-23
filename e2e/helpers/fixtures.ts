@@ -1,4 +1,4 @@
-import { Page } from "@playwright/test";
+import { test as base, Page } from "@playwright/test";
 
 import { MOCK_RESPONSES } from "@/tests/mocks/api";
 import {
@@ -6,6 +6,22 @@ import {
   createLargePDF as createLargePDFBuffer,
   createTestPDF as createTestPDFBuffer,
 } from "@/tests/mocks/file";
+
+/**
+ * Extended test with console error suppression
+ */
+export const test = base.extend({
+  page: async ({ page }, use) => {
+    // Suppress expected console errors from the browser
+    page.on("console", (message) => {
+      if (message.type() === "error") {
+        // Suppress expected console errors during tests
+        return;
+      }
+    });
+    await use(page);
+  },
+});
 
 export function createExactSizePDF(sizeMB: number): Buffer {
   return createExactSizePDFBuffer(sizeMB);
