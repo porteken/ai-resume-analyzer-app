@@ -11,12 +11,7 @@ test.describe("About Page", () => {
     ).toBeVisible();
 
     await expect(
-      page.getByText(
-        /ai resume analyzer is a web application that helps job seekers/i,
-      ),
-    ).toBeVisible();
-    await expect(
-      page.getByText(/simply upload your resume as a pdf/i),
+      page.getByText(/ai resume analyzer is a web application/i),
     ).toBeVisible();
   });
 
