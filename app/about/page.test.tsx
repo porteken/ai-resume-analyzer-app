@@ -12,12 +12,7 @@ describe("About Page Component", () => {
   it("should render the app description", () => {
     render(<About />);
     expect(
-      screen.getByText(
-        /ai resume analyzer is a web application that helps job seekers/i,
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/simply upload your resume as a pdf/i),
+      screen.getByText(/ai resume analyzer is a web application/i),
     ).toBeInTheDocument();
   });
 
