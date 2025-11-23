@@ -3,9 +3,6 @@ import type { Page } from "@playwright/test";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-/**
- * Common test selectors
- */
 export const selectors = {
   analysisComplete: /analysis complete/i,
   analyzeButton: /analyze resume/i,
@@ -23,9 +20,6 @@ export const selectors = {
   strengths: /strengths/i,
 } as const;
 
-/**
- * Common test data
- */
 export const testData = {
   files: {
     largePdf: "large.pdf",
@@ -38,9 +32,6 @@ export const testData = {
   },
 } as const;
 
-/**
- * Vitest helper to fill and submit the resume form
- */
 export async function fillAndSubmitForm(options: {
   file: File;
   jobDescription: string;
@@ -56,9 +47,6 @@ export async function fillAndSubmitForm(options: {
   await user.click(button);
 }
 
-/**
- * Playwright helper to fill and submit the resume form
- */
 export async function fillAndSubmitFormPlaywright(
   page: Page,
   options: {

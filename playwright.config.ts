@@ -1,21 +1,14 @@
 import { defineConfig, devices } from "@playwright/test";
 
-/**
- * See https://playwright.dev/docs/test-configuration.
- */
 export default defineConfig({
-  /* Test expect timeout */
   expect: {
     timeout: 10_000,
   },
 
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
 
-  /* Run tests in files in parallel */
   fullyParallel: true,
 
-  /* Configure projects for major browsers */
   projects: [
     {
       name: "chromium",
@@ -32,7 +25,6 @@ export default defineConfig({
       use: { ...devices["Desktop Safari"] },
     },
 
-    /* Test against mobile viewports. */
     {
       name: "Mobile Chrome",
       use: { ...devices["Pixel 5"] },
@@ -43,38 +35,28 @@ export default defineConfig({
     },
   ],
 
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: process.env.CI
     ? [["html"], ["github"], ["list"]]
     : [["html"], ["list"]],
 
-  /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
 
   testDir: "./e2e",
 
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Action timeout */
     actionTimeout: 10_000,
 
-    /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: "http://localhost:3000",
 
-    /* Navigation timeout */
     navigationTimeout: 15_000,
 
-    /* Screenshot on failure */
     screenshot: "only-on-failure",
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
 
-    /* Video on failure for better debugging */
     video: process.env.CI ? "retain-on-failure" : "off",
   },
 
-  /* Run your local dev server before starting the tests */
   webServer: {
     command: "npm run dev",
     reuseExistingServer: !process.env.CI,
@@ -82,6 +64,5 @@ export default defineConfig({
     url: "http://localhost:3000",
   },
 
-  /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
 });
