@@ -1,34 +1,23 @@
 # AI Resume Analyzer
 
-A modern web application hosted [here](https://ai-resume-analyzer-app-lake.vercel.app/) that intelligently analyzes resumes against job descriptions using Google's Gemini 2.5 Flash AI model. Upload a resume PDF, paste a job description, and receive detailed insights on candidate fit, strengths, gaps, and actionable recommendations.
-
-## Features
-
-- AI-Powered Analysis - Powered by Google Gemini 2.5 Flash for accurate resume evaluation
-- Comprehensive Insights - Get match scores, key strengths, skill gaps, and tailored recommendations
-- Beautiful UI - Clean, responsive interface built with Next.js 16, React 19, and Tailwind CSS
-- Real-time Processing - Asynchronous job processing with polling for status updates
-- PDF Support - Direct PDF upload and parsing (max 5MB)
-- Structured Results - Organized analysis with sections, bullet points, and visual indicators
+A web application hosted [here](https://ai-resume-analyzer-app-lake.vercel.app/) that analyzes resumes against job descriptions using Google's Gemini 2.5 Flash AI model and returns insights on candidate fit, strengths, gaps, and recommendations.
 
 ## Tech Stack
 
 Frontend:
 
-- [Next.js 16](https://nextjs.org/) - React framework with App Router
-- [React 19](https://react.dev/) - UI library
-- [TypeScript](https://www.typescriptlang.org/) - Type safety
-- [Tailwind CSS 4](https://tailwindcss.com/) - Styling
-- [shadcn/ui](https://ui.shadcn.com/) - UI component library
-- [Lucide React](https://lucide.dev/) - Icon library
+- [Next.js 16](https://nextjs.org/)
+- [React 19](https://react.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS 4](https://tailwindcss.com/)
+- [shadcn/ui](https://ui.shadcn.com/)
+- [Lucide React](https://lucide.dev/)
 
 Backend:
 
-- [AWS SAM](https://aws.amazon.com/serverless/sam/) - Serverless Application Model
-- [AWS Lambda](https://aws.amazon.com/lambda/) - Serverless compute
-- [Amazon API Gateway](https://aws.amazon.com/api-gateway/) - API management
-- External AI API integration (Gemini 2.5 Flash)
-- Async job processing with polling
+- [AWS SAM](https://aws.amazon.com/serverless/sam/)
+- [AWS Lambda](https://aws.amazon.com/lambda/)
+- [Amazon API Gateway](https://aws.amazon.com/api-gateway/)
 - [Backend API on GitHub](https://github.com/porteken/ai-resume-analyzer-sam)
 
 ## Usage
@@ -37,7 +26,7 @@ Backend:
 2. Add Job Description - Paste the job description in the text area
 3. Analyze - Click "Analyze Resume" to start the analysis
 4. Review Results - View the structured analysis with:
-   - Match Score (percentage fit)
-   - Key Strengths (candidate advantages)
-   - Gaps & Areas for Development (missing qualifications)
-   - Recommendations (actionable next steps)
+   - Match Score
+   - Key Strengths
+   - Gaps & Areas for Development
+   - Recommendations
