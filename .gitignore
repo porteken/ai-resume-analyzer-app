@@ -8,7 +8,7 @@
 !.yarn/versions
 
 /coverage
-
+/playwright-report
 /.next/
 /out/
 
