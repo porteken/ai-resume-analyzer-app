@@ -7,9 +7,6 @@ import {
   createTestPDF as createTestPDFBuffer,
 } from "@/tests/mocks/file";
 
-/**
- * Extended test with console error suppression
- */
 export const test = base.extend({
   page: async ({ page }, use) => {
     page.on("console", (message) => {
@@ -33,25 +30,16 @@ export function createTestPDF(): Buffer {
   return createTestPDFBuffer();
 }
 
-/**
- * Helper to fill in the job description
- */
 export async function fillJobDescription(page: Page, description: string) {
   const textarea = page.getByLabel(/job description/i);
   await textarea.fill(description);
 }
 
-/**
- * Helper to submit the form
- */
 export async function submitForm(page: Page) {
   const button = page.getByRole("button", { name: /analyze resume/i });
   await button.click();
 }
 
-/**
- * Helper to upload a file to the page
- */
 export async function uploadFile(
   page: Page,
   fileContent: Buffer,
@@ -65,13 +53,7 @@ export async function uploadFile(
   });
 }
 
-/**
- * Mock API responses for testing
- */
 export const mockAPIResponses = {
-  /**
-   * Mock async job response with polling
-   */
   async mockAsyncJob(
     page: Page,
     jobId: string = MOCK_RESPONSES.asyncJobInitial.job_id,
@@ -103,9 +85,6 @@ export const mockAPIResponses = {
     });
   },
 
-  /**
-   * Mock failed job
-   */
   async mockFailedJob(
     page: Page,
     jobId: string = MOCK_RESPONSES.failedJobInitial.job_id,
@@ -127,9 +106,6 @@ export const mockAPIResponses = {
     });
   },
 
-  /**
-   * Mock successful immediate response
-   */
   async mockImmediateSuccess(page: Page) {
     await page.route("**/api/upload", async (route) => {
       await route.fulfill({
@@ -140,18 +116,12 @@ export const mockAPIResponses = {
     });
   },
 
-  /**
-   * Mock network error
-   */
   async mockNetworkError(page: Page) {
     await page.route("**/api/upload", async (route) => {
       await route.abort("failed");
     });
   },
 
-  /**
-   * Mock server error
-   */
   async mockServerError(page: Page) {
     await page.route("**/api/upload", async (route) => {
       await route.fulfill({
