@@ -12,10 +12,8 @@ import {
  */
 export const test = base.extend({
   page: async ({ page }, use) => {
-    // Suppress expected console errors from the browser
     page.on("console", (message) => {
       if (message.type() === "error") {
-        // Suppress expected console errors during tests
         return;
       }
     });
