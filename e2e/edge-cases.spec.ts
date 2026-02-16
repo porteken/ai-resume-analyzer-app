@@ -15,7 +15,7 @@ test.describe("Edge Cases", () => {
     await page.goto("/");
   });
 
-  test.skip("should handle empty job description with whitespace only", async ({
+  test("should handle empty job description with whitespace only", async ({
     page,
   }) => {
     const pdfFile = createTestPDF();
@@ -213,7 +213,7 @@ test.describe("Edge Cases", () => {
     });
   });
 
-  test.skip("should handle missing analysis_result in completed status", async ({
+  test("should handle missing analysis_result in completed status", async ({
     page,
   }) => {
     const jobId = "incomplete-job-123";

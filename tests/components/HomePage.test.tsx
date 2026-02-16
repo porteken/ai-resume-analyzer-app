@@ -4,7 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Home from "@/app/page";
 import { MOCK_RESPONSES } from "@/tests/mocks/api";
-import { createMockLargePDFFile, createMockPDFFile } from "@/tests/mocks/file";
+import {
+  createMockFile,
+  createMockLargePDFFile,
+  createMockPDFFile,
+} from "@/tests/mocks/file";
 
 describe("Home Page Component", () => {
   beforeEach(() => {
@@ -49,6 +53,21 @@ describe("Home Page Component", () => {
     await expect(button).toBeEnabled();
   });
 
+  it("should keep button disabled for whitespace-only job description", async () => {
+    const user = userEvent.setup();
+    render(<Home />);
+
+    const file = createMockPDFFile();
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
+    const textarea = screen.getByLabelText(/job description/i);
+
+    await user.upload(fileInput, file);
+    await user.type(textarea, "   ");
+
+    const button = screen.getByRole("button", { name: /analyze resume/i });
+    await expect(button).toBeDisabled();
+  });
+
   it("should show error when file is too large", async () => {
     const user = userEvent.setup();
     render(<Home />);
@@ -65,6 +84,25 @@ describe("Home Page Component", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/file too large/i)).toBeInTheDocument();
+    });
+  });
+
+  it("should show error when uploaded file is not a PDF", async () => {
+    const user = userEvent.setup();
+    render(<Home />);
+
+    const textFile = createMockFile("plain text", "resume.pdf", "text/plain");
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
+    const textarea = screen.getByLabelText(/job description/i);
+
+    await user.upload(fileInput, textFile);
+    await user.type(textarea, "Software Engineer");
+
+    const button = screen.getByRole("button", { name: /analyze resume/i });
+    await user.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByText(/please upload a pdf file/i)).toBeInTheDocument();
     });
   });
 
@@ -180,6 +218,7 @@ describe("Home Page Component", () => {
     await waitFor(() => {
       expect(screen.getByText(/server error/i)).toBeInTheDocument();
     });
+    expect(screen.getByRole("alert")).toBeInTheDocument();
   });
 
   it("should handle network errors", async () => {
@@ -238,6 +277,7 @@ describe("Home Page Component", () => {
       await expect(textarea).toBeDisabled();
       await expect(button).toBeDisabled();
     });
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("should display markdown sections correctly", async () => {

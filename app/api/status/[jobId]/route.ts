@@ -3,6 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 const API_ENDPOINT =
   process.env.NEXT_PUBLIC_API_ENDPOINT || process.env.API_ENDPOINT;
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || process.env.API_KEY;
+const UPSTREAM_TIMEOUT_MS = 30_000;
+
+const isTimeoutError = (error: unknown): boolean => {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return error.name === "AbortError" || error.name === "TimeoutError";
+};
 
 export async function GET(
   request: NextRequest,
@@ -25,14 +34,16 @@ export async function GET(
 
     const { jobId } = await params;
 
-    const baseUrl = API_ENDPOINT.replace("/upload", "");
-    const statusUrl = `${baseUrl}/status/${jobId}`;
+    const baseUrl = API_ENDPOINT.replace(/\/upload\/?$/, "");
+    const encodedJobId = encodeURIComponent(jobId);
+    const statusUrl = `${baseUrl}/status/${encodedJobId}`;
 
     const response = await fetch(statusUrl, {
       headers: {
         "x-api-key": API_KEY,
       },
       method: "GET",
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     });
 
     const contentType = response.headers.get("content-type");
@@ -55,6 +66,16 @@ export async function GET(
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
+    if (isTimeoutError(error)) {
+      return NextResponse.json(
+        {
+          details: `External API did not respond within ${UPSTREAM_TIMEOUT_MS / 1000} seconds`,
+          error: "Upstream API request timed out",
+        },
+        { status: 504 },
+      );
+    }
+
     console.error("Status API error:", error);
     return NextResponse.json(
       {

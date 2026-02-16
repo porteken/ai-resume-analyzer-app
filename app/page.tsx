@@ -35,9 +35,27 @@ const convertFileToBase64 = (file: File): Promise<string> => {
 const validateFile = (file: File | null): null | string => {
   if (!file) return "Please provide both a PDF resume and a Job Description.";
 
+  const hasPdfExtension = file.name.toLowerCase().endsWith(".pdf");
+  if (!hasPdfExtension) {
+    return "Please upload a PDF file.";
+  }
+
+  const hasPdfMimeType = file.type === "application/pdf";
+  if (file.type && !hasPdfMimeType) {
+    return "Please upload a PDF file.";
+  }
+
   const maxSizeBytes = 5 * 1024 * 1024;
   if (file.size > maxSizeBytes) {
     return `File too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Please use a PDF smaller than 5MB.`;
+  }
+
+  return null;
+};
+
+const validateJobDescription = (jobDescription: string): null | string => {
+  if (!jobDescription.trim()) {
+    return "Please provide both a PDF resume and a Job Description.";
   }
 
   return null;
@@ -91,6 +109,13 @@ const pollForResults = async (
     const { status } = statusData;
 
     if (status === "completed") {
+      if (
+        typeof statusData.analysis_result !== "string" ||
+        !statusData.analysis_result.trim()
+      ) {
+        throw new Error("Analysis completed, but no result was returned.");
+      }
+
       return statusData.analysis_result;
     }
 
@@ -113,12 +138,10 @@ export default function Home() {
   const [error, setError] = useState<null | string>(null);
 
   const handleSubmit = async () => {
-    const validationError = validateFile(file);
-    if (validationError || !jobDescription) {
-      setError(
-        validationError ||
-          "Please provide both a PDF resume and a Job Description.",
-      );
+    const validationError =
+      validateFile(file) || validateJobDescription(jobDescription);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -129,7 +152,7 @@ export default function Home() {
 
     try {
       setStatusMessage("Reading PDF file...");
-      const uploadData = await uploadResume(file!, jobDescription);
+      const uploadData = await uploadResume(file!, jobDescription.trim());
 
       if (uploadData.job_id) {
         setStatusMessage("Analyzing...");
@@ -224,7 +247,7 @@ export default function Home() {
           <Button
             aria-label="Analyze Resume"
             className="w-full"
-            disabled={isLoading || !file || !jobDescription}
+            disabled={isLoading || !file || !jobDescription.trim()}
             onClick={handleSubmit}
           >
             {isLoading ? (
@@ -241,14 +264,23 @@ export default function Home() {
           </Button>
 
           {isLoading && (
-            <p className="text-sm text-center text-muted-foreground">
+            <p
+              aria-atomic
+              aria-live="polite"
+              className="text-sm text-center text-muted-foreground"
+              role="status"
+            >
               {statusMessage}
             </p>
           )}
         </div>
 
         {error && (
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-600 flex items-start gap-2">
+          <div
+            aria-live="assertive"
+            className="rounded-md bg-red-50 p-4 text-sm text-red-600 flex items-start gap-2"
+            role="alert"
+          >
             <AlertCircle className="h-5 w-5 shrink-0" />
             <span>{error}</span>
           </div>

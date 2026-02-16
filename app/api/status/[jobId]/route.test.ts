@@ -4,95 +4,44 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mockApiEndpoint = "https://api.example.com/upload";
 const mockApiKey = "test-api-key";
 
-vi.mock("./route", () => {
-  return {
-    GET: vi.fn(),
-  };
+const loadGetHandler = async () => {
+  const routeModule = await import("./route");
+  return routeModule.GET;
+};
+
+const createRequest = (jobId: string) =>
+  new NextRequest(`http://localhost:3000/api/status/${jobId}`);
+
+const createContext = (jobId: string) => ({
+  params: Promise.resolve({ jobId }),
 });
 
 describe("Status API Route", () => {
-  let GET: (
-    request: NextRequest,
-    context: { params: Promise<{ jobId: string }> },
-  ) => Promise<Response>;
-
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.clearAllMocks();
-    globalThis.fetch = vi.fn();
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", mockApiEndpoint);
+    vi.stubEnv("NEXT_PUBLIC_API_KEY", mockApiKey);
     vi.spyOn(console, "error").mockImplementation(() => {});
-
-    GET = vi.fn(
-      async (
-        request: NextRequest,
-        { params }: { params: Promise<{ jobId: string }> },
-      ) => {
-        const { jobId } = await params;
-
-        const baseUrl = mockApiEndpoint.replace("/upload", "");
-        const statusUrl = `${baseUrl}/status/${jobId}`;
-
-        try {
-          const response = await globalThis.fetch(statusUrl, {
-            headers: {
-              "x-api-key": mockApiKey,
-            },
-            method: "GET",
-          });
-
-          const contentType = response.headers.get("content-type");
-          if (!contentType?.includes("application/json")) {
-            const text = await response.text();
-            console.error("Non-JSON response:", {
-              contentType,
-              preview: text.slice(0, 200),
-              status: response.status,
-            });
-            return Response.json(
-              {
-                details: text.slice(0, 200),
-                error: `External API returned non-JSON response (${response.status}). Check API_ENDPOINT in .env.local`,
-              },
-              { status: 502 },
-            );
-          }
-
-          const data = await response.json();
-          return Response.json(data, { status: response.status });
-        } catch (error) {
-          console.error("Status API error:", error);
-          return Response.json(
-            {
-              details: error instanceof Error ? error.message : "Unknown error",
-              error: "Failed to check status",
-            },
-            { status: 500 },
-          );
-        }
-      },
-    );
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
   });
 
-  it("should construct correct status URL from upload endpoint", async () => {
-    const mockResponseData = { status: "processing" };
-
-    globalThis.fetch = vi.fn().mockResolvedValue({
+  it("should construct the status URL from upload endpoint", async () => {
+    const mockedFetch = vi.fn().mockResolvedValue({
       headers: new Headers({ "content-type": "application/json" }),
-      json: async () => mockResponseData,
+      json: async () => ({ status: "processing" }),
       status: 200,
     });
+    globalThis.fetch = mockedFetch as typeof fetch;
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/status/test-job-123",
-    );
-    const parameters = Promise.resolve({ jobId: "test-job-123" });
+    const GET = await loadGetHandler();
+    await GET(createRequest("test-job-123"), createContext("test-job-123"));
 
-    await GET(request, { params: parameters });
-
-    expect(globalThis.fetch).toHaveBeenCalledWith(
+    expect(mockedFetch).toHaveBeenCalledWith(
       "https://api.example.com/status/test-job-123",
       expect.objectContaining({
         headers: {
@@ -103,103 +52,84 @@ describe("Status API Route", () => {
     );
   });
 
-  it("should return processing status", async () => {
-    const mockResponseData = { job_id: "123", status: "processing" };
-
-    globalThis.fetch = vi.fn().mockResolvedValue({
+  it("should URL-encode special characters in job ID", async () => {
+    const mockedFetch = vi.fn().mockResolvedValue({
       headers: new Headers({ "content-type": "application/json" }),
-      json: async () => mockResponseData,
+      json: async () => ({ status: "processing" }),
       status: 200,
     });
+    globalThis.fetch = mockedFetch as typeof fetch;
 
-    const request = new NextRequest("http://localhost:3000/api/status/123");
-    const parameters = Promise.resolve({ jobId: "123" });
+    const jobId = "job/123?x=1";
+    const GET = await loadGetHandler();
+    await GET(createRequest(jobId), createContext(jobId));
 
-    const response = await GET(request, { params: parameters });
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.status).toBe("processing");
+    expect(mockedFetch).toHaveBeenCalledWith(
+      "https://api.example.com/status/job%2F123%3Fx%3D1",
+      expect.any(Object),
+    );
   });
 
-  it("should return completed status with analysis result", async () => {
-    const mockResponseData = {
-      analysis_result: "Analysis complete with 85% match",
-      job_id: "123",
-      status: "completed",
-    };
+  it("should return 500 if required env vars are missing", async () => {
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
+    vi.stubEnv("NEXT_PUBLIC_API_KEY", "");
 
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      headers: new Headers({ "content-type": "application/json" }),
-      json: async () => mockResponseData,
-      status: 200,
-    });
+    const mockedFetch = vi.fn();
+    globalThis.fetch = mockedFetch as typeof fetch;
 
-    const request = new NextRequest("http://localhost:3000/api/status/123");
-    const parameters = Promise.resolve({ jobId: "123" });
-
-    const response = await GET(request, { params: parameters });
+    const GET = await loadGetHandler();
+    const response = await GET(createRequest("123"), createContext("123"));
     const data = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(data.status).toBe("completed");
-    expect(data.analysis_result).toBeDefined();
-  });
-
-  it("should return failed status with error", async () => {
-    const mockResponseData = {
-      error: "Analysis failed due to invalid PDF",
-      job_id: "123",
-      status: "failed",
-    };
-
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      headers: new Headers({ "content-type": "application/json" }),
-      json: async () => mockResponseData,
-      status: 200,
-    });
-
-    const request = new NextRequest("http://localhost:3000/api/status/123");
-    const parameters = Promise.resolve({ jobId: "123" });
-
-    const response = await GET(request, { params: parameters });
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.status).toBe("failed");
-    expect(data.error).toBeDefined();
+    expect(response.status).toBe(500);
+    expect(data.error).toContain("Server configuration error");
+    expect(mockedFetch).not.toHaveBeenCalled();
   });
 
   it("should handle non-JSON responses from external API", async () => {
-    globalThis.fetch = vi.fn().mockResolvedValue({
+    const mockedFetch = vi.fn().mockResolvedValue({
       headers: new Headers({ "content-type": "text/html" }),
       status: 404,
       text: async () => "<html>Not Found</html>",
     });
+    globalThis.fetch = mockedFetch as typeof fetch;
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/status/invalid-id",
+    const GET = await loadGetHandler();
+    const response = await GET(
+      createRequest("invalid-id"),
+      createContext("invalid-id"),
     );
-    const parameters = Promise.resolve({ jobId: "invalid-id" });
-
-    const response = await GET(request, { params: parameters });
     const data = await response.json();
 
     expect(response.status).toBe(502);
     expect(data.error).toContain("non-JSON response");
   });
 
-  it("should handle fetch errors", async () => {
-    globalThis.fetch = vi
+  it("should return 504 for timeout errors", async () => {
+    const timeoutError = Object.assign(new Error("Request timeout"), {
+      name: "TimeoutError",
+    });
+    const mockedFetch = vi.fn().mockRejectedValue(timeoutError);
+    globalThis.fetch = mockedFetch as typeof fetch;
+
+    const GET = await loadGetHandler();
+    const response = await GET(createRequest("123"), createContext("123"));
+    const data = await response.json();
+
+    expect(response.status).toBe(504);
+    expect(data.error).toBe("Upstream API request timed out");
+  });
+
+  it("should handle non-timeout fetch errors", async () => {
+    const mockedFetch = vi
       .fn()
       .mockImplementation(() =>
         Promise.reject(new Error("Connection timeout")),
       );
+    globalThis.fetch = mockedFetch as typeof fetch;
 
-    const request = new NextRequest("http://localhost:3000/api/status/123");
-    const parameters = Promise.resolve({ jobId: "123" });
-
-    const response = await GET(request, { params: parameters });
+    const GET = await loadGetHandler();
+    const response = await GET(createRequest("123"), createContext("123"));
     const data = await response.json();
 
     expect(response.status).toBe(500);
@@ -207,45 +137,19 @@ describe("Status API Route", () => {
     expect(data.details).toBe("Connection timeout");
   });
 
-  it("should handle job IDs with special characters", async () => {
-    const specialJobId = "job-123-abc_456";
-    const mockResponseData = { job_id: specialJobId, status: "processing" };
-
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      headers: new Headers({ "content-type": "application/json" }),
-      json: async () => mockResponseData,
-      status: 200,
-    });
-
-    const request = new NextRequest(
-      `http://localhost:3000/api/status/${specialJobId}`,
-    );
-    const parameters = Promise.resolve({ jobId: specialJobId });
-
-    const response = await GET(request, { params: parameters });
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.job_id).toBe(specialJobId);
-    expect(globalThis.fetch).toHaveBeenCalledWith(
-      `https://api.example.com/status/${specialJobId}`,
-      expect.any(Object),
-    );
-  });
-
   it("should forward API response status codes", async () => {
-    globalThis.fetch = vi.fn().mockResolvedValue({
+    const mockedFetch = vi.fn().mockResolvedValue({
       headers: new Headers({ "content-type": "application/json" }),
       json: async () => ({ error: "Job not found" }),
       status: 404,
     });
+    globalThis.fetch = mockedFetch as typeof fetch;
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/status/nonexistent",
+    const GET = await loadGetHandler();
+    const response = await GET(
+      createRequest("nonexistent"),
+      createContext("nonexistent"),
     );
-    const parameters = Promise.resolve({ jobId: "nonexistent" });
-
-    const response = await GET(request, { params: parameters });
     const data = await response.json();
 
     expect(response.status).toBe(404);

@@ -3,8 +3,17 @@ import { NextRequest, NextResponse } from "next/server";
 const API_ENDPOINT =
   process.env.NEXT_PUBLIC_API_ENDPOINT || process.env.API_ENDPOINT;
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
+const UPSTREAM_TIMEOUT_MS = 30_000;
 
 export const maxDuration = 300;
+
+const isTimeoutError = (error: unknown): boolean => {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return error.name === "AbortError" || error.name === "TimeoutError";
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,6 +39,7 @@ export async function POST(request: NextRequest) {
         "x-api-key": API_KEY,
       },
       method: "POST",
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     });
 
     const contentType = response.headers.get("content-type");
@@ -53,6 +63,16 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
+    if (isTimeoutError(error)) {
+      return NextResponse.json(
+        {
+          details: `External API did not respond within ${UPSTREAM_TIMEOUT_MS / 1000} seconds`,
+          error: "Upstream API request timed out",
+        },
+        { status: 504 },
+      );
+    }
+
     console.error("Upload API error:", error);
     return NextResponse.json(
       {
