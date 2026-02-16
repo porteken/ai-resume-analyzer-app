@@ -239,7 +239,9 @@ test.describe("Edge Cases", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(page.getByText(/unexpected|error/i)).toBeVisible({
+    await expect(
+      page.getByText(/no result was returned|unexpected|error/i),
+    ).toBeVisible({
       timeout: 10_000,
     });
   });
