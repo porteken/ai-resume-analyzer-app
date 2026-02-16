@@ -2,7 +2,6 @@
   "playwright.env": {
     "NODE_ENV": "test"
   },
-  "chat.tools.autoApprove": true,
   "tailwindCSS.experimental.classRegex": [
     ["className\\s*:\\s*['\"]([^'\"]*)['\"]"]
   ],
