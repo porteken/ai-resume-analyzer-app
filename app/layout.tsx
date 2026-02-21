@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   description:
-    "Upload your resume to match against any job description using Gemini 2.5 Flash AI.",
+    "Upload your resume to match against any job description using Gemini 3.5 Flash AI.",
   title: "AI Resume Analyzer",
 };
 
