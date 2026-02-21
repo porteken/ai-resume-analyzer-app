@@ -8,6 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+const toAscii = (text: string): string =>
+  text
+    .replaceAll(/[\u2018\u2019]/g, "'")
+    .replaceAll(/[\u201C\u201D]/g, '"')
+    .replaceAll(/[\u2013\u2014]/g, "-")
+    .replaceAll("\u2026", "...")
+    // eslint-disable-next-line no-control-regex
+    .replaceAll(/[^\u0000-\u007F]/g, "");
+
 interface ResumeUploaderProperties {
   isLoading: boolean;
   onSubmit: (file: File | null, jobDescription: string) => Promise<void>;
@@ -23,7 +32,11 @@ export const ResumeUploader = ({
   const [jobDescription, setJobDescription] = useState("");
 
   const handleSubmit = useCallback(() => {
-    onSubmit(file, jobDescription);
+    const cleanedDescription = toAscii(
+      jobDescription.trim().replaceAll(/\s+/g, " "),
+    );
+    setJobDescription(cleanedDescription);
+    onSubmit(file, cleanedDescription);
   }, [file, jobDescription, onSubmit]);
 
   return (

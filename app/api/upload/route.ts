@@ -6,6 +6,7 @@ import {
   isTimeoutError,
   UPSTREAM_TIMEOUT_MS,
 } from "@/lib/api-utils";
+import { validateJobDescription } from "@/lib/job-description";
 
 export const maxDuration = 300;
 
@@ -40,6 +41,19 @@ export async function POST(request: NextRequest) {
         400,
         "Request body must be a JSON object.",
       );
+    }
+
+    const jobDescription = (body as { job_description?: unknown })
+      .job_description;
+    if (typeof jobDescription === "string") {
+      const jobDescriptionError = validateJobDescription(jobDescription);
+      if (jobDescriptionError) {
+        return createErrorResponse(
+          "Invalid job description",
+          400,
+          jobDescriptionError,
+        );
+      }
     }
 
     const response = await fetch(apiConfig.apiEndpoint, {

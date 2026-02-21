@@ -1,3 +1,5 @@
+export { validateJobDescription } from "@/lib/job-description";
+
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -42,13 +44,6 @@ export const validateFile = (file: File | null): null | string => {
 
   return null;
 };
-
-export const validateJobDescription = (
-  jobDescription: string,
-): null | string =>
-  jobDescription.trim()
-    ? null
-    : "Please provide both a PDF resume and a Job Description.";
 
 interface UploadResumeResponse {
   analysis_result?: string;

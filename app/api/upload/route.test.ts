@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { MAX_JOB_DESCRIPTION_CHARS } from "@/lib/job-description";
+
 const mockApiEndpoint = "https://api.example.com/analyze";
 const mockApiKey = "test-api-key";
 
@@ -162,6 +164,23 @@ describe("Upload API Route", () => {
 
     expect(response.status).toBe(400);
     expect(data.error).toBe("Invalid request body");
+    expect(mockedFetch).not.toHaveBeenCalled();
+  });
+
+  it("should return 400 for overly long job descriptions", async () => {
+    const mockedFetch = vi.fn();
+    globalThis.fetch = mockedFetch as typeof fetch;
+
+    const POST = await loadPostHandler();
+    const longDescription = "a".repeat(MAX_JOB_DESCRIPTION_CHARS + 1);
+    const response = await POST(
+      createRequest({ job_description: longDescription, pdf_base64: "test" }),
+    );
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe("Invalid job description");
+    expect(data.details).toContain("too long");
     expect(mockedFetch).not.toHaveBeenCalled();
   });
 

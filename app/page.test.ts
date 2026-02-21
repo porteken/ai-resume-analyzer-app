@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { convertFileToBase64, sleep, validateFile } from "@/lib/resume-utils";
+import { MAX_JOB_DESCRIPTION_CHARS } from "@/lib/job-description";
+import {
+  convertFileToBase64,
+  sleep,
+  validateFile,
+  validateJobDescription,
+} from "@/lib/resume-utils";
 import { createMockFile } from "@/tests/mocks/file";
 
 describe("Helper Functions", () => {
@@ -106,6 +112,27 @@ describe("Helper Functions", () => {
 
       const result = validateFile(file);
       expect(result).toBeNull();
+    });
+  });
+
+  describe("validateJobDescription", () => {
+    it("should return error for empty job description", () => {
+      const result = validateJobDescription("   ");
+      expect(result).toBe(
+        "Please provide both a PDF resume and a Job Description.",
+      );
+    });
+
+    it("should return null for valid job description", () => {
+      const result = validateJobDescription("Software Engineer position");
+      expect(result).toBeNull();
+    });
+
+    it("should return error for descriptions that exceed the character limit", () => {
+      const tooLongDescription = "a".repeat(MAX_JOB_DESCRIPTION_CHARS + 1);
+      const result = validateJobDescription(tooLongDescription);
+      expect(result).toContain("Job description is too long");
+      expect(result).toContain(`${MAX_JOB_DESCRIPTION_CHARS}`);
     });
   });
 });
