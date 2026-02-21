@@ -18,8 +18,8 @@ export const createErrorResponse = (
 };
 
 export const getApiConfig = (): ApiConfig | null => {
-  const apiEndpoint = process.env.API_ENDPOINT;
-  const apiKey = process.env.API_KEY;
+  const apiEndpoint = process.env.NEXT_PUBLIC_API_ENDPOINT;
+  const apiKey = process.env.NEXT_PUBLIC_API_KEY;
 
   if (!apiEndpoint || !apiKey) {
     console.error("Missing environment variables:", {
