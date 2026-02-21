@@ -15,6 +15,12 @@ const createRequest = (body: object) =>
     method: "POST",
   });
 
+const createRawRequest = (body: string) =>
+  new NextRequest("http://localhost:3000/api/upload", {
+    body,
+    method: "POST",
+  });
+
 describe("Upload API Route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -131,6 +137,32 @@ describe("Upload API Route", () => {
     expect(response.status).toBe(500);
     expect(data.error).toBe("Failed to upload resume");
     expect(data.details).toBe("Network error");
+  });
+
+  it("should return 400 for invalid JSON body", async () => {
+    const mockedFetch = vi.fn();
+    globalThis.fetch = mockedFetch as typeof fetch;
+
+    const POST = await loadPostHandler();
+    const response = await POST(createRawRequest("{"));
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe("Invalid request body");
+    expect(mockedFetch).not.toHaveBeenCalled();
+  });
+
+  it("should return 400 for non-object JSON body", async () => {
+    const mockedFetch = vi.fn();
+    globalThis.fetch = mockedFetch as typeof fetch;
+
+    const POST = await loadPostHandler();
+    const response = await POST(createRawRequest(JSON.stringify("invalid")));
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe("Invalid request body");
+    expect(mockedFetch).not.toHaveBeenCalled();
   });
 
   it("should forward API response status codes", async () => {

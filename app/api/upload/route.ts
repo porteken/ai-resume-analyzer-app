@@ -19,7 +19,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        return createErrorResponse(
+          "Invalid request body",
+          400,
+          "Request body must be valid JSON.",
+        );
+      }
+
+      throw error;
+    }
+
+    if (typeof body !== "object" || body === null || Array.isArray(body)) {
+      return createErrorResponse(
+        "Invalid request body",
+        400,
+        "Request body must be a JSON object.",
+      );
+    }
+
     const response = await fetch(apiConfig.apiEndpoint, {
       body: JSON.stringify(body),
       headers: {
