@@ -1,50 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { convertFileToBase64, sleep, validateFile } from "@/lib/resume-utils";
 import { createMockFile } from "@/tests/mocks/file";
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const convertFileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-
-    reader.addEventListener("load", () => {
-      const result = reader.result as string;
-      const base64String = result.split(",")[1];
-      resolve(base64String);
-    });
-
-    reader.addEventListener("error", () => {
-      reject(
-        new Error(
-          `File reading failed: ${reader.error?.message || "Unknown error"}`,
-        ),
-      );
-    });
-  });
-};
-
-const validateFile = (file: File | null): null | string => {
-  if (!file) return "Please provide both a PDF resume and a Job Description.";
-
-  const hasPdfExtension = file.name.toLowerCase().endsWith(".pdf");
-  if (!hasPdfExtension) {
-    return "Please upload a PDF file.";
-  }
-
-  const hasPdfMimeType = file.type === "application/pdf";
-  if (file.type && !hasPdfMimeType) {
-    return "Please upload a PDF file.";
-  }
-
-  const maxSizeBytes = 5 * 1024 * 1024;
-  if (file.size > maxSizeBytes) {
-    return `File too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Please use a PDF smaller than 5MB.`;
-  }
-
-  return null;
-};
 
 describe("Helper Functions", () => {
   describe("sleep", () => {

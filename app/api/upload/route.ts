@@ -1,42 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_ENDPOINT =
-  process.env.NEXT_PUBLIC_API_ENDPOINT || process.env.API_ENDPOINT;
-const API_KEY = process.env.NEXT_PUBLIC_API_KEY;
-const UPSTREAM_TIMEOUT_MS = 30_000;
+import {
+  createErrorResponse,
+  getApiConfig,
+  isTimeoutError,
+  UPSTREAM_TIMEOUT_MS,
+} from "@/lib/api-utils";
 
 export const maxDuration = 300;
 
-const isTimeoutError = (error: unknown): boolean => {
-  if (!(error instanceof Error)) {
-    return false;
-  }
-
-  return error.name === "AbortError" || error.name === "TimeoutError";
-};
-
 export async function POST(request: NextRequest) {
   try {
-    if (!API_ENDPOINT || !API_KEY) {
-      console.error("Missing environment variables:", {
-        hasEndpoint: !!API_ENDPOINT,
-        hasKey: !!API_KEY,
-      });
-      return NextResponse.json(
-        {
-          error:
-            "Server configuration error: Missing API_ENDPOINT or API_KEY in .env.local",
-        },
-        { status: 500 },
+    const apiConfig = getApiConfig();
+    if (!apiConfig) {
+      return createErrorResponse(
+        "Server configuration error: Missing API_ENDPOINT or API_KEY in .env.local",
+        500,
       );
     }
 
     const body = await request.json();
-    const response = await fetch(API_ENDPOINT, {
+    const response = await fetch(apiConfig.apiEndpoint, {
       body: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": API_KEY,
+        "x-api-key": apiConfig.apiKey,
       },
       method: "POST",
       signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
@@ -50,12 +38,10 @@ export async function POST(request: NextRequest) {
         preview: text.slice(0, 200),
         status: response.status,
       });
-      return NextResponse.json(
-        {
-          details: text.slice(0, 200),
-          error: `External API returned non-JSON response (${response.status}). Check API_ENDPOINT in .env.local`,
-        },
-        { status: 502 },
+      return createErrorResponse(
+        `External API returned non-JSON response (${response.status}). Check API_ENDPOINT in .env.local`,
+        502,
+        text.slice(0, 200),
       );
     }
 
@@ -64,22 +50,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
     if (isTimeoutError(error)) {
-      return NextResponse.json(
-        {
-          details: `External API did not respond within ${UPSTREAM_TIMEOUT_MS / 1000} seconds`,
-          error: "Upstream API request timed out",
-        },
-        { status: 504 },
+      return createErrorResponse(
+        "Upstream API request timed out",
+        504,
+        `External API did not respond within ${UPSTREAM_TIMEOUT_MS / 1000} seconds`,
       );
     }
 
     console.error("Upload API error:", error);
-    return NextResponse.json(
-      {
-        details: error instanceof Error ? error.message : "Unknown error",
-        error: "Failed to upload resume",
-      },
-      { status: 500 },
+    return createErrorResponse(
+      "Failed to upload resume",
+      500,
+      error instanceof Error ? error.message : "Unknown error",
     );
   }
 }
