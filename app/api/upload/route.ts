@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const apiConfig = getApiConfig();
     if (!apiConfig) {
       return createErrorResponse(
-        "Server configuration error: Missing NEXT_PUBLIC_API_ENDPOINT or NEXT_PUBLIC_API_KEY in .env.local",
+        "Server configuration error: Missing API_ENDPOINT or API_KEY in .env.local",
         500,
       );
     }
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
         status: response.status,
       });
       return createErrorResponse(
-        `External API returned non-JSON response (${response.status}). Check NEXT_PUBLIC_API_ENDPOINT in .env.local`,
+        `External API returned non-JSON response (${response.status}). Check API_ENDPOINT in .env.local`,
         502,
         text.slice(0, 200),
       );
