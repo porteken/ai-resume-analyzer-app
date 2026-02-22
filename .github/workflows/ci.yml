@@ -2,8 +2,19 @@ name: CI
 
 on:
   pull_request:
+    branches: [dev, prd, main] # Will automatically run tests on PRs to these branches
   push:
+    branches: [dev, prd, main] # Will automatically run tests on direct pushes
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run against (for manual runs)'
+        type: choice
+        required: true
+        default: 'dev'
+        options:
+          - dev
+          - prd
   repository_dispatch:
     types: [vercel.deployment.ready]
 
@@ -58,7 +69,7 @@ jobs:
   merge-vitest-unit-reports:
     name: Merge Vitest Unit Reports
     needs: vitest-unit
-    if: always() # Run even if some shards fail so we can merge the reports
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Vercel Deployment Check Status
@@ -155,7 +166,7 @@ jobs:
   merge-playwright-reports:
     name: Merge Playwright Reports
     needs: playwright-e2e
-    if: always() # Run even if some shards fail so we can merge the reports
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Vercel Deployment Check Status
