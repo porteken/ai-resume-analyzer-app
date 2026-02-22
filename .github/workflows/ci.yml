@@ -145,3 +145,15 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+
+  # -------- FINAL CHECK --------
+  final-check:
+    name: Final CI Check
+    needs:
+      - merge-vitest-unit-reports
+      - merge-playwright-reports
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Final Passed
+        run: echo "✔ All critical jobs succeeded — CI is successful"
