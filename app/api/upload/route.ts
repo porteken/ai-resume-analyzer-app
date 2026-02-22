@@ -134,15 +134,6 @@ export async function POST(request: NextRequest) {
       "x-api-key": apiConfig.apiKey,
     };
 
-    console.log("Debug: Full Request Inspection", {
-      bodyKeys: body ? Object.keys(body as object) : [],
-      bodyType: typeof body,
-      endpoint: apiConfig.uploadEndpoint,
-      environment: process.env.VERCEL_ENV ?? "local",
-      incomingHeaders: Object.fromEntries(request.headers.entries()),
-      outgoingHeaders: headers,
-    });
-
     const response = await fetch(apiConfig.uploadEndpoint, {
       body: JSON.stringify(body),
       headers,
@@ -156,20 +147,6 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-
-    console.info("Upload proxy request", {
-      apiKeyConflict: apiConfigDiagnostics.hasApiKeyConflict,
-      apiKeyFingerprint: apiConfigDiagnostics.apiKeyFingerprint,
-      apiKeySource: apiConfigDiagnostics.apiKeySource,
-      endpointConflict: apiConfigDiagnostics.hasEndpointConflict,
-      endpointSource: apiConfigDiagnostics.endpointSource,
-      isMixedSourcePair: apiConfigDiagnostics.isMixedSourcePair,
-      requestUrl: request.nextUrl.pathname,
-      selectedEndpoint: apiConfigDiagnostics.endpointForLog,
-      targetEndpoint: getEndpointLogValue(apiConfig.uploadEndpoint),
-      upstreamStatus: response.status,
-      vercelEnv: process.env.VERCEL_ENV ?? "local",
-    });
 
     warnOnForbiddenUpstreamResponse(
       response,

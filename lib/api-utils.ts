@@ -213,21 +213,6 @@ export const getApiConfig = (): ApiConfig | null => {
     return null;
   }
 
-  if (
-    !hasNonEmptyEnv("API_ENDPOINT") &&
-    hasNonEmptyEnv("NEXT_PUBLIC_API_ENDPOINT")
-  ) {
-    console.warn(
-      "Using NEXT_PUBLIC_API_ENDPOINT fallback. Prefer API_ENDPOINT for server-side config.",
-    );
-  }
-
-  if (!hasNonEmptyEnv("API_KEY") && hasNonEmptyEnv("NEXT_PUBLIC_API_KEY")) {
-    console.warn(
-      "Using NEXT_PUBLIC_API_KEY fallback. Prefer API_KEY for server-only secrets.",
-    );
-  }
-
   const baseEndpoint = deriveBaseEndpoint(apiEndpoint);
   if (!baseEndpoint) {
     console.error("Invalid API endpoint URL:", { apiEndpoint });
