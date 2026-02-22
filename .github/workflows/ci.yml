@@ -1,3 +1,6 @@
+# .github/workflows/ci.yml
+name: CI
+
 on:
   pull_request:
   push:
@@ -62,7 +65,6 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      # 💡 Replace "v1.58.2-noble" below with the exact Playwright version your project uses
       image: mcr.microsoft.com/playwright:v1.58.2-noble
 
     timeout-minutes: 60
@@ -78,10 +80,18 @@ jobs:
         with:
           node-version: 22
           cache: npm
+
+      # +++ FIX: ensure HOME is owned by the current user so Firefox can launch
+      - name: Set HOME for Firefox/Playwright
+        if: runner.os == 'Linux'
+        run: echo "HOME=/root" >> $GITHUB_ENV
+
       - name: Install dependencies
         run: npm ci
+
       - name: Run Playwright shard
         run: npm run test:e2e -- --shard=${{ matrix.shard_index }}/${{ matrix.shard_total }} --reporter=blob
+
       - name: Upload Playwright report shard
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
