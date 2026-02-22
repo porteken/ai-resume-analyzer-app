@@ -15,7 +15,7 @@ export async function GET(
     const apiConfig = getApiConfig();
     if (!apiConfig) {
       return createErrorResponse(
-        "Server configuration error: Missing API_ENDPOINT or API_KEY in .env.local",
+        "Server configuration error: Missing API_ENDPOINT (or NEXT_PUBLIC_API_ENDPOINT) or NEXT_PUBLIC_API_KEY",
         500,
       );
     }
