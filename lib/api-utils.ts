@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 
 export const UPSTREAM_TIMEOUT_MS = 30_000;
+export const ANALYZE_TIMEOUT_MS = 60_000;
 
 interface ApiConfig {
+  analyzeEndpoint: string;
   apiEndpoint: string;
   apiKey: string;
 }
@@ -29,7 +31,10 @@ export const getApiConfig = (): ApiConfig | null => {
     return null;
   }
 
-  return { apiEndpoint, apiKey };
+  // Derive analyze endpoint from upload endpoint by replacing /upload with /analyze
+  const analyzeEndpoint = apiEndpoint.replace(/\/upload$/, "/analyze");
+
+  return { analyzeEndpoint, apiEndpoint, apiKey };
 };
 
 export const isTimeoutError = (error: unknown): boolean => {
