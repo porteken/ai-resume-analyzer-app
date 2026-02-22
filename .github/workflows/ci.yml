@@ -13,40 +13,59 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard_index: [1,2,3,4,5]
+        shard_index: [1, 2, 3, 4, 5]
         shard_total: [5]
+
     steps:
       - uses: actions/checkout@v5
+
       - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Run Vitest unit shard
         run: npm run test:unit -- --reporter=blob --shard=${{ matrix.shard_index }}/${{ matrix.shard_total }}
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload Vitest unit blob report
         if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
         with:
           name: vitest-unit-blob-${{ matrix.shard_index }}
           path: .vitest-reports/
           include-hidden-files: true
           retention-days: 1
 
+
   merge-vitest-unit-reports:
     name: Merge Vitest Unit Reports
     needs: vitest-unit
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v5
+
       - uses: actions/setup-node@v5
-        with: node-version: 22
-      - run: npm ci
-      - uses: actions/download-artifact@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download unit blob reports
+        uses: actions/download-artifact@v5
         with:
           path: all-vitest-unit-blob-reports
           pattern: vitest-unit-blob-*
           merge-multiple: true
-      - run: npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=default
+
+      - name: Merge unit reports
+        run: npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=default
+
 
   playwright-e2e:
     name: E2E (shard ${{ matrix.shard_index }}/${{ matrix.shard_total }})
@@ -60,45 +79,66 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard_index: [1,2,3,4,5,6,7,8,9,10]
+        shard_index: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         shard_total: [10]
+
     steps:
       - uses: actions/checkout@v5
+
       - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Run Playwright tests (shard)
         run: npm run test:e2e -- --shard=${{ matrix.shard_index }}/${{ matrix.shard_total }} --reporter=blob
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload Playwright blob report
         if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
         with:
           name: blob-report-${{ matrix.shard_index }}
           path: blob-report/
           retention-days: 1
 
+
   merge-playwright-reports:
     name: Merge Playwright Reports
     needs: playwright-e2e
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v5
+
       - uses: actions/setup-node@v5
-        with: node-version: 22
-      - run: npm ci
-      - uses: actions/download-artifact@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download blob reports
+        uses: actions/download-artifact@v5
         with:
           path: all-blob-reports
           pattern: blob-report-*
           merge-multiple: true
-      - run: npx playwright merge-reports --reporter html ./all-blob-reports
-      - uses: actions/upload-artifact@v4
+
+      - name: Merge Playwright reports
+        run: npx playwright merge-reports --reporter html ./all-blob-reports
+
+      - name: Upload Playwright report
         if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
         with:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+
 
   build:
     name: Build
@@ -107,9 +147,17 @@ jobs:
       - merge-playwright-reports
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
     steps:
       - uses: actions/checkout@v5
+
       - uses: actions/setup-node@v5
-        with: node-version: 22
-      - run: npm ci
-      - run: npm run build
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
