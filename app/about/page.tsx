@@ -12,7 +12,7 @@ export default function About() {
           <p className="text-slate-700">
             AI Resume Analyzer is a web application that helps job seekers
             evaluate how well their resume matches a specific job description.
-            Using Google&apos;s Gemini 3.5 Flash AI model, the app analyzes
+            Using Google&apos;s Gemini 2.5 Flash AI model, the app analyzes
             uploaded PDF resumes and provides detailed feedback including
             strengths, gaps, and recommendations.
           </p>

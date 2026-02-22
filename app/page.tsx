@@ -15,7 +15,7 @@ export default function Home() {
               AI Resume Analyzer
             </h1>
             <p className="text-sm text-slate-500">
-              Upload resume to match against job description using Gemini 3.5
+              Upload resume to match against job description using Gemini 2.5
               Flash.
             </p>
             <Link
