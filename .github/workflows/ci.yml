@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
+
   vitest-unit:
     name: Vitest Unit (shard ${{ matrix.shard_index }}/${{ matrix.shard_total }})
     runs-on: ubuntu-latest
@@ -13,8 +14,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard_index: [1, 2, 3, 4]
-        shard_total: [4]
+        shard_index: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+        shard_total: [20]
 
     steps:
       - uses: actions/checkout@v5
@@ -66,7 +67,6 @@ jobs:
       - name: Merge unit reports
         run: npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=default
 
-
   playwright-e2e:
     name: E2E (shard ${{ matrix.shard_index }}/${{ matrix.shard_total }})
     needs:
@@ -77,8 +77,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard_index: [1, 2, 3, 4]
-        shard_total: [4]
+        shard_index: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+        shard_total: [20]
 
     steps:
       - uses: actions/checkout@v5
