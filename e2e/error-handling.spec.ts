@@ -165,12 +165,6 @@ test.describe("Error Handling", () => {
     const textarea = page.getByLabel(/job description/i);
     await expect(textarea).toHaveValue(jobDescription);
   });
-});
-
-test.describe("Validation Messages", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/");
-  });
 
   test("should show appropriate error for oversized file", async ({ page }) => {
     const largePDF = createLargePDF();

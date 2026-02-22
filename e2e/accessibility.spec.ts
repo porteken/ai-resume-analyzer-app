@@ -59,9 +59,7 @@ test.describe("Accessibility", () => {
     const errorMessage = page.locator('[role="alert"], .bg-red-50').first();
     await expect(errorMessage).toBeVisible();
   });
-});
 
-test.describe("Accessibility - About Page", () => {
   test("should have accessible links with proper attributes", async ({
     page,
   }) => {

@@ -9,7 +9,7 @@ import {
   uploadFile,
 } from "./helpers/fixtures";
 
-test.describe("Resume Upload Flow", () => {
+test.describe("Page Display and Initial State", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
   });
@@ -29,6 +29,29 @@ test.describe("Resume Upload Flow", () => {
   test("should have submit button disabled initially", async ({ page }) => {
     const button = page.getByRole("button", { name: /analyze resume/i });
     await expect(button).toBeDisabled();
+  });
+
+  test("should work on mobile viewport", async ({ page }) => {
+    test.use({ viewport: { height: 667, width: 375 } });
+    await page.goto("/");
+    await mockAPIResponses.mockImmediateSuccess(page);
+
+    await expect(
+      page.getByRole("heading", { name: /ai resume analyzer/i }),
+    ).toBeVisible();
+
+    const pdfFile = createTestPDF();
+    await uploadFile(page, pdfFile);
+    await fillJobDescription(page, "Mobile test job");
+
+    const button = page.getByRole("button", { name: /analyze resume/i });
+    await expect(button).toBeEnabled();
+  });
+});
+
+test.describe("Resume Analysis Flow", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/");
   });
 
   test("should enable submit button when both file and description are provided", async ({
@@ -140,25 +163,5 @@ test.describe("Resume Upload Flow", () => {
     await submitForm(page);
 
     await expect(page.getByText(/analyzing/i).first()).toBeVisible();
-  });
-});
-
-test.describe("Resume Upload - Mobile", () => {
-  test.use({ viewport: { height: 667, width: 375 } });
-
-  test("should work on mobile viewport", async ({ page }) => {
-    await page.goto("/");
-    await mockAPIResponses.mockImmediateSuccess(page);
-
-    await expect(
-      page.getByRole("heading", { name: /ai resume analyzer/i }),
-    ).toBeVisible();
-
-    const pdfFile = createTestPDF();
-    await uploadFile(page, pdfFile);
-    await fillJobDescription(page, "Mobile test job");
-
-    const button = page.getByRole("button", { name: /analyze resume/i });
-    await expect(button).toBeEnabled();
   });
 });

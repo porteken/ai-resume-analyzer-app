@@ -22,7 +22,7 @@ describe("Status API Route", () => {
     vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "");
-    vi.stubEnv("API_ENDPOINT", mockApiEndpoint);
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", mockApiEndpoint);
     vi.stubEnv("NEXT_PUBLIC_API_KEY", mockApiKey);
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
@@ -55,7 +55,7 @@ describe("Status API Route", () => {
   });
 
   it("should construct the status URL from analyze endpoint", async () => {
-    vi.stubEnv("API_ENDPOINT", "https://api.example.com/analyze");
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "https://api.example.com/analyze");
 
     const mockedFetch = vi.fn().mockResolvedValue({
       headers: new Headers({ "content-type": "application/json" }),
@@ -92,7 +92,7 @@ describe("Status API Route", () => {
   });
 
   it("should return 500 if required env vars are missing", async () => {
-    vi.stubEnv("API_ENDPOINT", "");
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "");
 
     const mockedFetch = vi.fn();

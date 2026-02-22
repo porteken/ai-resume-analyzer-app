@@ -13,7 +13,10 @@ describe("getApiConfig", () => {
   });
 
   it("derives endpoints from upload endpoint input", () => {
-    vi.stubEnv("API_ENDPOINT", "https://api.example.com/prod/upload");
+    vi.stubEnv(
+      "NEXT_PUBLIC_API_ENDPOINT",
+      "https://api.example.com/prod/upload",
+    );
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "test-key");
 
     const config = getApiConfig();
@@ -27,7 +30,10 @@ describe("getApiConfig", () => {
   });
 
   it("derives endpoints from analyze endpoint input", () => {
-    vi.stubEnv("API_ENDPOINT", "https://api.example.com/prod/analyze");
+    vi.stubEnv(
+      "NEXT_PUBLIC_API_ENDPOINT",
+      "https://api.example.com/prod/analyze",
+    );
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "test-key");
 
     const config = getApiConfig();
@@ -41,7 +47,10 @@ describe("getApiConfig", () => {
   });
 
   it("derives endpoints from status endpoint input", () => {
-    vi.stubEnv("API_ENDPOINT", "https://api.example.com/prod/status/job-123");
+    vi.stubEnv(
+      "NEXT_PUBLIC_API_ENDPOINT",
+      "https://api.example.com/prod/status/job-123",
+    );
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "test-key");
 
     const config = getApiConfig();
@@ -55,17 +64,14 @@ describe("getApiConfig", () => {
   });
 
   it("returns null when API variables are missing", () => {
-    vi.stubEnv("API_ENDPOINT", "");
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "");
 
     expect(getApiConfig()).toBeNull();
   });
 
-  it("uses NEXT_PUBLIC_API_ENDPOINT when API_ENDPOINT is not set", () => {
-    vi.stubEnv(
-      "NEXT_PUBLIC_API_ENDPOINT",
-      "https://api.example.com/dev/analyze",
-    );
+  it("uses API_ENDPOINT when NEXT_PUBLIC_API_ENDPOINT is not set", () => {
+    vi.stubEnv("API_ENDPOINT", "https://api.example.com/dev/analyze");
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "test-key");
 
     const config = getApiConfig();
@@ -78,12 +84,9 @@ describe("getApiConfig", () => {
     });
   });
 
-  it("uses NEXT_PUBLIC_API_ENDPOINT when API_ENDPOINT is empty", () => {
-    vi.stubEnv("API_ENDPOINT", "");
-    vi.stubEnv(
-      "NEXT_PUBLIC_API_ENDPOINT",
-      "https://api.example.com/dev/analyze",
-    );
+  it("uses API_ENDPOINT when NEXT_PUBLIC_API_ENDPOINT is empty", () => {
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
+    vi.stubEnv("API_ENDPOINT", "https://api.example.com/dev/analyze");
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "test-key");
 
     const config = getApiConfig();
@@ -91,12 +94,12 @@ describe("getApiConfig", () => {
     expect(config?.analyzeEndpoint).toBe("https://api.example.com/dev/analyze");
   });
 
-  it("prefers API_ENDPOINT over NEXT_PUBLIC_API_ENDPOINT", () => {
-    vi.stubEnv("API_ENDPOINT", "https://api.example.com/prod/analyze");
+  it("prefers NEXT_PUBLIC_API_ENDPOINT over API_ENDPOINT", () => {
     vi.stubEnv(
       "NEXT_PUBLIC_API_ENDPOINT",
-      "https://api.example.com/dev/analyze",
+      "https://api.example.com/prod/analyze",
     );
+    vi.stubEnv("API_ENDPOINT", "https://api.example.com/dev/analyze");
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "test-key");
 
     const config = getApiConfig();
@@ -106,12 +109,15 @@ describe("getApiConfig", () => {
     );
   });
 
-  it("uses NEXT_PUBLIC_API_KEY when NEXT_PUBLIC_API_KEY is not set", () => {
-    vi.stubEnv("API_ENDPOINT", "https://api.example.com/dev/analyze");
-    vi.stubEnv("NEXT_PUBLIC_API_KEY", "public-fallback-key");
+  it("uses API_KEY when NEXT_PUBLIC_API_KEY is not set", () => {
+    vi.stubEnv(
+      "NEXT_PUBLIC_API_ENDPOINT",
+      "https://api.example.com/dev/analyze",
+    );
+    vi.stubEnv("API_KEY", "server-only-key");
 
     const config = getApiConfig();
 
-    expect(config?.apiKey).toBe("public-fallback-key");
+    expect(config?.apiKey).toBe("server-only-key");
   });
 });

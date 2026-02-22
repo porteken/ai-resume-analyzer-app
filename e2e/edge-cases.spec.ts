@@ -10,7 +10,7 @@ import {
   uploadFile,
 } from "./helpers/fixtures";
 
-test.describe("Edge Cases", () => {
+test.describe("Job Description Edge Cases", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
   });
@@ -57,6 +57,12 @@ test.describe("Edge Cases", () => {
       timeout: 10_000,
     });
   });
+});
+
+test.describe("File Upload Edge Cases", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/");
+  });
 
   test("should handle multiple rapid file uploads", async ({ page }) => {
     const pdfFile1 = createTestPDF();
@@ -96,6 +102,12 @@ test.describe("Edge Cases", () => {
     await submitForm(page);
 
     await expect(page.getByText(/file too large/i)).toBeVisible();
+  });
+});
+
+test.describe("Analysis and Processing Edge Cases", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/");
   });
 
   test("should handle analysis result with empty sections", async ({

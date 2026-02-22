@@ -69,30 +69,22 @@ const deriveBaseEndpoint = (apiEndpoint: string): null | string => {
 
 export const getApiConfig = (): ApiConfig | null => {
   const apiEndpoint = getFirstNonEmptyEnv(
-    "API_ENDPOINT",
     "NEXT_PUBLIC_API_ENDPOINT",
+    "API_ENDPOINT",
   );
-  const apiKey = getFirstNonEmptyEnv(
-    "NEXT_PUBLIC_API_KEY",
-    "NEXT_PUBLIC_API_KEY",
-  );
+  const apiKey = getFirstNonEmptyEnv("NEXT_PUBLIC_API_KEY", "API_KEY");
 
   if (!apiEndpoint || !apiKey) {
     console.error("Missing environment variables:", {
-      hasEndpoint:
-        hasNonEmptyEnv("API_ENDPOINT") ||
-        hasNonEmptyEnv("NEXT_PUBLIC_API_ENDPOINT"),
+      hasEndpoint: hasNonEmptyEnv("NEXT_PUBLIC_API_ENDPOINT"),
       hasKey: hasNonEmptyEnv("NEXT_PUBLIC_API_KEY"),
     });
     return null;
   }
 
-  if (
-    !hasNonEmptyEnv("NEXT_PUBLIC_API_KEY") &&
-    hasNonEmptyEnv("NEXT_PUBLIC_API_KEY")
-  ) {
+  if (!hasNonEmptyEnv("NEXT_PUBLIC_API_KEY") && hasNonEmptyEnv("API_KEY")) {
     console.warn(
-      "Using NEXT_PUBLIC_API_KEY fallback. Prefer NEXT_PUBLIC_API_KEY to avoid exposing secrets to client bundles.",
+      "Using API_KEY fallback. Prefer NEXT_PUBLIC_API_KEY to avoid exposing secrets to client bundles.",
     );
   }
 

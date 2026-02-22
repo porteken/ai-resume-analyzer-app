@@ -29,7 +29,7 @@ describe("Upload API Route", () => {
     vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "");
-    vi.stubEnv("API_ENDPOINT", mockApiEndpoint);
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", mockApiEndpoint);
     vi.stubEnv("NEXT_PUBLIC_API_KEY", mockApiKey);
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
@@ -74,7 +74,7 @@ describe("Upload API Route", () => {
   });
 
   it("should return 500 if required env vars are missing", async () => {
-    vi.stubEnv("API_ENDPOINT", "");
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "");
 
     const mockedFetch = vi.fn();
