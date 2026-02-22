@@ -52,6 +52,25 @@ describe("Status API Route", () => {
     );
   });
 
+  it("should construct the status URL from analyze endpoint", async () => {
+    vi.stubEnv("API_ENDPOINT", "https://api.example.com/analyze");
+
+    const mockedFetch = vi.fn().mockResolvedValue({
+      headers: new Headers({ "content-type": "application/json" }),
+      json: async () => ({ status: "processing" }),
+      status: 200,
+    });
+    globalThis.fetch = mockedFetch as typeof fetch;
+
+    const GET = await loadGetHandler();
+    await GET(createRequest("job-xyz"), createContext("job-xyz"));
+
+    expect(mockedFetch).toHaveBeenCalledWith(
+      "https://api.example.com/status/job-xyz",
+      expect.any(Object),
+    );
+  });
+
   it("should URL-encode special characters in job ID", async () => {
     const mockedFetch = vi.fn().mockResolvedValue({
       headers: new Headers({ "content-type": "application/json" }),

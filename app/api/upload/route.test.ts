@@ -37,7 +37,7 @@ describe("Upload API Route", () => {
     vi.unstubAllEnvs();
   });
 
-  it("should successfully proxy request to external API", async () => {
+  it("should proxy upload requests to the canonical upload endpoint", async () => {
     const mockResponseData = { job_id: "123", status: "processing" };
     const mockedFetch = vi.fn().mockResolvedValue({
       headers: new Headers({ "content-type": "application/json" }),
@@ -57,7 +57,7 @@ describe("Upload API Route", () => {
     const data = await response.json();
 
     expect(mockedFetch).toHaveBeenCalledWith(
-      mockApiEndpoint,
+      "https://api.example.com/upload",
       expect.objectContaining({
         body: JSON.stringify(requestBody),
         headers: {

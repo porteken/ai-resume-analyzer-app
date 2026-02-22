@@ -22,9 +22,8 @@ export async function GET(
 
     const { jobId } = await params;
 
-    const baseUrl = apiConfig.apiEndpoint.replace(/\/upload\/?$/, "");
     const encodedJobId = encodeURIComponent(jobId);
-    const statusUrl = `${baseUrl}/status/${encodedJobId}`;
+    const statusUrl = `${apiConfig.statusEndpoint}/${encodedJobId}`;
 
     const response = await fetch(statusUrl, {
       headers: {

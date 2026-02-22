@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const response = await fetch(apiConfig.apiEndpoint, {
+    const response = await fetch(apiConfig.uploadEndpoint, {
       body: JSON.stringify(body),
       headers: {
         "Content-Type": "application/json",

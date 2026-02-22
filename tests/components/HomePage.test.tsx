@@ -276,8 +276,8 @@ describe("Home Page Component", () => {
       await expect(fileInput).toBeDisabled();
       await expect(textarea).toBeDisabled();
       await expect(button).toBeDisabled();
+      await expect(button).toHaveTextContent(/reading pdf file|analyzing/i);
     });
-    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("should display markdown sections correctly", async () => {

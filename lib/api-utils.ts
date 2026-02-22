@@ -5,8 +5,9 @@ export const ANALYZE_TIMEOUT_MS = 60_000;
 
 interface ApiConfig {
   analyzeEndpoint: string;
-  apiEndpoint: string;
   apiKey: string;
+  statusEndpoint: string;
+  uploadEndpoint: string;
 }
 
 export const createErrorResponse = (
@@ -17,6 +18,37 @@ export const createErrorResponse = (
   return NextResponse.json(details ? { details, error } : { error }, {
     status,
   });
+};
+
+const deriveBaseEndpoint = (apiEndpoint: string): null | string => {
+  try {
+    const parsed = new URL(apiEndpoint.trim());
+    const pathSegments = parsed.pathname.split("/").filter(Boolean);
+
+    if (pathSegments.length > 0) {
+      const lastSegment = pathSegments.at(-1);
+      const secondLastSegment =
+        pathSegments.length > 1 ? pathSegments.at(-2) : null;
+
+      if (lastSegment === "upload" || lastSegment === "analyze") {
+        pathSegments.pop();
+      } else if (lastSegment === "status") {
+        pathSegments.pop();
+      } else if (secondLastSegment === "status") {
+        pathSegments.pop();
+        pathSegments.pop();
+      }
+    }
+
+    parsed.pathname = `/${pathSegments.join("/")}`;
+    parsed.search = "";
+    parsed.hash = "";
+
+    const normalized = parsed.toString();
+    return normalized.endsWith("/") ? normalized.slice(0, -1) : normalized;
+  } catch {
+    return null;
+  }
 };
 
 export const getApiConfig = (): ApiConfig | null => {
@@ -31,10 +63,17 @@ export const getApiConfig = (): ApiConfig | null => {
     return null;
   }
 
-  // Derive analyze endpoint from upload endpoint by replacing /upload with /analyze
-  const analyzeEndpoint = apiEndpoint.replace(/\/upload$/, "/analyze");
+  const baseEndpoint = deriveBaseEndpoint(apiEndpoint);
+  if (!baseEndpoint) {
+    console.error("Invalid API endpoint URL:", { apiEndpoint });
+    return null;
+  }
 
-  return { analyzeEndpoint, apiEndpoint, apiKey };
+  const uploadEndpoint = `${baseEndpoint}/upload`;
+  const analyzeEndpoint = `${baseEndpoint}/analyze`;
+  const statusEndpoint = `${baseEndpoint}/status`;
+
+  return { analyzeEndpoint, apiKey, statusEndpoint, uploadEndpoint };
 };
 
 export const isTimeoutError = (error: unknown): boolean => {

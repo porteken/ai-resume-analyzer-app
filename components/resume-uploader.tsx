@@ -89,17 +89,6 @@ export const ResumeUploader = ({
           </>
         )}
       </Button>
-
-      {isLoading && (
-        <p
-          aria-atomic
-          aria-live="polite"
-          className="text-sm text-center text-slate-500 animate-pulse"
-          role="status"
-        >
-          {statusMessage}
-        </p>
-      )}
     </div>
   );
 };

@@ -33,6 +33,7 @@ export const convertFileToBase64 = (file: File): Promise<string> =>
 // S3 metadata has a 2KB limit, but job_description is stored in DynamoDB
 // This limit ensures reasonable payload sizes
 const MAX_JOB_DESCRIPTION_LENGTH = 10_000;
+const LEGACY_SAFE_JOB_DESCRIPTION_LENGTH = 500;
 
 // Maximum filename length to prevent S3 metadata issues
 const MAX_FILENAME_LENGTH = 200;
@@ -115,6 +116,26 @@ interface UploadResumeResponse {
   job_id?: string;
 }
 
+const sendUploadRequest = async (requestBody: object): Promise<Response> =>
+  fetch("/api/upload", {
+    body: JSON.stringify(requestBody),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
+
+const getUploadErrorMessage = (errorData: {
+  details?: string;
+  error?: string;
+}) =>
+  errorData.error || errorData.details
+    ? `${errorData.error ?? ""} ${errorData.details ?? ""}`.trim()
+    : null;
+
+const isMetadataTooLargeError = (message: string): boolean =>
+  /metadata(?:too| )large|metadata headers exceed/i.test(message);
+
 /**
  * Uploads a PDF directly to S3 using a presigned URL
  * This avoids metadata size issues by using the presigned POST flow
@@ -159,9 +180,29 @@ const uploadToS3 = async (
 /**
  * Triggers analysis on the backend after PDF is uploaded to S3
  */
-const triggerAnalysis = async (jobId: string): Promise<void> => {
+const triggerAnalysis = async (
+  jobId: string,
+  options?: {
+    jobDescription?: string;
+    s3Url?: string;
+  },
+): Promise<void> => {
+  const payload: {
+    job_description?: string;
+    job_id: string;
+    s3_url?: string;
+  } = { job_id: jobId };
+
+  if (options?.s3Url) {
+    payload.s3_url = options.s3Url;
+  }
+
+  if (options?.jobDescription) {
+    payload.job_description = options.jobDescription;
+  }
+
   const response = await fetch("/api/analyze", {
-    body: JSON.stringify({ job_id: jobId }),
+    body: JSON.stringify(payload),
     headers: {
       "Content-Type": "application/json",
     },
@@ -195,25 +236,68 @@ export const uploadResume = async (
     job_description: truncatedDescription,
   };
 
-  const uploadResponse = await fetch("/api/upload", {
-    body: JSON.stringify(payload),
-    headers: {
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-  });
+  let uploadResponse = await sendUploadRequest(payload);
 
   if (!uploadResponse.ok) {
     const errorData = (await uploadResponse.json().catch(() => ({}))) as {
       details?: string;
       error?: string;
     };
+    const errorMessage =
+      getUploadErrorMessage(errorData) ||
+      `Upload failed with status: ${uploadResponse.status}`;
+    const requiresLegacyBase64 = /pdf_base64/i.test(errorMessage);
 
-    throw new Error(
-      errorData.error ||
-        errorData.details ||
-        `Upload failed with status: ${uploadResponse.status}`,
-    );
+    if (!requiresLegacyBase64) {
+      throw new Error(errorMessage);
+    }
+
+    const pdfBase64 = await convertFileToBase64(file);
+    const legacyPayload = {
+      ...payload,
+      job_description: truncatedDescription.slice(
+        0,
+        LEGACY_SAFE_JOB_DESCRIPTION_LENGTH,
+      ),
+      pdf_base64: pdfBase64,
+    };
+    uploadResponse = await sendUploadRequest(legacyPayload);
+
+    if (!uploadResponse.ok) {
+      const legacyErrorData = (await uploadResponse
+        .json()
+        .catch(() => ({}))) as {
+        details?: string;
+        error?: string;
+      };
+      const legacyErrorMessage =
+        getUploadErrorMessage(legacyErrorData) ||
+        `Upload failed with status: ${uploadResponse.status}`;
+
+      if (!isMetadataTooLargeError(legacyErrorMessage)) {
+        throw new Error(legacyErrorMessage);
+      }
+
+      // Final fallback for legacy backends that write request fields into S3 metadata.
+      const metadataSafeLegacyPayload = {
+        filename: "resume.pdf",
+        pdf_base64: pdfBase64,
+      };
+      uploadResponse = await sendUploadRequest(metadataSafeLegacyPayload);
+
+      if (!uploadResponse.ok) {
+        const metadataSafeErrorData = (await uploadResponse
+          .json()
+          .catch(() => ({}))) as {
+          details?: string;
+          error?: string;
+        };
+        throw new Error(
+          getUploadErrorMessage(metadataSafeErrorData) ||
+            `Upload failed with status: ${uploadResponse.status}`,
+        );
+      }
+    }
   }
 
   const uploadData = (await uploadResponse.json()) as PresignedUploadResponse;
@@ -224,7 +308,10 @@ export const uploadResume = async (
     await uploadToS3(file, uploadData.upload.url, uploadData.upload.fields);
 
     // Step 3: Trigger analysis on the backend
-    await triggerAnalysis(uploadData.job_id);
+    await triggerAnalysis(uploadData.job_id, {
+      jobDescription: truncatedDescription,
+      s3Url: uploadData.s3_url,
+    });
 
     return { job_id: uploadData.job_id };
   }
@@ -274,7 +361,7 @@ export const pollForResults = async (
       throw new Error(statusData.error || "Analysis failed on server.");
     }
 
-    onProgress(`Analyzing... (Attempt ${attempts})`);
+    onProgress("Analyzing...");
   }
 
   throw new Error("Request timed out.");
