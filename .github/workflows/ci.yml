@@ -1,5 +1,12 @@
 name: CI
 
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [vercel.deployment.ready]
+
 jobs:
 
   # -------- Vitest Unit Shards --------
