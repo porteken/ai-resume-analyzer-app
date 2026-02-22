@@ -3,6 +3,16 @@ import { NextResponse } from "next/server";
 export const UPSTREAM_TIMEOUT_MS = 30_000;
 export const ANALYZE_TIMEOUT_MS = 60_000;
 
+export interface ApiConfigDiagnostics {
+  apiKeyFingerprint: null | string;
+  apiKeySource: "API_KEY" | "missing" | "NEXT_PUBLIC_API_KEY";
+  endpointForLog: null | string;
+  endpointSource: "API_ENDPOINT" | "missing" | "NEXT_PUBLIC_API_ENDPOINT";
+  hasApiKeyConflict: boolean;
+  hasEndpointConflict: boolean;
+  isMixedSourcePair: boolean;
+}
+
 interface ApiConfig {
   analyzeEndpoint: string;
   apiKey: string;
@@ -33,6 +43,116 @@ const getFirstNonEmptyEnv = (...names: string[]): null | string => {
 const hasNonEmptyEnv = (name: string): boolean => {
   const value = getEnvironmentValue(name);
   return typeof value === "string" && value.trim() !== "";
+};
+
+function getSelectedEnvironmentName(
+  preferred: "API_ENDPOINT",
+  fallback: "NEXT_PUBLIC_API_ENDPOINT",
+): "API_ENDPOINT" | "missing" | "NEXT_PUBLIC_API_ENDPOINT";
+function getSelectedEnvironmentName(
+  preferred: "API_KEY",
+  fallback: "NEXT_PUBLIC_API_KEY",
+): "API_KEY" | "missing" | "NEXT_PUBLIC_API_KEY";
+function getSelectedEnvironmentName(
+  preferred: "API_ENDPOINT" | "API_KEY",
+  fallback: "NEXT_PUBLIC_API_ENDPOINT" | "NEXT_PUBLIC_API_KEY",
+):
+  | "API_ENDPOINT"
+  | "API_KEY"
+  | "missing"
+  | "NEXT_PUBLIC_API_ENDPOINT"
+  | "NEXT_PUBLIC_API_KEY" {
+  if (hasNonEmptyEnv(preferred)) {
+    return preferred;
+  }
+
+  if (hasNonEmptyEnv(fallback)) {
+    return fallback;
+  }
+
+  return "missing";
+}
+
+const normalizeEnvValue = (name: string): null | string => {
+  const value = getEnvironmentValue(name);
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed === "" ? null : trimmed;
+};
+
+export const getEndpointLogValue = (endpoint: string): string => {
+  try {
+    const parsed = new URL(endpoint);
+    return `${parsed.origin}${parsed.pathname}`;
+  } catch {
+    return endpoint;
+  }
+};
+
+const getSecretFingerprint = (value: string): string => {
+  const suffix = value.slice(-4);
+  return `len:${value.length}..${suffix}`;
+};
+
+export const getApiConfigDiagnostics = (): ApiConfigDiagnostics => {
+  const apiEndpoint = normalizeEnvValue("API_ENDPOINT");
+  const publicApiEndpoint = normalizeEnvValue("NEXT_PUBLIC_API_ENDPOINT");
+  const apiKey = normalizeEnvValue("API_KEY");
+  const publicApiKey = normalizeEnvValue("NEXT_PUBLIC_API_KEY");
+
+  const endpointSource = getSelectedEnvironmentName(
+    "API_ENDPOINT",
+    "NEXT_PUBLIC_API_ENDPOINT",
+  );
+  const apiKeySource = getSelectedEnvironmentName(
+    "API_KEY",
+    "NEXT_PUBLIC_API_KEY",
+  );
+
+  let selectedEndpoint: null | string;
+  if (endpointSource === "API_ENDPOINT") {
+    selectedEndpoint = apiEndpoint;
+  } else if (endpointSource === "NEXT_PUBLIC_API_ENDPOINT") {
+    selectedEndpoint = publicApiEndpoint;
+  } else {
+    selectedEndpoint = null;
+  }
+
+  let selectedApiKey: null | string;
+  if (apiKeySource === "API_KEY") {
+    selectedApiKey = apiKey;
+  } else if (apiKeySource === "NEXT_PUBLIC_API_KEY") {
+    selectedApiKey = publicApiKey;
+  } else {
+    selectedApiKey = null;
+  }
+
+  return {
+    apiKeyFingerprint: selectedApiKey
+      ? getSecretFingerprint(selectedApiKey)
+      : null,
+    apiKeySource,
+    endpointForLog: selectedEndpoint
+      ? getEndpointLogValue(selectedEndpoint)
+      : null,
+    endpointSource,
+    hasApiKeyConflict:
+      apiKey !== null && publicApiKey !== null && apiKey !== publicApiKey,
+    hasEndpointConflict:
+      apiEndpoint !== null &&
+      publicApiEndpoint !== null &&
+      apiEndpoint !== publicApiEndpoint,
+    isMixedSourcePair:
+      endpointSource !== "missing" &&
+      apiKeySource !== "missing" &&
+      ((endpointSource === "API_ENDPOINT" &&
+        apiKeySource === "NEXT_PUBLIC_API_KEY") ||
+        (endpointSource === "NEXT_PUBLIC_API_ENDPOINT" &&
+          apiKeySource === "API_KEY")),
+  };
 };
 
 export const createErrorResponse = (

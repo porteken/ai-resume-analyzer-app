@@ -3,50 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   createErrorResponse,
   getApiConfig,
+  getApiConfigDiagnostics,
+  getEndpointLogValue,
   isTimeoutError,
   UPSTREAM_TIMEOUT_MS,
 } from "@/lib/api-utils";
 import { validateJobDescription } from "@/lib/job-description";
 
 export const maxDuration = 300;
-
-const getEnvironmentValue = (name: string): string | undefined => {
-  if (name === "API_ENDPOINT") return process.env.API_ENDPOINT;
-  if (name === "NEXT_PUBLIC_API_ENDPOINT")
-    return process.env.NEXT_PUBLIC_API_ENDPOINT;
-  if (name === "API_KEY") return process.env.API_KEY;
-  if (name === "NEXT_PUBLIC_API_KEY") return process.env.NEXT_PUBLIC_API_KEY;
-  return process.env[name];
-};
-
-const hasNonEmptyEnvironment = (name: string): boolean => {
-  const value = getEnvironmentValue(name);
-  return typeof value === "string" && value.trim() !== "";
-};
-
-const getSelectedEnvironmentName = (
-  preferred: string,
-  fallback: string,
-): string => {
-  if (hasNonEmptyEnvironment(preferred)) {
-    return preferred;
-  }
-
-  if (hasNonEmptyEnvironment(fallback)) {
-    return fallback;
-  }
-
-  return "missing";
-};
-
-const getEndpointLogValue = (endpoint: string): string => {
-  try {
-    const parsed = new URL(endpoint);
-    return `${parsed.origin}${parsed.pathname}`;
-  } catch {
-    return endpoint;
-  }
-};
 
 const parseRequestBody = async (
   request: NextRequest,
@@ -121,6 +85,7 @@ const handleNonJsonResponse = async (
 export async function POST(request: NextRequest) {
   try {
     const apiConfig = getApiConfig();
+    const apiConfigDiagnostics = getApiConfigDiagnostics();
     if (!apiConfig) {
       return createErrorResponse(
         "Server configuration error: Missing API_ENDPOINT (or NEXT_PUBLIC_API_ENDPOINT) or API_KEY (or NEXT_PUBLIC_API_KEY)",
@@ -152,15 +117,14 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
 
     console.info("Upload proxy request", {
-      apiKeySource: getSelectedEnvironmentName(
-        "API_KEY",
-        "NEXT_PUBLIC_API_KEY",
-      ),
-      endpointSource: getSelectedEnvironmentName(
-        "API_ENDPOINT",
-        "NEXT_PUBLIC_API_ENDPOINT",
-      ),
+      apiKeyConflict: apiConfigDiagnostics.hasApiKeyConflict,
+      apiKeyFingerprint: apiConfigDiagnostics.apiKeyFingerprint,
+      apiKeySource: apiConfigDiagnostics.apiKeySource,
+      endpointConflict: apiConfigDiagnostics.hasEndpointConflict,
+      endpointSource: apiConfigDiagnostics.endpointSource,
+      isMixedSourcePair: apiConfigDiagnostics.isMixedSourcePair,
       requestUrl: request.nextUrl.pathname,
+      selectedEndpoint: apiConfigDiagnostics.endpointForLog,
       targetEndpoint: getEndpointLogValue(apiConfig.uploadEndpoint),
       upstreamStatus: response.status,
       vercelEnv: process.env.VERCEL_ENV ?? "local",
@@ -175,6 +139,7 @@ export async function POST(request: NextRequest) {
           ? (data as { message: string }).message
           : undefined;
       console.warn("Upload proxy upstream 403", {
+        apiConfigDiagnostics,
         responseMessage,
         targetEndpoint: getEndpointLogValue(apiConfig.uploadEndpoint),
         vercelEnv: process.env.VERCEL_ENV ?? "local",

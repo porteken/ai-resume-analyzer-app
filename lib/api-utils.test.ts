@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getApiConfig } from "@/lib/api-utils";
+import { getApiConfig, getApiConfigDiagnostics } from "@/lib/api-utils";
 
 describe("getApiConfig", () => {
   beforeEach(() => {
@@ -132,5 +132,39 @@ describe("getApiConfig", () => {
     const config = getApiConfig();
 
     expect(config?.apiKey).toBe("server-only-key");
+  });
+
+  it("reports mixed source pairs and conflicting endpoint values", () => {
+    vi.stubEnv("API_ENDPOINT", "https://api.example.com/dev/analyze");
+    vi.stubEnv(
+      "NEXT_PUBLIC_API_ENDPOINT",
+      "https://api.example.com/prod/analyze",
+    );
+    vi.stubEnv("NEXT_PUBLIC_API_KEY", "public-key");
+
+    const diagnostics = getApiConfigDiagnostics();
+
+    expect(diagnostics.endpointSource).toBe("API_ENDPOINT");
+    expect(diagnostics.apiKeySource).toBe("NEXT_PUBLIC_API_KEY");
+    expect(diagnostics.isMixedSourcePair).toBe(true);
+    expect(diagnostics.hasEndpointConflict).toBe(true);
+    expect(diagnostics.endpointForLog).toBe(
+      "https://api.example.com/dev/analyze",
+    );
+  });
+
+  it("reports api key conflicts using a masked fingerprint", () => {
+    vi.stubEnv(
+      "NEXT_PUBLIC_API_ENDPOINT",
+      "https://api.example.com/dev/analyze",
+    );
+    vi.stubEnv("API_KEY", "server-only-key");
+    vi.stubEnv("NEXT_PUBLIC_API_KEY", "public-key");
+
+    const diagnostics = getApiConfigDiagnostics();
+
+    expect(diagnostics.hasApiKeyConflict).toBe(true);
+    expect(diagnostics.apiKeySource).toBe("API_KEY");
+    expect(diagnostics.apiKeyFingerprint).toBe("len:15..-key");
   });
 });
