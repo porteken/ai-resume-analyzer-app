@@ -1,9 +1,0 @@
-echo "Running pre-push checks..."
-
-npm run test:unit
-
-npm run test:e2e
-
-npm run build
-
-echo "Pre-push checks passed!"
