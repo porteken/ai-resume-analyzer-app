@@ -32,8 +32,7 @@ test.describe("Page Display and Initial State", () => {
   });
 
   test("should work on mobile viewport", async ({ page }) => {
-    test.use({ viewport: { height: 667, width: 375 } });
-    await page.goto("/");
+    await page.setViewportSize({ height: 667, width: 375 });
     await mockAPIResponses.mockImmediateSuccess(page);
 
     await expect(
