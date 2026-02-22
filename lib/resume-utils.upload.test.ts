@@ -152,4 +152,53 @@ describe("uploadResume", () => {
     expect(thirdPayload.pdf_base64).toBeDefined();
     expect(thirdPayload.job_description).toBeUndefined();
   });
+
+  it("returns upstream 503 analyze error as a displayable message", async () => {
+    const fetchMock = vi.mocked(global.fetch);
+    fetchMock
+      .mockResolvedValueOnce(
+        createJsonResponse(200, {
+          job_id: "job-503",
+          s3_url: "s3://bucket/uploads/job-503/resume.pdf",
+          upload: {
+            fields: {
+              "Content-Type": "application/pdf",
+              key: "uploads/job-503/resume.pdf",
+              policy: "policy",
+              signature: "signature",
+              "x-amz-meta-filename": "resume.pdf",
+              "x-amz-meta-job_id": "job-503",
+            },
+            url: "https://bucket.s3.amazonaws.com",
+          },
+        }),
+      )
+      .mockResolvedValueOnce(createJsonResponse(204, {}))
+      .mockResolvedValueOnce(
+        createJsonResponse(503, {
+          error:
+            "Analysis service is temporarily unavailable due to high demand.\nPlease try again in a few minutes.",
+          type: "ServiceUnavailable",
+        }),
+      );
+
+    const file = new File(["pdf-content"], "resume.pdf", {
+      type: "application/pdf",
+    });
+
+    let thrownError: unknown;
+    try {
+      await uploadResume(file, "Senior software engineer");
+    } catch (error) {
+      thrownError = error;
+    }
+
+    expect(thrownError).toBeInstanceOf(Error);
+    expect((thrownError as Error).message).toContain(
+      "Analysis service is temporarily unavailable due to high demand.",
+    );
+    expect((thrownError as Error).message).not.toContain(
+      "Analysis trigger failed with status: 503",
+    );
+  });
 });

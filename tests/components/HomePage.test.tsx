@@ -221,6 +221,78 @@ describe("Home Page Component", () => {
     expect(screen.getByRole("alert")).toBeInTheDocument();
   });
 
+  it("should display analyze 503 service unavailable message", async () => {
+    const user = userEvent.setup();
+
+    globalThis.fetch = vi.fn().mockImplementation((url) => {
+      if (typeof url === "string" && url.includes("/api/upload")) {
+        return Promise.resolve({
+          json: async () => ({
+            job_id: "job-503",
+            s3_url: "s3://bucket/uploads/job-503/resume.pdf",
+            upload: {
+              fields: {
+                "Content-Type": "application/pdf",
+                key: "uploads/job-503/resume.pdf",
+                policy: "policy",
+                signature: "signature",
+                "x-amz-meta-filename": "resume.pdf",
+                "x-amz-meta-job_id": "job-503",
+              },
+              url: "https://bucket.s3.amazonaws.com",
+            },
+          }),
+          ok: true,
+        });
+      }
+
+      if (typeof url === "string" && url.includes("s3.amazonaws.com")) {
+        return Promise.resolve({
+          ok: true,
+          status: 204,
+          statusText: "No Content",
+          text: async () => "",
+        });
+      }
+
+      if (typeof url === "string" && url.includes("/api/analyze")) {
+        return Promise.resolve({
+          json: async () => ({
+            error:
+              "Analysis service is temporarily unavailable due to high demand.\nPlease try again in a few minutes.",
+            type: "ServiceUnavailable",
+          }),
+          ok: false,
+          status: 503,
+        });
+      }
+
+      return Promise.reject(new Error("Unknown URL"));
+    });
+
+    render(<Home />);
+
+    const file = createMockPDFFile();
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
+    const textarea = screen.getByLabelText(/job description/i);
+
+    await user.upload(fileInput, file);
+    await user.type(textarea, "Software Engineer");
+
+    const button = screen.getByRole("button", { name: /analyze resume/i });
+    await user.click(button);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/analysis service is temporarily unavailable/i),
+      ).toBeInTheDocument();
+    });
+    expect(
+      screen.getByText(/please try again in a few minutes/i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+  });
+
   it("should handle network errors", async () => {
     const user = userEvent.setup();
 

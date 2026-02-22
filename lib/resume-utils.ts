@@ -88,6 +88,12 @@ export const validateFile = (file: File | null): null | string => {
   return null;
 };
 
+interface ApiErrorResponse {
+  details?: string;
+  error?: string;
+  type?: string;
+}
+
 interface PresignedUploadResponse {
   expires_in: number;
   job_id: string;
@@ -135,6 +141,29 @@ const getUploadErrorMessage = (errorData: {
 
 const isMetadataTooLargeError = (message: string): boolean =>
   /metadata(?:too| )large|metadata headers exceed/i.test(message);
+
+const SERVICE_UNAVAILABLE_MESSAGE =
+  "Analysis service is temporarily unavailable due to high demand. Please try again in a few minutes.";
+
+const getErrorMessageFromResponse = async (
+  response: Response,
+  fallbackMessage: string,
+): Promise<string> => {
+  const errorData = (await response
+    .json()
+    .catch(() => ({}))) as ApiErrorResponse;
+  const message = getUploadErrorMessage(errorData);
+
+  if (message) {
+    return message;
+  }
+
+  if (response.status === 503 && errorData.type === "ServiceUnavailable") {
+    return SERVICE_UNAVAILABLE_MESSAGE;
+  }
+
+  return fallbackMessage;
+};
 
 /**
  * Uploads a PDF directly to S3 using a presigned URL
@@ -210,14 +239,11 @@ const triggerAnalysis = async (
   });
 
   if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as {
-      details?: string;
-      error?: string;
-    };
     throw new Error(
-      errorData.error ||
-        errorData.details ||
+      await getErrorMessageFromResponse(
+        response,
         `Analysis trigger failed with status: ${response.status}`,
+      ),
     );
   }
 };
@@ -338,7 +364,14 @@ export const pollForResults = async (
     await sleep(2000);
 
     const statusResponse = await fetch(statusUrl);
-    if (!statusResponse.ok) throw new Error("Status check failed.");
+    if (!statusResponse.ok) {
+      throw new Error(
+        await getErrorMessageFromResponse(
+          statusResponse,
+          "Status check failed.",
+        ),
+      );
+    }
 
     const statusData = (await statusResponse.json()) as {
       analysis_result?: string;
