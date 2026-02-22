@@ -4,6 +4,8 @@ import { getApiConfig } from "@/lib/api-utils";
 
 describe("getApiConfig", () => {
   beforeEach(() => {
+    vi.stubEnv("API_ENDPOINT", "");
+    vi.stubEnv("API_KEY", "");
     vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "");
   });
@@ -94,7 +96,7 @@ describe("getApiConfig", () => {
     expect(config?.analyzeEndpoint).toBe("https://api.example.com/dev/analyze");
   });
 
-  it("prefers NEXT_PUBLIC_API_ENDPOINT over API_ENDPOINT", () => {
+  it("prefers API_ENDPOINT over NEXT_PUBLIC_API_ENDPOINT", () => {
     vi.stubEnv(
       "NEXT_PUBLIC_API_ENDPOINT",
       "https://api.example.com/prod/analyze",
@@ -104,9 +106,7 @@ describe("getApiConfig", () => {
 
     const config = getApiConfig();
 
-    expect(config?.analyzeEndpoint).toBe(
-      "https://api.example.com/prod/analyze",
-    );
+    expect(config?.analyzeEndpoint).toBe("https://api.example.com/dev/analyze");
   });
 
   it("uses API_KEY when NEXT_PUBLIC_API_KEY is not set", () => {
@@ -115,6 +115,19 @@ describe("getApiConfig", () => {
       "https://api.example.com/dev/analyze",
     );
     vi.stubEnv("API_KEY", "server-only-key");
+
+    const config = getApiConfig();
+
+    expect(config?.apiKey).toBe("server-only-key");
+  });
+
+  it("prefers API_KEY over NEXT_PUBLIC_API_KEY", () => {
+    vi.stubEnv(
+      "NEXT_PUBLIC_API_ENDPOINT",
+      "https://api.example.com/dev/analyze",
+    );
+    vi.stubEnv("API_KEY", "server-only-key");
+    vi.stubEnv("NEXT_PUBLIC_API_KEY", "public-key");
 
     const config = getApiConfig();
 

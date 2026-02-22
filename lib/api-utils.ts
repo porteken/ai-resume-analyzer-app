@@ -10,9 +10,18 @@ interface ApiConfig {
   uploadEndpoint: string;
 }
 
+const getEnvironmentValue = (name: string): string | undefined => {
+  if (name === "API_ENDPOINT") return process.env.API_ENDPOINT;
+  if (name === "NEXT_PUBLIC_API_ENDPOINT")
+    return process.env.NEXT_PUBLIC_API_ENDPOINT;
+  if (name === "API_KEY") return process.env.API_KEY;
+  if (name === "NEXT_PUBLIC_API_KEY") return process.env.NEXT_PUBLIC_API_KEY;
+  return process.env[name];
+};
+
 const getFirstNonEmptyEnv = (...names: string[]): null | string => {
   for (const name of names) {
-    const value = process.env[name];
+    const value = getEnvironmentValue(name);
     if (typeof value === "string" && value.trim() !== "") {
       return value.trim();
     }
@@ -22,7 +31,7 @@ const getFirstNonEmptyEnv = (...names: string[]): null | string => {
 };
 
 const hasNonEmptyEnv = (name: string): boolean => {
-  const value = process.env[name];
+  const value = getEnvironmentValue(name);
   return typeof value === "string" && value.trim() !== "";
 };
 
@@ -69,22 +78,33 @@ const deriveBaseEndpoint = (apiEndpoint: string): null | string => {
 
 export const getApiConfig = (): ApiConfig | null => {
   const apiEndpoint = getFirstNonEmptyEnv(
-    "NEXT_PUBLIC_API_ENDPOINT",
     "API_ENDPOINT",
+    "NEXT_PUBLIC_API_ENDPOINT",
   );
-  const apiKey = getFirstNonEmptyEnv("NEXT_PUBLIC_API_KEY", "API_KEY");
+  const apiKey = getFirstNonEmptyEnv("API_KEY", "NEXT_PUBLIC_API_KEY");
 
   if (!apiEndpoint || !apiKey) {
     console.error("Missing environment variables:", {
-      hasEndpoint: hasNonEmptyEnv("NEXT_PUBLIC_API_ENDPOINT"),
-      hasKey: hasNonEmptyEnv("NEXT_PUBLIC_API_KEY"),
+      hasApiEndpoint: hasNonEmptyEnv("API_ENDPOINT"),
+      hasApiKey: hasNonEmptyEnv("API_KEY"),
+      hasPublicApiEndpoint: hasNonEmptyEnv("NEXT_PUBLIC_API_ENDPOINT"),
+      hasPublicApiKey: hasNonEmptyEnv("NEXT_PUBLIC_API_KEY"),
     });
     return null;
   }
 
-  if (!hasNonEmptyEnv("NEXT_PUBLIC_API_KEY") && hasNonEmptyEnv("API_KEY")) {
+  if (
+    !hasNonEmptyEnv("API_ENDPOINT") &&
+    hasNonEmptyEnv("NEXT_PUBLIC_API_ENDPOINT")
+  ) {
     console.warn(
-      "Using API_KEY fallback. Prefer NEXT_PUBLIC_API_KEY to avoid exposing secrets to client bundles.",
+      "Using NEXT_PUBLIC_API_ENDPOINT fallback. Prefer API_ENDPOINT for server-side config.",
+    );
+  }
+
+  if (!hasNonEmptyEnv("API_KEY") && hasNonEmptyEnv("NEXT_PUBLIC_API_KEY")) {
+    console.warn(
+      "Using NEXT_PUBLIC_API_KEY fallback. Prefer API_KEY for server-only secrets.",
     );
   }
 
