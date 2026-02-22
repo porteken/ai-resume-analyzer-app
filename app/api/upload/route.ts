@@ -99,12 +99,22 @@ export async function POST(request: NextRequest) {
     const jobDescriptionError = validateBodyJobDescription(body!);
     if (jobDescriptionError) return jobDescriptionError;
 
+    const headers = {
+      "Content-Type": "application/json",
+      "x-api-key": apiConfig.apiKey,
+    };
+
+    console.log("Debug: Pre-fetch check", {
+      apiKeyFirst3: apiConfig.apiKey.slice(0, 3),
+      apiKeyLast3: apiConfig.apiKey.slice(-3),
+      apiKeyLength: apiConfig.apiKey.length,
+      headers,
+      url: apiConfig.uploadEndpoint,
+    });
+
     const response = await fetch(apiConfig.uploadEndpoint, {
       body: JSON.stringify(body),
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiConfig.apiKey,
-      },
+      headers,
       method: "POST",
       signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     });
