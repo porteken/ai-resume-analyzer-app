@@ -82,6 +82,36 @@ const handleNonJsonResponse = async (
   );
 };
 
+const warnOnForbiddenUpstreamResponse = (
+  response: Response,
+  data: unknown,
+  apiConfigDiagnostics: ReturnType<typeof getApiConfigDiagnostics>,
+  uploadEndpoint: string,
+): void => {
+  if (response.status !== 403) return;
+
+  const responseMessage =
+    typeof data === "object" &&
+    data !== null &&
+    "message" in data &&
+    typeof (data as { message?: unknown }).message === "string"
+      ? (data as { message: string }).message
+      : undefined;
+
+  const responseHeaders: Record<string, string> = {};
+  for (const [key, value] of response.headers.entries()) {
+    responseHeaders[key] = value;
+  }
+
+  console.warn("Upload proxy upstream 403", {
+    apiConfigDiagnostics,
+    responseHeaders,
+    responseMessage,
+    targetEndpoint: getEndpointLogValue(uploadEndpoint),
+    vercelEnv: process.env.VERCEL_ENV ?? "local",
+  });
+};
+
 export async function POST(request: NextRequest) {
   try {
     const apiConfig = getApiConfig();
@@ -104,12 +134,13 @@ export async function POST(request: NextRequest) {
       "x-api-key": apiConfig.apiKey,
     };
 
-    console.log("Debug: Pre-fetch check", {
-      apiKeyFirst3: apiConfig.apiKey.slice(0, 3),
-      apiKeyLast3: apiConfig.apiKey.slice(-3),
-      apiKeyLength: apiConfig.apiKey.length,
-      headers,
-      url: apiConfig.uploadEndpoint,
+    console.log("Debug: Full Request Inspection", {
+      bodyKeys: body ? Object.keys(body as object) : [],
+      bodyType: typeof body,
+      endpoint: apiConfig.uploadEndpoint,
+      environment: process.env.VERCEL_ENV ?? "local",
+      incomingHeaders: Object.fromEntries(request.headers.entries()),
+      outgoingHeaders: headers,
     });
 
     const response = await fetch(apiConfig.uploadEndpoint, {
@@ -140,21 +171,12 @@ export async function POST(request: NextRequest) {
       vercelEnv: process.env.VERCEL_ENV ?? "local",
     });
 
-    if (response.status === 403) {
-      const responseMessage =
-        typeof data === "object" &&
-        data !== null &&
-        "message" in data &&
-        typeof (data as { message?: unknown }).message === "string"
-          ? (data as { message: string }).message
-          : undefined;
-      console.warn("Upload proxy upstream 403", {
-        apiConfigDiagnostics,
-        responseMessage,
-        targetEndpoint: getEndpointLogValue(apiConfig.uploadEndpoint),
-        vercelEnv: process.env.VERCEL_ENV ?? "local",
-      });
-    }
+    warnOnForbiddenUpstreamResponse(
+      response,
+      data,
+      apiConfigDiagnostics,
+      apiConfig.uploadEndpoint,
+    );
 
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
