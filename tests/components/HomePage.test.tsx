@@ -144,7 +144,69 @@ describe("Home Page Component", () => {
       expect(screen.getByText(/analysis complete/i)).toBeInTheDocument();
     });
 
-    expect(screen.getByText(/match score/i)).toBeInTheDocument();
+    expect(screen.queryByText(/match score/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/strengths/i)).toBeInTheDocument();
+    expect(screen.getByText(/^gaps$/i)).toBeInTheDocument();
+    expect(screen.getByText(/recommendations/i)).toBeInTheDocument();
+  });
+
+  it("should render structured JSON analysis results", async () => {
+    const user = userEvent.setup();
+
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      json: async () => ({
+        analysis_result: {
+          contact_info: {
+            email: "porteken@gmail.com",
+            location: "Orlando, Florida",
+            phone: "(832)948-3211",
+          },
+          experience: [
+            {
+              company: "Lockheed Martin",
+              duration: "September 2021-Present",
+              highlights: ["Architected Next.js/Fastify replacement"],
+              role: "Senior Systems Engineer",
+            },
+          ],
+          gaps: ["Example gap"],
+          name: "Kenneth J. Porter",
+          recommendations: ["Example recommendation"],
+          skills: ["TypeScript", "Next.js"],
+          strengths: ["Example strength"],
+          summary: "Senior engineer focused on web and analytics systems.",
+        },
+      }),
+      ok: true,
+    });
+
+    render(<Home />);
+
+    const file = createMockPDFFile();
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
+    const textarea = screen.getByLabelText(/job description/i);
+
+    await user.upload(fileInput, file);
+    await user.type(textarea, "Software Engineer position");
+
+    const button = screen.getByRole("button", { name: /analyze resume/i });
+    await user.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByText(/analysis complete/i)).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("Kenneth J. Porter")).not.toBeInTheDocument();
+    expect(screen.queryByText("TypeScript")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/senior systems engineer/i),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText(/^strengths$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^gaps$/i)).toBeInTheDocument();
+    expect(screen.getByText(/^recommendations$/i)).toBeInTheDocument();
+    expect(screen.getByText(/example strength/i)).toBeInTheDocument();
+    expect(screen.getByText(/example gap/i)).toBeInTheDocument();
+    expect(screen.getByText(/example recommendation/i)).toBeInTheDocument();
   });
 
   it("should handle async job with polling", async () => {
@@ -348,7 +410,9 @@ describe("Home Page Component", () => {
       await expect(fileInput).toBeDisabled();
       await expect(textarea).toBeDisabled();
       await expect(button).toBeDisabled();
-      await expect(button).toHaveTextContent(/reading pdf file|analyzing/i);
+      await expect(button).toHaveTextContent(
+        /uploading resume|analyzing resume/i,
+      );
     });
   });
 
@@ -373,9 +437,9 @@ describe("Home Page Component", () => {
     await user.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText(/match score/i)).toBeInTheDocument();
+      expect(screen.queryByText(/match score/i)).not.toBeInTheDocument();
       expect(screen.getByText(/strengths/i)).toBeInTheDocument();
-      expect(screen.getByText(/gaps/i)).toBeInTheDocument();
+      expect(screen.getByText(/^gaps$/i)).toBeInTheDocument();
       expect(screen.getByText(/recommendations/i)).toBeInTheDocument();
     });
   });

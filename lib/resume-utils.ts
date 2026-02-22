@@ -88,6 +88,33 @@ export const validateFile = (file: File | null): null | string => {
   return null;
 };
 
+export type AnalysisResultData = string | StructuredAnalysisResult;
+
+export interface StructuredAnalysisContactInfo {
+  email?: string;
+  linkedin?: string;
+  location?: string;
+  phone?: string;
+}
+
+export interface StructuredAnalysisExperience {
+  company?: string;
+  duration?: string;
+  highlights?: string[];
+  role?: string;
+}
+
+export interface StructuredAnalysisResult {
+  contact_info?: StructuredAnalysisContactInfo;
+  experience?: StructuredAnalysisExperience[];
+  gaps?: string[];
+  name?: string;
+  recommendations?: string[];
+  skills?: string[];
+  strengths?: string[];
+  summary?: string;
+}
+
 interface ApiErrorResponse {
   details?: string;
   error?: string;
@@ -117,10 +144,35 @@ interface PresignedUrlFields {
   "x-amz-meta-job_id": string;
 }
 
+interface UploadRequestPayload {
+  filename: string;
+  job_description?: string;
+  pdf_base64?: string;
+}
+
 interface UploadResumeResponse {
-  analysis_result?: string;
+  analysis_result?: AnalysisResultData;
   job_id?: string;
 }
+
+const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const hasAnalysisResult = (
+  value: unknown,
+): value is { analysis_result: AnalysisResultData; job_id?: string } => {
+  if (!isObjectRecord(value) || !("analysis_result" in value)) {
+    return false;
+  }
+
+  const analysisResult = value.analysis_result;
+
+  if (typeof analysisResult === "string") {
+    return analysisResult.trim().length > 0;
+  }
+
+  return isObjectRecord(analysisResult);
+};
 
 const sendUploadRequest = async (requestBody: object): Promise<Response> =>
   fetch("/api/upload", {
@@ -138,6 +190,18 @@ const getUploadErrorMessage = (errorData: {
   errorData.error || errorData.details
     ? `${errorData.error ?? ""} ${errorData.details ?? ""}`.trim()
     : null;
+
+const getUploadFailureMessage = async (response: Response): Promise<string> => {
+  const errorData = (await response.json().catch(() => ({}))) as {
+    details?: string;
+    error?: string;
+  };
+
+  return (
+    getUploadErrorMessage(errorData) ||
+    `Upload failed with status: ${response.status}`
+  );
+};
 
 const isMetadataTooLargeError = (message: string): boolean =>
   /metadata(?:too| )large|metadata headers exceed/i.test(message);
@@ -215,7 +279,7 @@ const triggerAnalysis = async (
     jobDescription?: string;
     s3Url?: string;
   },
-): Promise<void> => {
+): Promise<null | UploadResumeResponse> => {
   const payload: {
     job_description?: string;
     job_id: string;
@@ -246,11 +310,81 @@ const triggerAnalysis = async (
       ),
     );
   }
+
+  const contentType = response.headers?.get?.("content-type");
+  if (!contentType?.includes("application/json")) {
+    return null;
+  }
+
+  const responseData = (await response.json()) as unknown;
+  if (hasAnalysisResult(responseData)) {
+    return responseData;
+  }
+
+  if (
+    isObjectRecord(responseData) &&
+    "job_id" in responseData &&
+    typeof responseData.job_id === "string"
+  ) {
+    return { job_id: responseData.job_id };
+  }
+
+  return null;
+};
+
+const sendUploadRequestWithFallbacks = async (
+  file: File,
+  payload: UploadRequestPayload,
+  truncatedDescription: string,
+): Promise<Response> => {
+  let uploadResponse = await sendUploadRequest(payload);
+
+  if (uploadResponse.ok) {
+    return uploadResponse;
+  }
+
+  const errorMessage = await getUploadFailureMessage(uploadResponse);
+  if (!/pdf_base64/i.test(errorMessage)) {
+    throw new Error(errorMessage);
+  }
+
+  const pdfBase64 = await convertFileToBase64(file);
+  const legacyPayload: UploadRequestPayload = {
+    ...payload,
+    job_description: truncatedDescription.slice(
+      0,
+      LEGACY_SAFE_JOB_DESCRIPTION_LENGTH,
+    ),
+    pdf_base64: pdfBase64,
+  };
+  uploadResponse = await sendUploadRequest(legacyPayload);
+
+  if (uploadResponse.ok) {
+    return uploadResponse;
+  }
+
+  const legacyErrorMessage = await getUploadFailureMessage(uploadResponse);
+  if (!isMetadataTooLargeError(legacyErrorMessage)) {
+    throw new Error(legacyErrorMessage);
+  }
+
+  const metadataSafeLegacyPayload: UploadRequestPayload = {
+    filename: "resume.pdf",
+    pdf_base64: pdfBase64,
+  };
+  uploadResponse = await sendUploadRequest(metadataSafeLegacyPayload);
+
+  if (uploadResponse.ok) {
+    return uploadResponse;
+  }
+
+  throw new Error(await getUploadFailureMessage(uploadResponse));
 };
 
 export const uploadResume = async (
   file: File,
   jobDescription: string,
+  onProgress?: (message: string) => void,
 ): Promise<UploadResumeResponse> => {
   // Sanitize inputs to prevent metadata issues
   const sanitizedFilename = sanitizeFilename(file.name);
@@ -261,83 +395,33 @@ export const uploadResume = async (
     filename: sanitizedFilename,
     job_description: truncatedDescription,
   };
-
-  let uploadResponse = await sendUploadRequest(payload);
-
-  if (!uploadResponse.ok) {
-    const errorData = (await uploadResponse.json().catch(() => ({}))) as {
-      details?: string;
-      error?: string;
-    };
-    const errorMessage =
-      getUploadErrorMessage(errorData) ||
-      `Upload failed with status: ${uploadResponse.status}`;
-    const requiresLegacyBase64 = /pdf_base64/i.test(errorMessage);
-
-    if (!requiresLegacyBase64) {
-      throw new Error(errorMessage);
-    }
-
-    const pdfBase64 = await convertFileToBase64(file);
-    const legacyPayload = {
-      ...payload,
-      job_description: truncatedDescription.slice(
-        0,
-        LEGACY_SAFE_JOB_DESCRIPTION_LENGTH,
-      ),
-      pdf_base64: pdfBase64,
-    };
-    uploadResponse = await sendUploadRequest(legacyPayload);
-
-    if (!uploadResponse.ok) {
-      const legacyErrorData = (await uploadResponse
-        .json()
-        .catch(() => ({}))) as {
-        details?: string;
-        error?: string;
-      };
-      const legacyErrorMessage =
-        getUploadErrorMessage(legacyErrorData) ||
-        `Upload failed with status: ${uploadResponse.status}`;
-
-      if (!isMetadataTooLargeError(legacyErrorMessage)) {
-        throw new Error(legacyErrorMessage);
-      }
-
-      // Final fallback for legacy backends that write request fields into S3 metadata.
-      const metadataSafeLegacyPayload = {
-        filename: "resume.pdf",
-        pdf_base64: pdfBase64,
-      };
-      uploadResponse = await sendUploadRequest(metadataSafeLegacyPayload);
-
-      if (!uploadResponse.ok) {
-        const metadataSafeErrorData = (await uploadResponse
-          .json()
-          .catch(() => ({}))) as {
-          details?: string;
-          error?: string;
-        };
-        throw new Error(
-          getUploadErrorMessage(metadataSafeErrorData) ||
-            `Upload failed with status: ${uploadResponse.status}`,
-        );
-      }
-    }
-  }
+  const uploadResponse = await sendUploadRequestWithFallbacks(
+    file,
+    payload,
+    truncatedDescription,
+  );
 
   const uploadData = (await uploadResponse.json()) as PresignedUploadResponse;
 
   // Check if we got a presigned URL (expected flow)
   if (uploadData.upload?.url && uploadData.upload?.fields) {
     // Step 2: Upload PDF directly to S3 using presigned URL
+    onProgress?.("Uploading Resume...");
     await uploadToS3(file, uploadData.upload.url, uploadData.upload.fields);
 
     // Step 3: Trigger analysis on the backend
-    await triggerAnalysis(uploadData.job_id, {
+    onProgress?.("Analyzing Resume...");
+    const analyzeResponse = await triggerAnalysis(uploadData.job_id, {
       jobDescription: truncatedDescription,
       s3Url: uploadData.s3_url,
     });
+
+    if (analyzeResponse?.analysis_result) {
+      return {
+        analysis_result: analyzeResponse.analysis_result,
+        job_id: analyzeResponse.job_id ?? uploadData.job_id,
+      };
+    }
 
     return { job_id: uploadData.job_id };
   }
@@ -354,7 +438,7 @@ export const uploadResume = async (
 export const pollForResults = async (
   jobId: string,
   onProgress: (message: string) => void,
-): Promise<string> => {
+): Promise<AnalysisResultData> => {
   const statusUrl = `/api/status/${jobId}`;
   const maxAttempts = 150;
   let attempts = 0;
@@ -374,28 +458,39 @@ export const pollForResults = async (
     }
 
     const statusData = (await statusResponse.json()) as {
-      analysis_result?: string;
+      analysis_result?: AnalysisResultData;
       error?: string;
       status?: string;
     };
 
-    if (statusData.status === "completed") {
-      if (
-        typeof statusData.analysis_result !== "string" ||
-        !statusData.analysis_result.trim()
-      ) {
-        throw new Error("Analysis completed, but no result was returned.");
-      }
-
+    if (hasAnalysisResult(statusData)) {
       return statusData.analysis_result;
+    }
+
+    if (statusData.status === "completed") {
+      const analysisResult = statusData.analysis_result;
+      assertCompletedPollResult(analysisResult);
+      return analysisResult;
     }
 
     if (statusData.status === "failed") {
       throw new Error(statusData.error || "Analysis failed on server.");
     }
 
-    onProgress("Analyzing...");
+    onProgress("Analyzing Resume...");
   }
 
   throw new Error("Request timed out.");
 };
+
+function assertCompletedPollResult(
+  analysisResult: AnalysisResultData | undefined,
+): asserts analysisResult is AnalysisResultData {
+  if (typeof analysisResult === "string" && !analysisResult.trim()) {
+    throw new Error("Analysis completed, but no result was returned.");
+  }
+
+  if (!analysisResult) {
+    throw new Error("Analysis completed, but no result was returned.");
+  }
+}

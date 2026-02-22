@@ -3,9 +3,10 @@ name: CI
 on:
   pull_request:
   push:
+    branches:
+      - dev
+      - prd
   workflow_dispatch:
-  repository_dispatch:
-    types: [vercel.deployment.ready]
 
 jobs:
 
@@ -153,14 +154,29 @@ jobs:
       - name: Build
         run: npm run build
 
-  # -------- FINAL CHECK --------
-  final-check:
-    name: Final CI Check
+  # -------- Deployment via Vercel Deploy Hooks --------
+  deploy:
+    name: Deploy
     needs:
       - merge-vitest-unit-reports
       - merge-playwright-reports
       - build
     runs-on: ubuntu-latest
+
     steps:
-      - name: Final Passed
-        run: echo "✔ All critical jobs succeeded — CI is successful"
+      - name: Determine Branch
+        id: branch
+        run: |
+          echo "branch=${GITHUB_REF#refs/heads/}" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to Dev
+        if: steps.branch.outputs.branch == 'dev'
+        run: |
+          echo "Triggering Vercel deploy hook for dev"
+          curl -X POST "$VERCEL_DEPLOY_HOOK_DEV"
+
+      - name: Deploy to Prd
+        if: steps.branch.outputs.branch == 'prd'
+        run: |
+          echo "Triggering Vercel deploy hook for prd"
+          curl -X POST "$VERCEL_DEPLOY_HOOK_PRD"

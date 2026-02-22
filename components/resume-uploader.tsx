@@ -30,6 +30,9 @@ export const ResumeUploader = ({
 }: ResumeUploaderProperties) => {
   const [file, setFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState("");
+  const buttonLabel = isLoading
+    ? statusMessage || "Processing Resume..."
+    : "Analyze Resume";
 
   const handleSubmit = useCallback(() => {
     const cleanedDescription = toAscii(
@@ -72,7 +75,7 @@ export const ResumeUploader = ({
       </div>
 
       <Button
-        aria-label="Analyze Resume"
+        aria-label={buttonLabel}
         className="w-full bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
         disabled={isLoading || !file || !jobDescription.trim()}
         onClick={handleSubmit}
@@ -80,12 +83,12 @@ export const ResumeUploader = ({
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {statusMessage}
+            {buttonLabel}
           </>
         ) : (
           <>
             <Upload className="mr-2 h-4 w-4" />
-            Analyze Resume
+            {buttonLabel}
           </>
         )}
       </Button>

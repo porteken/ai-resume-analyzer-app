@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 
 import {
+  type AnalysisResultData,
   pollForResults,
   uploadResume,
   validateFile,
@@ -12,7 +13,7 @@ import {
 interface UseResumeAnalysisReturn {
   error: null | string;
   isLoading: boolean;
-  result: null | string;
+  result: AnalysisResultData | null;
   statusMessage: string;
   submitAnalysis: (file: File | null, jobDescription: string) => Promise<void>;
 }
@@ -20,7 +21,7 @@ interface UseResumeAnalysisReturn {
 export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
-  const [result, setResult] = useState<null | string>(null);
+  const [result, setResult] = useState<AnalysisResultData | null>(null);
   const [error, setError] = useState<null | string>(null);
 
   const submitAnalysis = useCallback(
@@ -39,21 +40,25 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
       setIsLoading(true);
       setError(null);
       setResult(null);
-      setStatusMessage("Preparing upload...");
+      setStatusMessage("Uploading Resume...");
 
       try {
-        setStatusMessage("Reading PDF file...");
-        const uploadData = await uploadResume(file, jobDescription.trim());
+        setStatusMessage("Uploading Resume...");
+        const uploadData = await uploadResume(
+          file,
+          jobDescription.trim(),
+          setStatusMessage,
+        );
 
-        if (uploadData.job_id) {
-          setStatusMessage("Analyzing...");
+        if (uploadData.analysis_result) {
+          setResult(uploadData.analysis_result);
+        } else if (uploadData.job_id) {
+          setStatusMessage("Analyzing Resume...");
           const analysisResult = await pollForResults(
             uploadData.job_id,
             setStatusMessage,
           );
           setResult(analysisResult);
-        } else if (uploadData.analysis_result) {
-          setResult(uploadData.analysis_result);
         } else {
           throw new Error(
             "Unexpected response format from server. No job_id or analysis_result found.",
