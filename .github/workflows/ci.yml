@@ -7,7 +7,7 @@ on:
 
 jobs:
 
-  # -------- Vitest Unit Parallel Shards --------
+  # -------- Vitest Unit Shards --------
   vitest-unit:
     name: Vitest Unit (shard ${{ matrix.shard_index }}/${{ matrix.shard_total }})
     runs-on: ubuntu-latest
@@ -29,7 +29,7 @@ jobs:
         run: npm ci
       - name: Run Vitest unit shard
         run: npm run test:unit -- --reporter=blob --shard=${{ matrix.shard_index }}/${{ matrix.shard_total }}
-      - name: Upload Vitest report shard
+      - name: Upload Vitest unit blob report
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -59,14 +59,66 @@ jobs:
       - name: Merge Vitest reports
         id: vitest_merge
         run: |
-          npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=default || echo "merge reports contained test failures"
+          npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=default || echo "Vitest merge finished with some failures"
       - name: Fail CI if Vitest failed
         if: failure()
         run: exit 1
 
+  # -------- Vitest Integration Shards --------
+  vitest-integration:
+    name: Vitest Integration (shard ${{ matrix.shard_index }}/${{ matrix.shard_total }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        shard_index: [1,2]
+        shard_total: [2]
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run Vitest integration shard
+        run: npm run test:integration -- --reporter=blob --shard=${{ matrix.shard_index }}/${{ matrix.shard_total }}
+      - name: Upload Vitest integration blob report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-integration-blob-${{ matrix.shard_index }}
+          path: .vitest-reports/
+          include-hidden-files: true
+          retention-days: 1
+
+  merge-vitest-integration-reports:
+    name: Merge Vitest Integration Reports
+    needs: vitest-integration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Download Vitest integration shards
+        uses: actions/download-artifact@v5
+        with:
+          path: all-vitest-integration-blob-reports
+          pattern: vitest-integration-blob-*
+          merge-multiple: true
+      - name: Merge Vitest integration reports
+        run: npx vitest --merge-reports=./all-vitest-integration-blob-reports --reporter=default
+
   # -------- Playwright E2E Parallel Shards --------
   playwright-e2e:
-    name: E2E (shard ${{ matrix.shard_index }}/${{ matrix.shard_total }})
+    name: E2E Playwright (shard ${{ matrix.shard_index }}/${{ matrix.shard_total }})
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.58.2-noble
@@ -75,11 +127,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard_index:
-          - 1 - 2 - 3 - 4 - 5
-          - 6 - 7 - 8 - 9 - 10
-          - 11 - 12 - 13 - 14 - 15
-          - 16 - 17 - 18 - 19 - 20
+        shard_index: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
         shard_total: [20]
 
     steps:
@@ -88,14 +136,18 @@ jobs:
         with:
           node-version: 22
           cache: npm
+
       - name: Set HOME for Firefox/Playwright
         if: runner.os == 'Linux'
         run: echo "HOME=/root" >> $GITHUB_ENV
+
       - name: Install dependencies
         run: npm ci
-      - name: Run Playwright shard
+
+      - name: Run Playwright E2E shard
         run: npm run test:e2e -- --shard=${{ matrix.shard_index }}/${{ matrix.shard_total }} --reporter=blob
-      - name: Upload Playwright report shard
+
+      - name: Upload Playwright blob report
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -121,11 +173,11 @@ jobs:
           path: all-blob-reports
           pattern: blob-report-*
           merge-multiple: true
-      - name: Merge Playwright reports
+      - name: Merge into HTML report
         id: merge_e2e
         run: |
-          npx playwright merge-reports --reporter html ./all-blob-reports || echo "Playwright tests failed"
-      - name: Upload Playwright report
+          npx playwright merge-reports --reporter html ./all-blob-reports || echo "Playwright merge finished with some failures"
+      - name: Upload merged Playwright report
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
