@@ -28,8 +28,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --prefer-offline --no-audit --no-fund
 
@@ -59,8 +60,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --prefer-offline --no-audit --no-fund
 
@@ -72,6 +74,7 @@ jobs:
           merge-multiple: true
       - name: Merge Vitest unit reports
         run: npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=junit
+
 
   playwright-e2e:
     name: Playwright E2E (shard ${{ matrix.shard_index }}/20)
@@ -117,8 +120,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: node-modules-pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
+          key: ${{ runner.os }}-node-modules-pw-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --prefer-offline --no-audit --no-fund
 
@@ -149,8 +153,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-      - name: Install dependencies
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: npm ci --prefer-offline --no-audit --no-fund
 
@@ -168,7 +173,7 @@ jobs:
   deploy:
     name: Deploy to Vercel
     if: github.event_name == 'push' && (github.ref_name == 'dev' || github.ref_name == 'prd')
-    needs: [vitest-unit, merge-playwright]
+    needs: [merge-vitest-unit, merge-playwright]
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Vercel Deploy Hook
