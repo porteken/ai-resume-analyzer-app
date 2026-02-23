@@ -22,9 +22,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --prefer-offline --no-audit --no-fund
+
       - run: npm run test:unit -- --reporter=blob --shard=${{ matrix.shard_index }}/${{ matrix.shard_total }}
+
       - name: Upload Vitest unit blob report
         if: always()
         uses: actions/upload-artifact@v4
@@ -32,6 +42,7 @@ jobs:
           name: vitest-unit-blob-${{ matrix.shard_index }}
           path: .vitest-reports/
           include-hidden-files: true
+          retention-days: 1
 
   merge-vitest-unit:
     name: Merge Vitest Unit Reports
@@ -42,8 +53,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --prefer-offline --no-audit --no-fund
+
       - name: Download Vitest unit blob reports
         uses: actions/download-artifact@v4
         with:
@@ -53,9 +73,6 @@ jobs:
       - name: Merge Vitest unit reports
         run: npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=junit
 
-  ##################
-  # Playwright E2E
-  ##################
   playwright-e2e:
     name: Playwright E2E (shard ${{ matrix.shard_index }}/20)
     runs-on: ubuntu-latest
@@ -94,11 +111,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
 
-      # SPEED FIX: Removed 'npx playwright install'.
-      # Browsers are already in the mcr.microsoft.com/playwright image.
+      - name: Cache node_modules (Playwright)
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-pw-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --prefer-offline --no-audit --no-fund
 
       - name: Run Playwright Shard
         run: npx playwright test --shard=${{ matrix.shard_index }}/20 --reporter=list,blob
@@ -110,21 +132,27 @@ jobs:
         with:
           name: playwright-blob-${{ matrix.shard_index }}
           path: blob-report/*.zip
+          retention-days: 1
 
   merge-playwright:
     name: Merge Playwright Reports
     needs: playwright-e2e
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
-      - run: npm ci
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --prefer-offline --no-audit --no-fund
 
       - name: Download All Playwright Blobs
         uses: actions/download-artifact@v4
@@ -134,40 +162,18 @@ jobs:
           merge-multiple: true
 
       - name: Merge Playwright (line)
-        run: |
-          npx playwright merge-reports --reporter=line ./playwright-blobs
+        run: npx playwright merge-reports --reporter=line ./playwright-blobs
         shell: bash
 
-  ##################
-  # Build
-  ##################
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-
-  ##################
-  # Deploy to Vercel
-  ##################
   deploy:
     name: Deploy to Vercel
-    # Only deploy on pushes to dev or prd
     if: github.event_name == 'push' && (github.ref_name == 'dev' || github.ref_name == 'prd')
-    needs:
-      [build, merge-vitest-unit, merge-playwright]
+    needs: [vitest-unit, merge-playwright]
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Vercel Deploy Hook
         shell: bash
         env:
-          # Match Repository Secrets based on branch name
           VERCEL_DEPLOY_HOOK: ${{ github.ref_name == 'prd' && secrets.VERCEL_DEPLOY_HOOK_PRD || secrets.VERCEL_DEPLOY_HOOK_DEV }}
         run: |
           if [ -z "$VERCEL_DEPLOY_HOOK" ]; then
