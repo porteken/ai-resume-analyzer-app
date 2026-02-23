@@ -29,29 +29,21 @@ export const convertFileToBase64 = (file: File): Promise<string> =>
     reader.readAsDataURL(file);
   });
 
-// Maximum allowed size for job description to prevent metadata issues
-// S3 metadata has a 2KB limit, but job_description is stored in DynamoDB
-// This limit ensures reasonable payload sizes
 const MAX_JOB_DESCRIPTION_LENGTH = 10_000;
 const LEGACY_SAFE_JOB_DESCRIPTION_LENGTH = 500;
 
-// Maximum filename length to prevent S3 metadata issues
 const MAX_FILENAME_LENGTH = 200;
 
 export const sanitizeFilename = (filename: string): string => {
-  // Get just the filename without path
   const base =
     filename.split("/").pop() || filename.split("\\").pop() || filename;
 
-  // Remove or replace problematic characters, keep alphanumeric, dots, underscores, hyphens
   let safe = base.replaceAll(/[^\w.-]/g, "_");
 
-  // Ensure it ends with .pdf
   if (!safe.toLowerCase().endsWith(".pdf")) {
     safe += ".pdf";
   }
 
-  // Limit length to prevent S3 metadata size issues
   if (safe.length > MAX_FILENAME_LENGTH) {
     const ext = ".pdf";
     safe = safe.slice(0, MAX_FILENAME_LENGTH - ext.length) + ext;
@@ -240,12 +232,10 @@ const uploadToS3 = async (
 ): Promise<void> => {
   const formData = new FormData();
 
-  // Add all fields from the presigned URL (these include the metadata)
   for (const [key, value] of Object.entries(fields)) {
     formData.append(key, value);
   }
 
-  // Add the file last (required by S3 presigned POST)
   formData.append("file", file);
 
   const response = await fetch(presignedUrl, {
@@ -255,7 +245,7 @@ const uploadToS3 = async (
 
   if (!response.ok) {
     const errorText = await response.text();
-    // Check for S3 metadata size error
+
     if (
       errorText.includes("MetadataTooLarge") ||
       errorText.includes("metadata headers exceed")
@@ -386,11 +376,9 @@ export const uploadResume = async (
   jobDescription: string,
   onProgress?: (message: string) => void,
 ): Promise<UploadResumeResponse> => {
-  // Sanitize inputs to prevent metadata issues
   const sanitizedFilename = sanitizeFilename(file.name);
   const truncatedDescription = truncateJobDescription(jobDescription);
 
-  // Step 1: Request a presigned URL from the backend
   const payload = {
     filename: sanitizedFilename,
     job_description: truncatedDescription,
@@ -403,13 +391,10 @@ export const uploadResume = async (
 
   const uploadData = (await uploadResponse.json()) as PresignedUploadResponse;
 
-  // Check if we got a presigned URL (expected flow)
   if (uploadData.upload?.url && uploadData.upload?.fields) {
-    // Step 2: Upload PDF directly to S3 using presigned URL
     onProgress?.("Uploading Resume...");
     await uploadToS3(file, uploadData.upload.url, uploadData.upload.fields);
 
-    // Step 3: Trigger analysis on the backend
     onProgress?.("Analyzing Resume...");
     const analyzeResponse = await triggerAnalysis(uploadData.job_id, {
       jobDescription: truncatedDescription,
@@ -426,7 +411,6 @@ export const uploadResume = async (
     return { job_id: uploadData.job_id };
   }
 
-  // Fallback: if response already has analysis_result (legacy/synchronous mode)
   const legacyData = uploadData as unknown as UploadResumeResponse;
   if (legacyData.analysis_result || legacyData.job_id) {
     return legacyData;

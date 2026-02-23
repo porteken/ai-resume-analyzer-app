@@ -14,8 +14,7 @@ const toAscii = (text: string): string =>
     .replaceAll(/[\u201C\u201D]/g, '"')
     .replaceAll(/[\u2013\u2014]/g, "-")
     .replaceAll("\u2026", "...")
-    // eslint-disable-next-line no-control-regex
-    .replaceAll(/[^\u0000-\u007F]/g, "");
+    .replaceAll(/[^\u0020-\u007F]/g, "");
 
 interface ResumeUploaderProperties {
   isLoading: boolean;
