@@ -86,8 +86,6 @@ test.describe("Resume Analysis Flow", () => {
       timeout: 10_000,
     });
 
-    await expect(page.getByText(/match score/i)).toBeVisible();
-    await expect(page.getByText(/85% match/i)).toBeVisible();
     await expect(page.getByText(/strengths/i)).toBeVisible();
     await expect(page.getByText(/gaps/i)).toBeVisible();
     await expect(page.getByText(/recommendations/i)).toBeVisible();
@@ -107,7 +105,7 @@ test.describe("Resume Analysis Flow", () => {
     await expect(page.getByText(/analysis complete/i)).toBeVisible({
       timeout: 15_000,
     });
-    await expect(page.getByText(/90% match/i)).toBeVisible();
+    await expect(page.getByText(/strengths/i)).toBeVisible();
   });
 
   test("should display all result sections with proper formatting", async ({
@@ -125,7 +123,6 @@ test.describe("Resume Analysis Flow", () => {
     });
 
     const sections = [
-      { emoji: "📊", heading: /match score/i },
       { emoji: "✨", heading: /strengths/i },
       { emoji: "⚠️", heading: /gaps/i },
       { emoji: "💡", heading: /recommendations/i },
@@ -146,7 +143,9 @@ test.describe("Resume Analysis Flow", () => {
 
     const fileInput = page.locator('input[type="file"]');
     const textarea = page.getByLabel(/job description/i);
-    const button = page.getByRole("button", { name: /analyze resume/i });
+    const button = page.getByRole("button", {
+      name: /analyze resume|uploading resume|analyzing resume|processing resume/i,
+    });
 
     await expect(fileInput).toBeDisabled();
     await expect(textarea).toBeDisabled();

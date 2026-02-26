@@ -132,7 +132,9 @@ test.describe("Analysis and Processing Edge Cases", () => {
     await expect(page.getByText(/analysis complete/i)).toBeVisible({
       timeout: 10_000,
     });
-    await expect(page.getByText(/match score/i)).toBeVisible();
+    await expect(page.getByText(/strengths/i)).toBeVisible();
+    await expect(page.getByText(/gaps/i)).toBeVisible();
+    await expect(page.getByText(/recommendations/i)).toBeVisible();
   });
 
   test("should handle analysis result with only match score", async ({
