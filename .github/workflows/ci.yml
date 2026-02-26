@@ -48,6 +48,7 @@ jobs:
   merge-vitest-unit:
     name: Merge Vitest Unit Reports
     needs: vitest-unit
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,12 +76,12 @@ jobs:
       - name: Merge Vitest unit reports
         run: npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=junit
 
-
   playwright-e2e:
     name: Playwright E2E (shard ${{ matrix.shard_index }}/20)
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.58.2-noble
+
     strategy:
       fail-fast: false
       matrix:
@@ -120,7 +121,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-modules-pw-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-node-modules-pw-docker-${{ hashFiles('package-lock.json') }}
 
       - name: Install Dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -128,7 +129,6 @@ jobs:
 
       - name: Run Playwright Shard
         run: npx playwright test --shard=${{ matrix.shard_index }}/20 --reporter=list,blob
-        continue-on-error: true
 
       - name: Upload Playwright Blob
         if: always()
@@ -141,6 +141,7 @@ jobs:
   merge-playwright:
     name: Merge Playwright Reports
     needs: playwright-e2e
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -166,9 +167,23 @@ jobs:
           pattern: playwright-blob-*
           merge-multiple: true
 
-      - name: Merge Playwright (line)
-        run: npx playwright merge-reports --reporter=line ./playwright-blobs
+      - name: Merge Playwright Reports
+        run: npx playwright merge-reports --reporter=line,html ./playwright-blobs
         shell: bash
+
+      - name: Upload Playwright HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Check for test failures
+        if: needs.playwright-e2e.result == 'failure'
+        run: |
+          echo "Playwright tests failed in the e2e job. Failing the merge job."
+          exit 1
 
   deploy:
     name: Deploy to Vercel
