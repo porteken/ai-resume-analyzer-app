@@ -12,13 +12,23 @@ const createJsonResponse = (status: number, data: unknown): Response =>
     text: vi.fn(async () => JSON.stringify(data)),
   }) as unknown as Response;
 
+const parseRequestJsonBody = <T>(request: RequestInit | undefined): T => {
+  const body = request?.body;
+
+  if (typeof body !== "string") {
+    throw new TypeError("Expected request body to be a JSON string");
+  }
+
+  return JSON.parse(body) as T;
+};
+
 describe("uploadResume", () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
   it("uses presigned upload flow and triggers analysis", async () => {
-    const fetchMock = vi.mocked(global.fetch);
+    const fetchMock = vi.mocked(globalThis.fetch);
     fetchMock
       .mockResolvedValueOnce(
         createJsonResponse(200, {
@@ -49,26 +59,26 @@ describe("uploadResume", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
 
     const firstRequest = fetchMock.mock.calls[0]?.[1] as RequestInit;
-    const firstPayload = JSON.parse(String(firstRequest.body)) as {
+    const firstPayload = parseRequestJsonBody<{
       filename: string;
       job_description: string;
-    };
+    }>(firstRequest);
     expect(firstPayload.filename).toBe("resume.pdf");
     expect(firstPayload.job_description).toBe("Senior software engineer");
 
     const thirdRequest = fetchMock.mock.calls[2]?.[1] as RequestInit;
-    const thirdPayload = JSON.parse(String(thirdRequest.body)) as {
+    const thirdPayload = parseRequestJsonBody<{
       job_description: string;
       job_id: string;
       s3_url: string;
-    };
+    }>(thirdRequest);
     expect(thirdPayload.job_id).toBe("job-123");
     expect(thirdPayload.s3_url).toContain("s3://bucket/");
     expect(thirdPayload.job_description).toBe("Senior software engineer");
   });
 
   it("falls back to legacy pdf_base64 payload when required by backend", async () => {
-    const fetchMock = vi.mocked(global.fetch);
+    const fetchMock = vi.mocked(globalThis.fetch);
     fetchMock
       .mockResolvedValueOnce(
         createJsonResponse(400, {
@@ -87,24 +97,20 @@ describe("uploadResume", () => {
     expect(result).toEqual({ analysis_result: "legacy-analysis" });
     expect(fetchMock).toHaveBeenCalledTimes(2);
 
-    const firstPayload = JSON.parse(
-      String((fetchMock.mock.calls[0]?.[1] as RequestInit).body),
-    ) as {
+    const firstPayload = parseRequestJsonBody<{
       pdf_base64?: string;
-    };
+    }>(fetchMock.mock.calls[0]?.[1] as RequestInit);
     expect(firstPayload.pdf_base64).toBeUndefined();
 
-    const secondPayload = JSON.parse(
-      String((fetchMock.mock.calls[1]?.[1] as RequestInit).body),
-    ) as {
+    const secondPayload = parseRequestJsonBody<{
       pdf_base64?: string;
-    };
+    }>(fetchMock.mock.calls[1]?.[1] as RequestInit);
     expect(typeof secondPayload.pdf_base64).toBe("string");
     expect(secondPayload.pdf_base64?.length).toBeGreaterThan(0);
   });
 
   it("retries legacy upload with minimal metadata when backend returns MetadataTooLarge", async () => {
-    const fetchMock = vi.mocked(global.fetch);
+    const fetchMock = vi.mocked(globalThis.fetch);
     fetchMock
       .mockResolvedValueOnce(
         createJsonResponse(400, {
@@ -132,29 +138,25 @@ describe("uploadResume", () => {
     expect(result).toEqual({ analysis_result: "legacy-analysis" });
     expect(fetchMock).toHaveBeenCalledTimes(3);
 
-    const secondPayload = JSON.parse(
-      String((fetchMock.mock.calls[1]?.[1] as RequestInit).body),
-    ) as {
+    const secondPayload = parseRequestJsonBody<{
       job_description?: string;
       pdf_base64?: string;
-    };
+    }>(fetchMock.mock.calls[1]?.[1] as RequestInit);
     expect(secondPayload.pdf_base64).toBeDefined();
     expect(secondPayload.job_description).toBeDefined();
 
-    const thirdPayload = JSON.parse(
-      String((fetchMock.mock.calls[2]?.[1] as RequestInit).body),
-    ) as {
+    const thirdPayload = parseRequestJsonBody<{
       filename?: string;
       job_description?: string;
       pdf_base64?: string;
-    };
+    }>(fetchMock.mock.calls[2]?.[1] as RequestInit);
     expect(thirdPayload.filename).toBe("resume.pdf");
     expect(thirdPayload.pdf_base64).toBeDefined();
     expect(thirdPayload.job_description).toBeUndefined();
   });
 
   it("returns upstream 503 analyze error as a displayable message", async () => {
-    const fetchMock = vi.mocked(global.fetch);
+    const fetchMock = vi.mocked(globalThis.fetch);
     fetchMock
       .mockResolvedValueOnce(
         createJsonResponse(200, {
