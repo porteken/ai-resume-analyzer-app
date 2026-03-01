@@ -21,6 +21,6 @@ Frontend:
 2. Add Job Description - Paste the job description in the text area
 3. Analyze - Click "Analyze Resume" to start the analysis
 4. Review Results - View the structured analysis with:
-   - Key Strengths
+   - Strengths
    - Gaps
    - Recommendations
