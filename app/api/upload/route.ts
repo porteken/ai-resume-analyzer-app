@@ -7,8 +7,8 @@ import {
   getEndpointLogValue,
   isTimeoutError,
   UPSTREAM_TIMEOUT_MS,
-} from "@/lib/api-utils";
-import { validateJobDescription } from "@/lib/job-description";
+} from "@/features/resume-analysis/server/api-utils";
+import { validateJobDescription } from "@/features/resume-analysis/utils/job-description";
 
 export const maxDuration = 300;
 

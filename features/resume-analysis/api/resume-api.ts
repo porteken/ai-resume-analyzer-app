@@ -1,111 +1,13 @@
-export { validateJobDescription } from "@/lib/job-description";
+import { getJson, postJson } from "@/features/resume-analysis/api/api-client";
+import { type AnalysisResultData } from "@/features/resume-analysis/types/analysis";
+import { convertFileToBase64 } from "@/features/resume-analysis/utils/file-conversion";
+import {
+  sanitizeFilename,
+  truncateJobDescription,
+} from "@/features/resume-analysis/utils/file-validation";
+import { sleep } from "@/features/resume-analysis/utils/sleep";
 
-export const sleep = (ms: number) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
-
-export const convertFileToBase64 = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.addEventListener("load", () => {
-      if (typeof reader.result !== "string") {
-        reject(new Error("File reading failed"));
-        return;
-      }
-
-      const base64Content = reader.result.split(",")[1];
-      if (!base64Content) {
-        reject(new Error("File reading failed"));
-        return;
-      }
-
-      resolve(base64Content);
-    });
-
-    reader.addEventListener("error", () => {
-      reject(new Error("File reading failed"));
-    });
-
-    reader.readAsDataURL(file);
-  });
-
-const MAX_JOB_DESCRIPTION_LENGTH = 10_000;
 const LEGACY_SAFE_JOB_DESCRIPTION_LENGTH = 500;
-
-const MAX_FILENAME_LENGTH = 200;
-
-export const sanitizeFilename = (filename: string): string => {
-  const base =
-    filename.split("/").pop() || filename.split("\\").pop() || filename;
-
-  let safe = base.replaceAll(/[^\w.-]/g, "_");
-
-  if (!safe.toLowerCase().endsWith(".pdf")) {
-    safe += ".pdf";
-  }
-
-  if (safe.length > MAX_FILENAME_LENGTH) {
-    const ext = ".pdf";
-    safe = safe.slice(0, MAX_FILENAME_LENGTH - ext.length) + ext;
-  }
-
-  return safe;
-};
-
-export const truncateJobDescription = (description: string): string => {
-  if (description.length <= MAX_JOB_DESCRIPTION_LENGTH) {
-    return description;
-  }
-  return description.slice(0, MAX_JOB_DESCRIPTION_LENGTH) + "... [truncated]";
-};
-
-export const validateFile = (file: File | null): null | string => {
-  if (!file) return "Please provide both a PDF resume and a Job Description.";
-
-  const hasPdfExtension = file.name.toLowerCase().endsWith(".pdf");
-  if (!hasPdfExtension) {
-    return "Please upload a PDF file.";
-  }
-
-  const hasPdfMimeType = file.type === "application/pdf";
-  if (file.type && !hasPdfMimeType) {
-    return "Please upload a PDF file.";
-  }
-
-  const maxSizeBytes = 5 * 1024 * 1024;
-  if (file.size > maxSizeBytes) {
-    return `File too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Please use a PDF smaller than 5MB.`;
-  }
-
-  return null;
-};
-
-export type AnalysisResultData = string | StructuredAnalysisResult;
-
-export interface StructuredAnalysisContactInfo {
-  email?: string;
-  linkedin?: string;
-  location?: string;
-  phone?: string;
-}
-
-export interface StructuredAnalysisExperience {
-  company?: string;
-  duration?: string;
-  highlights?: string[];
-  role?: string;
-}
-
-export interface StructuredAnalysisResult {
-  contact_info?: StructuredAnalysisContactInfo;
-  experience?: StructuredAnalysisExperience[];
-  gaps?: string[];
-  name?: string;
-  recommendations?: string[];
-  skills?: string[];
-  strengths?: string[];
-  summary?: string;
-}
 
 interface ApiErrorResponse {
   details?: string;
@@ -167,13 +69,7 @@ const hasAnalysisResult = (
 };
 
 const sendUploadRequest = async (requestBody: object): Promise<Response> =>
-  fetch("/api/upload", {
-    body: JSON.stringify(requestBody),
-    headers: {
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-  });
+  postJson("/api/upload", requestBody);
 
 const getUploadErrorMessage = (errorData: {
   details?: string;
@@ -284,13 +180,7 @@ const triggerAnalysis = async (
     payload.job_description = options.jobDescription;
   }
 
-  const response = await fetch("/api/analyze", {
-    body: JSON.stringify(payload),
-    headers: {
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-  });
+  const response = await postJson("/api/analyze", payload);
 
   if (!response.ok) {
     throw new Error(
@@ -431,7 +321,7 @@ export const pollForResults = async (
     attempts++;
     await sleep(2000);
 
-    const statusResponse = await fetch(statusUrl);
+    const statusResponse = await getJson(statusUrl);
     if (!statusResponse.ok) {
       throw new Error(
         await getErrorMessageFromResponse(

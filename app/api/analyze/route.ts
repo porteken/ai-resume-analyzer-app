@@ -5,7 +5,7 @@ import {
   createErrorResponse,
   getApiConfig,
   isTimeoutError,
-} from "@/lib/api-utils";
+} from "@/features/resume-analysis/server/api-utils";
 
 export const maxDuration = 300;
 

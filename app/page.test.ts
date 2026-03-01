@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { MAX_JOB_DESCRIPTION_CHARS } from "@/lib/job-description";
+import { convertFileToBase64 } from "@/features/resume-analysis/utils/file-conversion";
+import { validateFile } from "@/features/resume-analysis/utils/file-validation";
 import {
-  convertFileToBase64,
-  sleep,
-  validateFile,
+  MAX_JOB_DESCRIPTION_CHARS,
   validateJobDescription,
-} from "@/lib/resume-utils";
+} from "@/features/resume-analysis/utils/job-description";
+import { sleep } from "@/features/resume-analysis/utils/sleep";
 import { createMockFile } from "@/tests/mocks/file";
 
 describe("Helper Functions", () => {

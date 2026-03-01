@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { uploadResume } from "@/lib/resume-utils";
+import { uploadResume } from "@/features/resume-analysis/api/resume-api";
 
 const createJsonResponse = (status: number, data: unknown): Response =>
   ({

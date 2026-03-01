@@ -56,24 +56,12 @@ export default [
         {
           zones: [
             {
-              from: "./src/app",
-              target: "./src/features",
+              from: "./app",
+              target: "./features",
             },
             {
-              from: ["./src/features", "./src/app"],
-              target: [
-                "./src/components",
-                "./src/hooks",
-                "./src/lib",
-                "./src/types",
-                "./src/utils",
-                "./src/config",
-                "./src/stores",
-              ],
-            },
-            {
-              from: ["./src/components", "./src/hooks", "./src/utils"],
-              target: ["./src/features", "./src/app"],
+              from: ["./app", "./features"],
+              target: ["./components", "./lib"],
             },
           ],
         },
@@ -93,6 +81,15 @@ export default [
     },
   },
   {
+    files: [
+      "features/resume-analysis/server/**/*.{ts,tsx}",
+      "features/resume-analysis/utils/**/*.{ts,tsx}",
+    ],
+    rules: {
+      "unicorn/prevent-abbreviations": "off",
+    },
+  },
+  {
     plugins: {
       "@next/next": nextPlugin,
     },
@@ -105,15 +102,8 @@ export default [
     ignores: [
       ".next/*",
       "next-env.d.ts",
-      "src/__tests__/utils/*",
       "coverage/*",
     ],
-  },
-  {
-    files: ["src/__tests__/**/*.{ts,tsx}"],
-    rules: {
-      "import/no-restricted-paths": "off",
-    },
   },
   {
     files: [
@@ -126,6 +116,7 @@ export default [
     },
     rules: {
       ...vitest.configs.recommended.rules,
+      "import/no-restricted-paths": "off",
       "sonarjs/no-nested-functions": "off",
       "unicorn/filename-case": "off",
       "unicorn/prevent-abbreviations": "off",

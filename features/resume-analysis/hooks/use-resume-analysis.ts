@@ -3,12 +3,12 @@
 import { useCallback, useState } from "react";
 
 import {
-  type AnalysisResultData,
   pollForResults,
   uploadResume,
-  validateFile,
-  validateJobDescription,
-} from "@/lib/resume-utils";
+} from "@/features/resume-analysis/api/resume-api";
+import { type AnalysisResultData } from "@/features/resume-analysis/types/analysis";
+import { validateFile } from "@/features/resume-analysis/utils/file-validation";
+import { validateJobDescription } from "@/features/resume-analysis/utils/job-description";
 
 interface UseResumeAnalysisReturn {
   error: null | string;

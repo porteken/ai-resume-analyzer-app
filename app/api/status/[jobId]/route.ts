@@ -5,7 +5,7 @@ import {
   getApiConfig,
   isTimeoutError,
   UPSTREAM_TIMEOUT_MS,
-} from "@/lib/api-utils";
+} from "@/features/resume-analysis/server/api-utils";
 
 export async function GET(
   _request: NextRequest,

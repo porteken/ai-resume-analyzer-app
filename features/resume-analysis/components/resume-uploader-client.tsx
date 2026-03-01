@@ -1,8 +1,8 @@
 "use client";
 
-import { AnalysisResult } from "@/components/analysis-result";
-import { ResumeUploader } from "@/components/resume-uploader";
-import { useResumeAnalysis } from "@/hooks/use-resume-analysis";
+import { AnalysisResult } from "@/features/resume-analysis/components/analysis-result";
+import { ResumeUploader } from "@/features/resume-analysis/components/resume-uploader";
+import { useResumeAnalysis } from "@/features/resume-analysis/hooks/use-resume-analysis";
 
 export const ResumeUploaderClient = () => {
   const { error, isLoading, result, statusMessage, submitAnalysis } =

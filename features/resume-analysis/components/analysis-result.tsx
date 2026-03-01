@@ -4,7 +4,7 @@ import { AlertCircle, CheckCircle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import { type AnalysisResultData } from "@/lib/resume-utils";
+import { type AnalysisResultData } from "@/features/resume-analysis/types/analysis";
 
 interface AnalysisResultProperties {
   error: null | string;

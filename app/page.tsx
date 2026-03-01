@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { ResumeUploaderClient } from "@/components/resume-uploader-client";
+import { ResumeUploaderClient } from "@/features/resume-analysis/components/resume-uploader-client";
 
 export default function Home() {
   return (

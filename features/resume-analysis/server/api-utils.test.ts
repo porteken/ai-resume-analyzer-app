@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getApiConfig, getApiConfigDiagnostics } from "@/lib/api-utils";
+import {
+  getApiConfig,
+  getApiConfigDiagnostics,
+} from "@/features/resume-analysis/server/api-utils";
 
 describe("getApiConfig", () => {
   beforeEach(() => {

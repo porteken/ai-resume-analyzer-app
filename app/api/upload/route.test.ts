@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { MAX_JOB_DESCRIPTION_CHARS } from "@/lib/job-description";
+import { MAX_JOB_DESCRIPTION_CHARS } from "@/features/resume-analysis/utils/job-description";
 
 const mockApiEndpoint = "https://api.example.com/analyze";
 const mockApiKey = "test-api-key";
