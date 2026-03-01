@@ -21,9 +21,9 @@ describe("Status API Route", () => {
     vi.clearAllMocks();
     vi.resetModules();
     vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
-    vi.stubEnv("NEXT_PUBLIC_API_KEY", "");
+    vi.stubEnv("API_KEY", "");
     vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", mockApiEndpoint);
-    vi.stubEnv("NEXT_PUBLIC_API_KEY", mockApiKey);
+    vi.stubEnv("API_KEY", mockApiKey);
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
@@ -93,7 +93,7 @@ describe("Status API Route", () => {
 
   it("should return 500 if required env vars are missing", async () => {
     vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
-    vi.stubEnv("NEXT_PUBLIC_API_KEY", "");
+    vi.stubEnv("API_KEY", "");
 
     const mockedFetch = vi.fn();
     globalThis.fetch = mockedFetch as typeof fetch;

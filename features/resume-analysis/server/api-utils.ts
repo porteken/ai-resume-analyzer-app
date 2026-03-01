@@ -5,12 +5,10 @@ export const ANALYZE_TIMEOUT_MS = 60_000;
 
 export interface ApiConfigDiagnostics {
   apiKeyFingerprint: null | string;
-  apiKeySource: "API_KEY" | "missing" | "NEXT_PUBLIC_API_KEY";
+  apiKeySource: ApiKeySource;
   endpointForLog: null | string;
-  endpointSource: "API_ENDPOINT" | "missing" | "NEXT_PUBLIC_API_ENDPOINT";
-  hasApiKeyConflict: boolean;
+  endpointSource: EndpointSource;
   hasEndpointConflict: boolean;
-  isMixedSourcePair: boolean;
 }
 
 interface ApiConfig {
@@ -20,12 +18,14 @@ interface ApiConfig {
   uploadEndpoint: string;
 }
 
+type ApiKeySource = "API_KEY" | "missing";
+type EndpointSource = "API_ENDPOINT" | "missing" | "NEXT_PUBLIC_API_ENDPOINT";
+
 const getEnvironmentValue = (name: string): string | undefined => {
   if (name === "API_ENDPOINT") return process.env.API_ENDPOINT;
   if (name === "NEXT_PUBLIC_API_ENDPOINT")
     return process.env.NEXT_PUBLIC_API_ENDPOINT;
   if (name === "API_KEY") return process.env.API_KEY;
-  if (name === "NEXT_PUBLIC_API_KEY") return process.env.NEXT_PUBLIC_API_KEY;
   return process.env[name];
 };
 
@@ -50,18 +50,9 @@ function getSelectedEnvironmentName(
   fallback: "NEXT_PUBLIC_API_ENDPOINT",
 ): "API_ENDPOINT" | "missing" | "NEXT_PUBLIC_API_ENDPOINT";
 function getSelectedEnvironmentName(
-  preferred: "API_KEY",
-  fallback: "NEXT_PUBLIC_API_KEY",
-): "API_KEY" | "missing" | "NEXT_PUBLIC_API_KEY";
-function getSelectedEnvironmentName(
-  preferred: "API_ENDPOINT" | "API_KEY",
-  fallback: "NEXT_PUBLIC_API_ENDPOINT" | "NEXT_PUBLIC_API_KEY",
-):
-  | "API_ENDPOINT"
-  | "API_KEY"
-  | "missing"
-  | "NEXT_PUBLIC_API_ENDPOINT"
-  | "NEXT_PUBLIC_API_KEY" {
+  preferred: "API_ENDPOINT",
+  fallback: "NEXT_PUBLIC_API_ENDPOINT",
+): "API_ENDPOINT" | "missing" | "NEXT_PUBLIC_API_ENDPOINT" {
   if (hasNonEmptyEnv(preferred)) {
     return preferred;
   }
@@ -101,16 +92,12 @@ export const getApiConfigDiagnostics = (): ApiConfigDiagnostics => {
   const apiEndpoint = normalizeEnvValue("API_ENDPOINT");
   const publicApiEndpoint = normalizeEnvValue("NEXT_PUBLIC_API_ENDPOINT");
   const apiKey = normalizeEnvValue("API_KEY");
-  const publicApiKey = normalizeEnvValue("NEXT_PUBLIC_API_KEY");
 
   const endpointSource = getSelectedEnvironmentName(
     "API_ENDPOINT",
     "NEXT_PUBLIC_API_ENDPOINT",
   );
-  const apiKeySource = getSelectedEnvironmentName(
-    "API_KEY",
-    "NEXT_PUBLIC_API_KEY",
-  );
+  const apiKeySource: ApiKeySource = apiKey ? "API_KEY" : "missing";
 
   let selectedEndpoint: null | string;
   if (endpointSource === "API_ENDPOINT") {
@@ -121,14 +108,7 @@ export const getApiConfigDiagnostics = (): ApiConfigDiagnostics => {
     selectedEndpoint = null;
   }
 
-  let selectedApiKey: null | string;
-  if (apiKeySource === "API_KEY") {
-    selectedApiKey = apiKey;
-  } else if (apiKeySource === "NEXT_PUBLIC_API_KEY") {
-    selectedApiKey = publicApiKey;
-  } else {
-    selectedApiKey = null;
-  }
+  const selectedApiKey = apiKeySource === "API_KEY" ? apiKey : null;
 
   return {
     apiKeyFingerprint: selectedApiKey
@@ -139,19 +119,10 @@ export const getApiConfigDiagnostics = (): ApiConfigDiagnostics => {
       ? getEndpointLogValue(selectedEndpoint)
       : null,
     endpointSource,
-    hasApiKeyConflict:
-      apiKey !== null && publicApiKey !== null && apiKey !== publicApiKey,
     hasEndpointConflict:
       apiEndpoint !== null &&
       publicApiEndpoint !== null &&
       apiEndpoint !== publicApiEndpoint,
-    isMixedSourcePair:
-      endpointSource !== "missing" &&
-      apiKeySource !== "missing" &&
-      ((endpointSource === "API_ENDPOINT" &&
-        apiKeySource === "NEXT_PUBLIC_API_KEY") ||
-        (endpointSource === "NEXT_PUBLIC_API_ENDPOINT" &&
-          apiKeySource === "API_KEY")),
   };
 };
 
@@ -201,14 +172,13 @@ export const getApiConfig = (): ApiConfig | null => {
     "API_ENDPOINT",
     "NEXT_PUBLIC_API_ENDPOINT",
   );
-  const apiKey = getFirstNonEmptyEnv("API_KEY", "NEXT_PUBLIC_API_KEY");
+  const apiKey = getFirstNonEmptyEnv("API_KEY");
 
   if (!apiEndpoint || !apiKey) {
     console.error("Missing environment variables:", {
       hasApiEndpoint: hasNonEmptyEnv("API_ENDPOINT"),
       hasApiKey: hasNonEmptyEnv("API_KEY"),
       hasPublicApiEndpoint: hasNonEmptyEnv("NEXT_PUBLIC_API_ENDPOINT"),
-      hasPublicApiKey: hasNonEmptyEnv("NEXT_PUBLIC_API_KEY"),
     });
     return null;
   }

@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { delay, http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Home from "@/app/page";
@@ -9,11 +10,73 @@ import {
   createMockLargePDFFile,
   createMockPDFFile,
 } from "@/tests/mocks/file";
+import { server } from "@/tests/mocks/server";
+
+const mockImmediateSuccess = () => {
+  server.use(
+    http.post("*/api/upload", () =>
+      HttpResponse.json(MOCK_RESPONSES.immediateSuccess),
+    ),
+  );
+};
+
+const mockAsyncJob = () => {
+  let pollCount = 0;
+
+  server.use(
+    http.post("*/api/upload", () =>
+      HttpResponse.json(MOCK_RESPONSES.asyncJobInitial),
+    ),
+    http.get("*/api/status/:jobId", () => {
+      pollCount += 1;
+      if (pollCount >= 2) {
+        return HttpResponse.json(MOCK_RESPONSES.asyncJobComplete);
+      }
+
+      return HttpResponse.json(MOCK_RESPONSES.asyncJobProcessing);
+    }),
+  );
+};
+
+const mockAnalyze503 = () => {
+  server.use(
+    http.post("*/api/upload", () =>
+      HttpResponse.json({
+        job_id: "job-503",
+        s3_url: "s3://bucket/uploads/job-503/resume.pdf",
+        upload: {
+          fields: {
+            "Content-Type": "application/pdf",
+            key: "uploads/job-503/resume.pdf",
+            policy: "policy",
+            signature: "signature",
+            "x-amz-meta-filename": "resume.pdf",
+            "x-amz-meta-job_id": "job-503",
+          },
+          url: "https://bucket.s3.amazonaws.com",
+        },
+      }),
+    ),
+    http.post(
+      "https://bucket.s3.amazonaws.com",
+      () => new HttpResponse(null, { status: 204, statusText: "No Content" }),
+    ),
+    http.post("*/api/analyze", () =>
+      HttpResponse.json(
+        {
+          error:
+            "Analysis service is temporarily unavailable due to high demand.\nPlease try again in a few minutes.",
+          type: "ServiceUnavailable",
+        },
+        { status: 503 },
+      ),
+    ),
+  );
+};
 
 describe("Home Page Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    globalThis.fetch = vi.fn();
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
@@ -87,6 +150,34 @@ describe("Home Page Component", () => {
     });
   });
 
+  it("clears a previous result when a later submission fails validation", async () => {
+    const user = userEvent.setup();
+    mockImmediateSuccess();
+
+    render(<Home />);
+
+    const validFile = createMockPDFFile();
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
+    const textarea = screen.getByLabelText(/job description/i);
+
+    await user.upload(fileInput, validFile);
+    await user.type(textarea, "Software Engineer");
+    await user.click(screen.getByRole("button", { name: /analyze resume/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/analysis complete/i)).toBeInTheDocument();
+    });
+
+    await user.upload(fileInput, createMockLargePDFFile());
+    await user.click(screen.getByRole("button", { name: /analyze resume/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/file too large/i)).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText(/analysis complete/i)).not.toBeInTheDocument();
+  });
+
   it("should show error when uploaded file is not a PDF", async () => {
     const user = userEvent.setup();
     render(<Home />);
@@ -122,11 +213,7 @@ describe("Home Page Component", () => {
 
   it("should handle successful upload with immediate result", async () => {
     const user = userEvent.setup();
-
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      json: async () => MOCK_RESPONSES.immediateSuccess,
-      ok: true,
-    });
+    mockImmediateSuccess();
 
     render(<Home />);
 
@@ -153,32 +240,33 @@ describe("Home Page Component", () => {
   it("should render structured JSON analysis results", async () => {
     const user = userEvent.setup();
 
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      json: async () => ({
-        analysis_result: {
-          contact_info: {
-            email: "porteken@gmail.com",
-            location: "Orlando, Florida",
-            phone: "(832)948-3211",
-          },
-          experience: [
-            {
-              company: "Lockheed Martin",
-              duration: "September 2021-Present",
-              highlights: ["Architected Next.js/Fastify replacement"],
-              role: "Senior Systems Engineer",
+    server.use(
+      http.post("*/api/upload", () =>
+        HttpResponse.json({
+          analysis_result: {
+            contact_info: {
+              email: "porteken@gmail.com",
+              location: "Orlando, Florida",
+              phone: "(832)948-3211",
             },
-          ],
-          gaps: ["Example gap"],
-          name: "Kenneth J. Porter",
-          recommendations: ["Example recommendation"],
-          skills: ["TypeScript", "Next.js"],
-          strengths: ["Example strength"],
-          summary: "Senior engineer focused on web and analytics systems.",
-        },
-      }),
-      ok: true,
-    });
+            experience: [
+              {
+                company: "Lockheed Martin",
+                duration: "September 2021-Present",
+                highlights: ["Architected Next.js/Fastify replacement"],
+                role: "Senior Systems Engineer",
+              },
+            ],
+            gaps: ["Example gap"],
+            name: "Kenneth J. Porter",
+            recommendations: ["Example recommendation"],
+            skills: ["TypeScript", "Next.js"],
+            strengths: ["Example strength"],
+            summary: "Senior engineer focused on web and analytics systems.",
+          },
+        }),
+      ),
+    );
 
     render(<Home />);
 
@@ -211,30 +299,7 @@ describe("Home Page Component", () => {
 
   it("should handle async job with polling", async () => {
     const user = userEvent.setup();
-
-    let pollCount = 0;
-    globalThis.fetch = vi.fn().mockImplementation((url) => {
-      if (url.includes("/api/upload")) {
-        return Promise.resolve({
-          json: async () => MOCK_RESPONSES.asyncJobInitial,
-          ok: true,
-        });
-      }
-      if (url.includes("/api/status")) {
-        pollCount++;
-        if (pollCount >= 2) {
-          return Promise.resolve({
-            json: async () => MOCK_RESPONSES.asyncJobComplete,
-            ok: true,
-          });
-        }
-        return Promise.resolve({
-          json: async () => MOCK_RESPONSES.asyncJobProcessing,
-          ok: true,
-        });
-      }
-      return Promise.reject(new Error("Unknown URL"));
-    });
+    mockAsyncJob();
 
     render(<Home />);
 
@@ -259,11 +324,11 @@ describe("Home Page Component", () => {
   it("should handle upload errors", async () => {
     const user = userEvent.setup();
 
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      json: async () => MOCK_RESPONSES.serverError,
-      ok: false,
-      status: 500,
-    });
+    server.use(
+      http.post("*/api/upload", () =>
+        HttpResponse.json(MOCK_RESPONSES.serverError, { status: 500 }),
+      ),
+    );
 
     render(<Home />);
 
@@ -285,52 +350,7 @@ describe("Home Page Component", () => {
 
   it("should display analyze 503 service unavailable message", async () => {
     const user = userEvent.setup();
-
-    globalThis.fetch = vi.fn().mockImplementation((url) => {
-      if (typeof url === "string" && url.includes("/api/upload")) {
-        return Promise.resolve({
-          json: async () => ({
-            job_id: "job-503",
-            s3_url: "s3://bucket/uploads/job-503/resume.pdf",
-            upload: {
-              fields: {
-                "Content-Type": "application/pdf",
-                key: "uploads/job-503/resume.pdf",
-                policy: "policy",
-                signature: "signature",
-                "x-amz-meta-filename": "resume.pdf",
-                "x-amz-meta-job_id": "job-503",
-              },
-              url: "https://bucket.s3.amazonaws.com",
-            },
-          }),
-          ok: true,
-        });
-      }
-
-      if (typeof url === "string" && url.includes("s3.amazonaws.com")) {
-        return Promise.resolve({
-          ok: true,
-          status: 204,
-          statusText: "No Content",
-          text: async () => "",
-        });
-      }
-
-      if (typeof url === "string" && url.includes("/api/analyze")) {
-        return Promise.resolve({
-          json: async () => ({
-            error:
-              "Analysis service is temporarily unavailable due to high demand.\nPlease try again in a few minutes.",
-            type: "ServiceUnavailable",
-          }),
-          ok: false,
-          status: 503,
-        });
-      }
-
-      return Promise.reject(new Error("Unknown URL"));
-    });
+    mockAnalyze503();
 
     render(<Home />);
 
@@ -358,7 +378,7 @@ describe("Home Page Component", () => {
   it("should handle network errors", async () => {
     const user = userEvent.setup();
 
-    globalThis.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
+    server.use(http.post("*/api/upload", () => HttpResponse.error()));
 
     render(<Home />);
 
@@ -380,18 +400,11 @@ describe("Home Page Component", () => {
   it("should disable inputs during loading", async () => {
     const user = userEvent.setup();
 
-    globalThis.fetch = vi.fn().mockImplementation(
-      () =>
-        new Promise((resolve) =>
-          setTimeout(
-            () =>
-              resolve({
-                json: async () => MOCK_RESPONSES.immediateSuccess,
-                ok: true,
-              }),
-            5000,
-          ),
-        ),
+    server.use(
+      http.post("*/api/upload", async () => {
+        await delay(5000);
+        return HttpResponse.json(MOCK_RESPONSES.immediateSuccess);
+      }),
     );
 
     render(<Home />);
@@ -418,11 +431,7 @@ describe("Home Page Component", () => {
 
   it("should display markdown sections correctly", async () => {
     const user = userEvent.setup();
-
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      json: async () => MOCK_RESPONSES.immediateSuccess,
-      ok: true,
-    });
+    mockImmediateSuccess();
 
     render(<Home />);
 
@@ -447,21 +456,14 @@ describe("Home Page Component", () => {
   it("should handle failed job status", async () => {
     const user = userEvent.setup();
 
-    globalThis.fetch = vi.fn().mockImplementation((url) => {
-      if (url.includes("/api/upload")) {
-        return Promise.resolve({
-          json: async () => MOCK_RESPONSES.failedJobInitial,
-          ok: true,
-        });
-      }
-      if (url.includes("/api/status")) {
-        return Promise.resolve({
-          json: async () => MOCK_RESPONSES.failedJobStatus,
-          ok: true,
-        });
-      }
-      return Promise.reject(new Error("Unknown URL"));
-    });
+    server.use(
+      http.post("*/api/upload", () =>
+        HttpResponse.json(MOCK_RESPONSES.failedJobInitial),
+      ),
+      http.get("*/api/status/:jobId", () =>
+        HttpResponse.json(MOCK_RESPONSES.failedJobStatus),
+      ),
+    );
 
     render(<Home />);
 

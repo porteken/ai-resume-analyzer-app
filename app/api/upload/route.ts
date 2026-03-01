@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
     const apiConfigDiagnostics = getApiConfigDiagnostics();
     if (!apiConfig) {
       return createErrorResponse(
-        "Server configuration error: Missing API_ENDPOINT (or NEXT_PUBLIC_API_ENDPOINT) or API_KEY (or NEXT_PUBLIC_API_KEY)",
+        "Server configuration error: Missing API_ENDPOINT (or NEXT_PUBLIC_API_ENDPOINT) or API_KEY",
         500,
       );
     }

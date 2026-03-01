@@ -1,12 +1,21 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
-import { afterEach, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, vi } from "vitest";
+
+import { server } from "@/tests/mocks/server";
+
+beforeAll(() => {
+  server.listen({ onUnhandledRequest: "error" });
+});
 
 afterEach(() => {
   cleanup();
+  server.resetHandlers();
 });
 
-globalThis.fetch = vi.fn();
+afterAll(() => {
+  server.close();
+});
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "",

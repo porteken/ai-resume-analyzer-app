@@ -1,6 +1,11 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { uploadResume } from "@/features/resume-analysis/api/resume-api";
+import {
+  pollForResults,
+  uploadResume,
+} from "@/features/resume-analysis/api/resume-api";
+
+const originalFetch = globalThis.fetch;
 
 const createJsonResponse = (status: number, data: unknown): Response =>
   ({
@@ -23,12 +28,19 @@ const parseRequestJsonBody = <T>(request: RequestInit | undefined): T => {
 };
 
 describe("uploadResume", () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fetchMock = vi.fn();
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
+    globalThis.fetch = originalFetch;
   });
 
   it("uses presigned upload flow and triggers analysis", async () => {
-    const fetchMock = vi.mocked(globalThis.fetch);
     fetchMock
       .mockResolvedValueOnce(
         createJsonResponse(200, {
@@ -78,7 +90,6 @@ describe("uploadResume", () => {
   });
 
   it("falls back to legacy pdf_base64 payload when required by backend", async () => {
-    const fetchMock = vi.mocked(globalThis.fetch);
     fetchMock
       .mockResolvedValueOnce(
         createJsonResponse(400, {
@@ -110,7 +121,6 @@ describe("uploadResume", () => {
   });
 
   it("retries legacy upload with minimal metadata when backend returns MetadataTooLarge", async () => {
-    const fetchMock = vi.mocked(globalThis.fetch);
     fetchMock
       .mockResolvedValueOnce(
         createJsonResponse(400, {
@@ -156,7 +166,6 @@ describe("uploadResume", () => {
   });
 
   it("returns upstream 503 analyze error as a displayable message", async () => {
-    const fetchMock = vi.mocked(globalThis.fetch);
     fetchMock
       .mockResolvedValueOnce(
         createJsonResponse(200, {
@@ -202,5 +211,58 @@ describe("uploadResume", () => {
     expect((thrownError as Error).message).not.toContain(
       "Analysis trigger failed with status: 503",
     );
+  });
+
+  it("throws when upload endpoint returns an unexpected payload shape", async () => {
+    fetchMock.mockResolvedValueOnce(createJsonResponse(200, { foo: "bar" }));
+
+    const file = new File(["pdf-content"], "resume.pdf", {
+      type: "application/pdf",
+    });
+
+    await expect(
+      uploadResume(file, "Senior software engineer"),
+    ).rejects.toThrow("Unexpected response from upload endpoint.");
+  });
+});
+
+describe("pollForResults", () => {
+  let fetchMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    fetchMock = vi.fn();
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    globalThis.fetch = originalFetch;
+    vi.useRealTimers();
+  });
+
+  it("throws when status endpoint returns an unexpected payload shape", async () => {
+    vi.useFakeTimers();
+    fetchMock.mockResolvedValueOnce(createJsonResponse(200, { foo: "bar" }));
+
+    const pollPromise = pollForResults("job-123", vi.fn());
+    await Promise.all([
+      vi.advanceTimersByTimeAsync(2000),
+      expect(pollPromise).rejects.toThrow(
+        "Unexpected response from status endpoint.",
+      ),
+    ]);
+  });
+
+  it("supports aborting polling before the first request", async () => {
+    const abortController = new AbortController();
+    abortController.abort();
+
+    await expect(
+      pollForResults("job-123", vi.fn(), { signal: abortController.signal }),
+    ).rejects.toMatchObject({
+      name: "AbortError",
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

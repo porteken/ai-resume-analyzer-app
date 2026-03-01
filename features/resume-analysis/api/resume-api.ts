@@ -16,11 +16,8 @@ interface ApiErrorResponse {
 }
 
 interface PresignedUploadResponse {
-  expires_in: number;
   job_id: string;
-  s3_key: string;
-  s3_url: string;
-  status: string;
+  s3_url?: string;
   upload: {
     fields: PresignedUrlFields;
     url: string;
@@ -29,13 +26,16 @@ interface PresignedUploadResponse {
 
 interface PresignedUrlFields {
   [key: string]: string;
-  AWSAccessKeyId: string;
-  "Content-Type": string;
-  key: string;
-  policy: string;
-  signature: string;
-  "x-amz-meta-filename": string;
-  "x-amz-meta-job_id": string;
+}
+
+interface StatusResponseData {
+  analysis_result?: AnalysisResultData;
+  error?: string;
+  status?: string;
+}
+
+interface UploadRequestOptions {
+  signal?: AbortSignal;
 }
 
 interface UploadRequestPayload {
@@ -52,38 +52,121 @@ interface UploadResumeResponse {
 const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-const hasAnalysisResult = (
-  value: unknown,
-): value is { analysis_result: AnalysisResultData; job_id?: string } => {
-  if (!isObjectRecord(value) || !("analysis_result" in value)) {
-    return false;
+const isStringRecord = (value: unknown): value is Record<string, string> =>
+  isObjectRecord(value) &&
+  Object.values(value).every((entry) => typeof entry === "string");
+
+const isNonEmptyString = (value: unknown): value is string =>
+  typeof value === "string" && value.trim().length > 0;
+
+const isAnalysisResultData = (value: unknown): value is AnalysisResultData =>
+  (typeof value === "string" && value.trim().length > 0) ||
+  isObjectRecord(value);
+
+const parseAnalysisResult = (value: unknown): AnalysisResultData | null =>
+  isAnalysisResultData(value) ? value : null;
+
+const parseApiErrorResponse = (value: unknown): ApiErrorResponse => {
+  if (!isObjectRecord(value)) {
+    return {};
   }
 
-  const analysisResult = value.analysis_result;
-
-  if (typeof analysisResult === "string") {
-    return analysisResult.trim().length > 0;
-  }
-
-  return isObjectRecord(analysisResult);
+  return {
+    details: typeof value.details === "string" ? value.details : undefined,
+    error: typeof value.error === "string" ? value.error : undefined,
+    type: typeof value.type === "string" ? value.type : undefined,
+  };
 };
 
-const sendUploadRequest = async (requestBody: object): Promise<Response> =>
-  postJson("/api/upload", requestBody);
+const parseUploadResumeResponse = (
+  value: unknown,
+): null | UploadResumeResponse => {
+  if (!isObjectRecord(value)) {
+    return null;
+  }
 
-const getUploadErrorMessage = (errorData: {
-  details?: string;
-  error?: string;
-}) =>
+  const analysisResult = parseAnalysisResult(value.analysis_result);
+  const jobId = isNonEmptyString(value.job_id) ? value.job_id : undefined;
+
+  if (!analysisResult && !jobId) {
+    return null;
+  }
+
+  return {
+    analysis_result: analysisResult ?? undefined,
+    job_id: jobId,
+  };
+};
+
+const parsePresignedUploadResponse = (
+  value: unknown,
+): null | PresignedUploadResponse => {
+  if (!isObjectRecord(value) || !isNonEmptyString(value.job_id)) {
+    return null;
+  }
+
+  if (!isObjectRecord(value.upload) || !isNonEmptyString(value.upload.url)) {
+    return null;
+  }
+
+  const fields = value.upload.fields;
+  if (!isStringRecord(fields)) {
+    return null;
+  }
+
+  return {
+    job_id: value.job_id,
+    s3_url: isNonEmptyString(value.s3_url) ? value.s3_url : undefined,
+    upload: {
+      fields,
+      url: value.upload.url,
+    },
+  };
+};
+
+const parseStatusResponse = (value: unknown): null | StatusResponseData => {
+  if (!isObjectRecord(value)) {
+    return null;
+  }
+
+  const analysisResult = parseAnalysisResult(value.analysis_result);
+  const error = isNonEmptyString(value.error) ? value.error : undefined;
+  const status = isNonEmptyString(value.status) ? value.status : undefined;
+
+  if (!analysisResult && !error && !status) {
+    return null;
+  }
+
+  return {
+    analysis_result: analysisResult ?? undefined,
+    error,
+    status,
+  };
+};
+
+const createAbortError = (): DOMException =>
+  new DOMException("Request was aborted.", "AbortError");
+
+const throwIfAborted = (signal?: AbortSignal): void => {
+  if (signal?.aborted) {
+    throw createAbortError();
+  }
+};
+
+const sendUploadRequest = async (
+  requestBody: object,
+  signal?: AbortSignal,
+): Promise<Response> => postJson("/api/upload", requestBody, { signal });
+
+const getUploadErrorMessage = (errorData: ApiErrorResponse) =>
   errorData.error || errorData.details
     ? `${errorData.error ?? ""} ${errorData.details ?? ""}`.trim()
     : null;
 
 const getUploadFailureMessage = async (response: Response): Promise<string> => {
-  const errorData = (await response.json().catch(() => ({}))) as {
-    details?: string;
-    error?: string;
-  };
+  const errorData = parseApiErrorResponse(
+    await response.json().catch(() => null),
+  );
 
   return (
     getUploadErrorMessage(errorData) ||
@@ -101,9 +184,9 @@ const getErrorMessageFromResponse = async (
   response: Response,
   fallbackMessage: string,
 ): Promise<string> => {
-  const errorData = (await response
-    .json()
-    .catch(() => ({}))) as ApiErrorResponse;
+  const errorData = parseApiErrorResponse(
+    await response.json().catch(() => null),
+  );
   const message = getUploadErrorMessage(errorData);
 
   if (message) {
@@ -125,7 +208,10 @@ const uploadToS3 = async (
   file: File,
   presignedUrl: string,
   fields: PresignedUrlFields,
+  signal?: AbortSignal,
 ): Promise<void> => {
+  throwIfAborted(signal);
+
   const formData = new FormData();
 
   for (const [key, value] of Object.entries(fields)) {
@@ -137,6 +223,7 @@ const uploadToS3 = async (
   const response = await fetch(presignedUrl, {
     body: formData,
     method: "POST",
+    signal,
   });
 
   if (!response.ok) {
@@ -165,6 +252,7 @@ const triggerAnalysis = async (
     jobDescription?: string;
     s3Url?: string;
   },
+  signal?: AbortSignal,
 ): Promise<null | UploadResumeResponse> => {
   const payload: {
     job_description?: string;
@@ -180,7 +268,9 @@ const triggerAnalysis = async (
     payload.job_description = options.jobDescription;
   }
 
-  const response = await postJson("/api/analyze", payload);
+  throwIfAborted(signal);
+
+  const response = await postJson("/api/analyze", payload, { signal });
 
   if (!response.ok) {
     throw new Error(
@@ -196,28 +286,19 @@ const triggerAnalysis = async (
     return null;
   }
 
-  const responseData = (await response.json()) as unknown;
-  if (hasAnalysisResult(responseData)) {
-    return responseData;
-  }
-
-  if (
-    isObjectRecord(responseData) &&
-    "job_id" in responseData &&
-    typeof responseData.job_id === "string"
-  ) {
-    return { job_id: responseData.job_id };
-  }
-
-  return null;
+  const responseData = await response.json().catch(() => null);
+  return parseUploadResumeResponse(responseData);
 };
 
 const sendUploadRequestWithFallbacks = async (
   file: File,
   payload: UploadRequestPayload,
   truncatedDescription: string,
+  signal?: AbortSignal,
 ): Promise<Response> => {
-  let uploadResponse = await sendUploadRequest(payload);
+  throwIfAborted(signal);
+
+  let uploadResponse = await sendUploadRequest(payload, signal);
 
   if (uploadResponse.ok) {
     return uploadResponse;
@@ -228,6 +309,8 @@ const sendUploadRequestWithFallbacks = async (
     throw new Error(errorMessage);
   }
 
+  throwIfAborted(signal);
+
   const pdfBase64 = await convertFileToBase64(file);
   const legacyPayload: UploadRequestPayload = {
     ...payload,
@@ -237,7 +320,7 @@ const sendUploadRequestWithFallbacks = async (
     ),
     pdf_base64: pdfBase64,
   };
-  uploadResponse = await sendUploadRequest(legacyPayload);
+  uploadResponse = await sendUploadRequest(legacyPayload, signal);
 
   if (uploadResponse.ok) {
     return uploadResponse;
@@ -252,7 +335,7 @@ const sendUploadRequestWithFallbacks = async (
     filename: "resume.pdf",
     pdf_base64: pdfBase64,
   };
-  uploadResponse = await sendUploadRequest(metadataSafeLegacyPayload);
+  uploadResponse = await sendUploadRequest(metadataSafeLegacyPayload, signal);
 
   if (uploadResponse.ok) {
     return uploadResponse;
@@ -265,6 +348,7 @@ export const uploadResume = async (
   file: File,
   jobDescription: string,
   onProgress?: (message: string) => void,
+  options?: UploadRequestOptions,
 ): Promise<UploadResumeResponse> => {
   const sanitizedFilename = sanitizeFilename(file.name);
   const truncatedDescription = truncateJobDescription(jobDescription);
@@ -273,23 +357,35 @@ export const uploadResume = async (
     filename: sanitizedFilename,
     job_description: truncatedDescription,
   };
+
   const uploadResponse = await sendUploadRequestWithFallbacks(
     file,
     payload,
     truncatedDescription,
+    options?.signal,
   );
 
-  const uploadData = (await uploadResponse.json()) as PresignedUploadResponse;
+  const uploadJson = await uploadResponse.json().catch(() => null);
+  const uploadData = parsePresignedUploadResponse(uploadJson);
 
-  if (uploadData.upload?.url && uploadData.upload?.fields) {
+  if (uploadData) {
     onProgress?.("Uploading Resume...");
-    await uploadToS3(file, uploadData.upload.url, uploadData.upload.fields);
+    await uploadToS3(
+      file,
+      uploadData.upload.url,
+      uploadData.upload.fields,
+      options?.signal,
+    );
 
     onProgress?.("Analyzing Resume...");
-    const analyzeResponse = await triggerAnalysis(uploadData.job_id, {
-      jobDescription: truncatedDescription,
-      s3Url: uploadData.s3_url,
-    });
+    const analyzeResponse = await triggerAnalysis(
+      uploadData.job_id,
+      {
+        jobDescription: truncatedDescription,
+        s3Url: uploadData.s3_url,
+      },
+      options?.signal,
+    );
 
     if (analyzeResponse?.analysis_result) {
       return {
@@ -301,17 +397,18 @@ export const uploadResume = async (
     return { job_id: uploadData.job_id };
   }
 
-  const legacyData = uploadData as unknown as UploadResumeResponse;
-  if (legacyData.analysis_result || legacyData.job_id) {
+  const legacyData = parseUploadResumeResponse(uploadJson);
+  if (legacyData) {
     return legacyData;
   }
 
-  throw new Error("Unexpected response from upload endpoint");
+  throw new Error("Unexpected response from upload endpoint.");
 };
 
 export const pollForResults = async (
   jobId: string,
   onProgress: (message: string) => void,
+  options?: UploadRequestOptions,
 ): Promise<AnalysisResultData> => {
   const statusUrl = `/api/status/${jobId}`;
   const maxAttempts = 150;
@@ -319,9 +416,13 @@ export const pollForResults = async (
 
   while (attempts < maxAttempts) {
     attempts++;
-    await sleep(2000);
 
-    const statusResponse = await getJson(statusUrl);
+    await sleep(2000, options?.signal);
+    throwIfAborted(options?.signal);
+
+    const statusResponse = await getJson(statusUrl, {
+      signal: options?.signal,
+    });
     if (!statusResponse.ok) {
       throw new Error(
         await getErrorMessageFromResponse(
@@ -331,13 +432,14 @@ export const pollForResults = async (
       );
     }
 
-    const statusData = (await statusResponse.json()) as {
-      analysis_result?: AnalysisResultData;
-      error?: string;
-      status?: string;
-    };
+    const statusJson = await statusResponse.json().catch(() => null);
+    const statusData = parseStatusResponse(statusJson);
 
-    if (hasAnalysisResult(statusData)) {
+    if (!statusData) {
+      throw new Error("Unexpected response from status endpoint.");
+    }
+
+    if (statusData.analysis_result !== undefined) {
       return statusData.analysis_result;
     }
 

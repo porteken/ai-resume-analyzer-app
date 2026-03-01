@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   pollForResults,
@@ -18,17 +18,55 @@ interface UseResumeAnalysisReturn {
   submitAnalysis: (file: File | null, jobDescription: string) => Promise<void>;
 }
 
+const getSubmitErrorMessage = (error_: unknown): string => {
+  if (!(error_ instanceof Error)) {
+    return "An unexpected error occurred.";
+  }
+
+  const message = error_.message.toLowerCase();
+  if (
+    message.includes("failed to fetch") ||
+    message.includes("networkerror") ||
+    message.includes("abort") ||
+    message.includes("load failed") ||
+    message.includes("network") ||
+    message.includes("cancelled")
+  ) {
+    return "Failed to upload resume. Please check your connection and try again.";
+  }
+
+  if (
+    message.includes("server error") ||
+    message.includes("internal server error") ||
+    message.includes("500")
+  ) {
+    return "Internal server error. Please try again later.";
+  }
+
+  return error_.message;
+};
+
 export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [result, setResult] = useState<AnalysisResultData | null>(null);
   const [error, setError] = useState<null | string>(null);
+  const abortControllerReference = useRef<AbortController | null>(null);
+
+  useEffect(
+    () => () => {
+      abortControllerReference.current?.abort();
+    },
+    [],
+  );
 
   const submitAnalysis = useCallback(
     async (file: File | null, jobDescription: string) => {
       const validationError =
         validateFile(file) || validateJobDescription(jobDescription);
       if (validationError) {
+        setResult(null);
+        setStatusMessage("");
         setError(validationError);
         return;
       }
@@ -36,6 +74,10 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
       if (!file) {
         return;
       }
+
+      abortControllerReference.current?.abort();
+      const abortController = new AbortController();
+      abortControllerReference.current = abortController;
 
       setIsLoading(true);
       setError(null);
@@ -48,6 +90,7 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
           file,
           jobDescription.trim(),
           setStatusMessage,
+          { signal: abortController.signal },
         );
 
         if (uploadData.analysis_result) {
@@ -57,6 +100,7 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
           const analysisResult = await pollForResults(
             uploadData.job_id,
             setStatusMessage,
+            { signal: abortController.signal },
           );
           setResult(analysisResult);
         } else {
@@ -65,36 +109,18 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
           );
         }
       } catch (error_: unknown) {
-        console.error(error_);
-        let errorMessage = "An unexpected error occurred.";
-
-        if (error_ instanceof Error) {
-          const message = error_.message.toLowerCase();
-          if (
-            message.includes("failed to fetch") ||
-            message.includes("networkerror") ||
-            message.includes("abort") ||
-            message.includes("load failed") ||
-            message.includes("network") ||
-            message.includes("cancelled")
-          ) {
-            errorMessage =
-              "Failed to upload resume. Please check your connection and try again.";
-          } else if (
-            message.includes("server error") ||
-            message.includes("internal server error") ||
-            message.includes("500")
-          ) {
-            errorMessage = "Internal server error. Please try again later.";
-          } else {
-            errorMessage = error_.message;
-          }
+        if (error_ instanceof Error && error_.name === "AbortError") {
+          return;
         }
 
-        setError(errorMessage);
+        console.error(error_);
+        setError(getSubmitErrorMessage(error_));
       } finally {
-        setIsLoading(false);
-        setStatusMessage("");
+        if (abortControllerReference.current === abortController) {
+          abortControllerReference.current = null;
+          setIsLoading(false);
+          setStatusMessage("");
+        }
       }
     },
     [],
