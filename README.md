@@ -13,12 +13,7 @@ Frontend:
 - shadcn
 - Lucide React
 
-Backend:
-
-- AWS SAM
-- AWS Lambda
-- AWS API Gateway
-- [Backend API](https://github.com/porteken/ai-resume-analyzer-sam)
+[Backend](https://github.com/porteken/ai-resume-analyzer-sam)
 
 ## Usage
 
