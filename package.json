@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:unit": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "tsc": "tsc --noEmit"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.8",
