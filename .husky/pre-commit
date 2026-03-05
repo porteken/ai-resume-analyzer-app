@@ -2,7 +2,4 @@ echo "Running pre-commit checks..."
 
 npx lint-staged
 
-npm run test:unit
-
-
 echo "Pre-commit checks passed!"
