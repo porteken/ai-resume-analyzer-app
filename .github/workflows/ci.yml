@@ -104,14 +104,9 @@ jobs:
       - name: Merge Vitest unit reports
         run: npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=junit
 
-
   playwright-e2e:
     name: Playwright E2E (shard ${{ matrix.shard_index }}/20)
     runs-on: ubuntu-latest
-
-    env:
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
 
     strategy:
       fail-fast: false
@@ -254,7 +249,12 @@ jobs:
         run: npm ci --prefer-offline --no-audit --no-fund
 
       - name: Run Vitest with coverage
-        run: npm run test:coverage
+        run: |
+          if npm run --silent | grep -q "test:coverage"; then
+            npm run test:coverage
+          else
+            npm run test -- --coverage
+          fi
 
       - name: Upload coverage report for SonarQube
         uses: actions/upload-artifact@v4
@@ -277,7 +277,7 @@ jobs:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Download Vitest coverage
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: vitest-coverage
           path: coverage
