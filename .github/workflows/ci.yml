@@ -8,9 +8,6 @@ on:
   pull_request:
   workflow_dispatch:
 
-permissions:
-  pull-requests: read
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -106,6 +103,7 @@ jobs:
 
       - name: Merge Vitest unit reports
         run: npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=junit
+
 
   playwright-e2e:
     name: Playwright E2E (shard ${{ matrix.shard_index }}/20)
@@ -235,23 +233,73 @@ jobs:
           echo "Playwright tests failed in the e2e job. Failing the merge job."
           exit 1
 
-  sonarqube:
-    name: SonarQube
+  vitest-coverage:
+    name: Vitest Coverage
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          fetch-depth: 0
+          node-version: 22
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Run Vitest with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage report for SonarQube
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-coverage
+          path: coverage/lcov.info
+          if-no-files-found: error
+          retention-days: 1
+
+  sonarqube:
+    name: SonarQube
+    needs: vitest-coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Download Vitest coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: vitest-coverage
+          path: coverage
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
+        with:
+          args: >
+            -Dsonar.scm.revision=${{ github.sha }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   deploy:
     name: Deploy to Vercel
     if: github.event_name == 'push' && (github.ref_name == 'dev' || github.ref_name == 'prd')
-    needs: [quality-checks, vitest-unit, playwright-e2e, sonarqube]
+    needs:
+      [
+        quality-checks,
+        vitest-unit,
+        playwright-e2e,
+        sonarqube,
+      ]
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Vercel Deploy Hook
