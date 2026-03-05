@@ -12,6 +12,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  NODE_VERSION: 22
+
 jobs:
   quality-checks:
     name: Lint and Typecheck
@@ -20,48 +23,33 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-
-      - name: Cache node_modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
       - name: Install Dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --prefer-offline --no-audit --no-fund
+        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
 
       - run: npm run lint
       - run: npm run tsc
 
   vitest-unit:
-    name: Vitest Unit (shard ${{ matrix.shard_index }}/${{ matrix.shard_total }})
+    name: Vitest Unit (shard ${{ matrix.shard_index }}/5)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         shard_index: [1, 2, 3, 4, 5]
-        shard_total: [5]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-
-      - name: Cache node_modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
       - name: Install Dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --prefer-offline --no-audit --no-fund
+        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
 
-      - run: npm run test:unit -- --reporter=blob --shard=${{ matrix.shard_index }}/${{ matrix.shard_total }}
+      - run: npm run test:unit -- --reporter=blob --shard=${{ matrix.shard_index }}/5
 
       - name: Upload Vitest unit blob report
         if: always()
@@ -81,18 +69,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-
-      - name: Cache node_modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
       - name: Install Dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --prefer-offline --no-audit --no-fund
+        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
 
       - name: Download Vitest unit blob reports
         uses: actions/download-artifact@v4
@@ -107,6 +88,10 @@ jobs:
   playwright-e2e:
     name: Playwright E2E (shard ${{ matrix.shard_index }}/20)
     runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
 
     strategy:
       fail-fast: false
@@ -138,18 +123,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-
-      - name: Cache node_modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
       - name: Install Node Dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --prefer-offline --no-audit --no-fund
+        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
 
       - name: Get Playwright Version
         id: playwright-version
@@ -160,7 +138,7 @@ jobs:
         id: cache-playwright
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
 
       - name: Install Playwright Browsers & OS Deps
         if: steps.cache-playwright.outputs.cache-hit != 'true'
@@ -190,18 +168,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-
-      - name: Cache node_modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
       - name: Install Dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --prefer-offline --no-audit --no-fund
+        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
 
       - name: Download All Playwright Blobs
         uses: actions/download-artifact@v4
@@ -235,18 +206,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-
-      - name: Cache node_modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
 
       - name: Install Dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: npm ci --prefer-offline --no-audit --no-fund
+        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
 
       - name: Run Vitest with coverage
         run: |
@@ -274,16 +238,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
 
       - name: Download Vitest coverage
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v4
         with:
           name: vitest-coverage
           path: coverage
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v6
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602
         with:
           args: >
             -Dsonar.scm.revision=${{ github.sha }}
