@@ -7,7 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "test:unit": "vitest",
+    "test": "vitest run",
     "test:e2e": "playwright test",
     "tsc": "tsc --noEmit"
   },
