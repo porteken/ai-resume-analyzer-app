@@ -20,7 +20,7 @@ export default defineConfig({
         "components.json",
       ],
       provider: "v8",
-      reporter: ["text", "json", "html"],
+      reporter: ["text", "json", "html", "lcov"],
       thresholds: {
         branches: 70,
         functions: 70,
