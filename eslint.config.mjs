@@ -1,26 +1,31 @@
-//ts-check
+// @ts-check
 import pluginJs from "@eslint/js";
-import nextPlugin from "@next/eslint-plugin-next";
+import nextVitals from "eslint-config-next/core-web-vitals";
 import vitest from "@vitest/eslint-plugin";
 import eslintConfigPrettier from "eslint-config-prettier";
-import checkFile from "eslint-plugin-check-file";
 import importPlugin from "eslint-plugin-import";
-import perfectionist from "eslint-plugin-perfectionist";
+import { configs as perfectionistConfigs } from "eslint-plugin-perfectionist";
 import playwright from "eslint-plugin-playwright";
 import pluginPromise from "eslint-plugin-promise";
 import pluginReact from "eslint-plugin-react";
 import sonarjs from "eslint-plugin-sonarjs";
+import tailwind from "eslint-plugin-tailwindcss";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import globals from "globals";
 import tseslint from "typescript-eslint";
+
 export default [
   {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
   },
+  sonarjs.configs.recommended,
   {
     languageOptions: {
       ecmaVersion: "latest",
       globals: { ...globals.browser, ...globals.node },
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
   },
   {
@@ -31,7 +36,7 @@ export default [
     },
   },
   pluginJs.configs.recommended,
-  sonarjs.configs.recommended,
+  ...nextVitals,
   importPlugin.flatConfigs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -44,64 +49,31 @@ export default [
       },
     },
   },
-  {
-    files: ["src/**/*.{ts,tsx}"],
-    plugins: {
-      "check-file": checkFile,
-    },
-    rules: {
-      "check-file/filename-naming-convention": [
-        "error",
-        {
-          "src/components/**/*.{ts,tsx}": "KEBAB_CASE",
-          "src/config/**/*.{ts,tsx}": "KEBAB_CASE",
-          "src/features/**/*.{ts,tsx}": "KEBAB_CASE",
-          "src/lib/**/*.{ts,tsx}": "KEBAB_CASE",
-          "src/testing/**/*.{ts,tsx}": "KEBAB_CASE",
-          "src/types/**/*.{ts,tsx}": "KEBAB_CASE",
-        },
-        {
-          ignoreMiddleExtensions: true,
-        },
-      ],
-    },
-  },
-  {
-    files: ["src/app/**/*.{ts,tsx}"],
-    plugins: {
-      "check-file": checkFile,
-    },
-    rules: {
-      "check-file/folder-naming-convention": ["error", { "src/app/**/": "NEXT_JS_APP_ROUTER_CASE" }],
-    },
-  },
-  {
-    files: ["src/**/*.{ts,tsx}"],
-    plugins: {
-      "check-file": checkFile,
-    },
-    rules: {
-      "check-file/folder-naming-convention": [
-        "error",
-        {
-          "src/components/**/": "KEBAB_CASE",
-          "src/config/**/": "KEBAB_CASE",
-          "src/features/**/": "KEBAB_CASE",
-          "src/lib/**/": "KEBAB_CASE",
-          "src/testing/**/": "KEBAB_CASE",
-          "src/types/**/": "KEBAB_CASE",
-        },
-      ],
-    },
-  },
   pluginPromise.configs["flat/recommended"],
   pluginReact.configs.flat.recommended,
   pluginReact.configs.flat["jsx-runtime"],
   eslintConfigPrettier,
+  {
+    files: ["**/*.{js,jsx,ts,tsx}"],
+    plugins: {
+      tailwindcss: tailwind,
+    },
+    rules: {
+      ...tailwind.configs["flat/recommended"][0].rules,
+    },
+  },
   eslintPluginUnicorn.configs.recommended,
-  perfectionist.configs["recommended-natural"],
+  perfectionistConfigs["recommended-natural"],
   {
     rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+        },
+      ],
       "import/no-restricted-paths": [
         "error",
         {
@@ -111,18 +83,20 @@ export default [
               target: "./src/features",
             },
             {
-              from: ["./src/app", "./src/features"],
+              from: ["./src/features", "./src/app"],
               target: [
                 "./src/components",
-                "./src/config",
+                "./src/hooks",
                 "./src/lib",
                 "./src/types",
+                "./src/utils",
+                "./src/config",
+                "./src/stores",
               ],
             },
             {
-              except: ["./resume-analysis"],
-              from: "./src/features",
-              target: "./src/features/resume-analysis",
+              from: ["./src/components", "./src/hooks", "./src/utils"],
+              target: ["./src/features", "./src/app"],
             },
           ],
         },
@@ -131,41 +105,23 @@ export default [
       "react/jsx-uses-react": "error",
       "react/prop-types": "off",
       "unicorn/better-regex": "warn",
-      "unicorn/no-null": "off",
       "unicorn/prefer-global-this": "off",
-    },
-  },
-  {
-    files: ["src/lib/**/*.{ts,tsx}"],
-    rules: {
-      "unicorn/prevent-abbreviations": "off",
-    },
-  },
-  {
-    files: [
-      "src/config/**/*.{ts,tsx}",
-      "src/features/resume-analysis/utils/**/*.{ts,tsx}",
-      "src/lib/server/**/*.{ts,tsx}",
-    ],
-    rules: {
-      "unicorn/prevent-abbreviations": "off",
-    },
-  },
-  {
-    plugins: {
-      "@next/next": nextPlugin,
-    },
-    rules: {
-      ...nextPlugin.configs.recommended.rules,
-      ...nextPlugin.configs["core-web-vitals"].rules,
     },
   },
   {
     ignores: [
       ".next/*",
       "next-env.d.ts",
+      "src/__tests__/utils/*",
       "coverage/*",
+      "src/components/ui/*",
     ],
+  },
+  {
+    files: ["src/__tests__/**/*.{ts,tsx}"],
+    rules: {
+      "import/no-restricted-paths": "off",
+    },
   },
   {
     files: [
@@ -178,22 +134,18 @@ export default [
     },
     rules: {
       ...vitest.configs.recommended.rules,
-      "import/no-restricted-paths": "off",
-      "sonarjs/no-nested-functions": "off",
-      "unicorn/filename-case": "off",
-      "unicorn/no-useless-undefined": "off",
-      "unicorn/prevent-abbreviations": "off",
+      "@typescript-eslint/no-explicit-any": "off",
       "vitest/max-nested-describe": ["error", { max: 3 }],
     },
   },
   {
-    ...playwright.configs["flat/recommended"],
-    files: ["e2e/**/*.{ts,tsx}"],
+    files: ["src/testing/**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
   },
   {
-    files: ["e2e/**/*.{ts,tsx}"],
-    rules: {
-      "import/named": "off",
-    },
+    ...playwright.configs["flat/recommended"],
+    files: ["tests/**"],
   },
 ];
