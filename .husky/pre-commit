@@ -1,5 +1,6 @@
 echo "Running pre-commit checks..."
 
+npx knip --fix --allow-remove-files
 npx lint-staged
 
 npm run test:unit

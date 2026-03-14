@@ -3,6 +3,7 @@ import pluginJs from "@eslint/js";
 import nextPlugin from "@next/eslint-plugin-next";
 import vitest from "@vitest/eslint-plugin";
 import eslintConfigPrettier from "eslint-config-prettier";
+import checkFile from "eslint-plugin-check-file";
 import importPlugin from "eslint-plugin-import";
 import perfectionist from "eslint-plugin-perfectionist";
 import playwright from "eslint-plugin-playwright";
@@ -43,6 +44,56 @@ export default [
       },
     },
   },
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    plugins: {
+      "check-file": checkFile,
+    },
+    rules: {
+      "check-file/filename-naming-convention": [
+        "error",
+        {
+          "src/components/**/*.{ts,tsx}": "KEBAB_CASE",
+          "src/config/**/*.{ts,tsx}": "KEBAB_CASE",
+          "src/features/**/*.{ts,tsx}": "KEBAB_CASE",
+          "src/lib/**/*.{ts,tsx}": "KEBAB_CASE",
+          "src/testing/**/*.{ts,tsx}": "KEBAB_CASE",
+          "src/types/**/*.{ts,tsx}": "KEBAB_CASE",
+        },
+        {
+          ignoreMiddleExtensions: true,
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/app/**/*.{ts,tsx}"],
+    plugins: {
+      "check-file": checkFile,
+    },
+    rules: {
+      "check-file/folder-naming-convention": ["error", { "src/app/**/": "NEXT_JS_APP_ROUTER_CASE" }],
+    },
+  },
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    plugins: {
+      "check-file": checkFile,
+    },
+    rules: {
+      "check-file/folder-naming-convention": [
+        "error",
+        {
+          "src/components/**/": "KEBAB_CASE",
+          "src/config/**/": "KEBAB_CASE",
+          "src/features/**/": "KEBAB_CASE",
+          "src/lib/**/": "KEBAB_CASE",
+          "src/testing/**/": "KEBAB_CASE",
+          "src/types/**/": "KEBAB_CASE",
+        },
+      ],
+    },
+  },
   pluginPromise.configs["flat/recommended"],
   pluginReact.configs.flat.recommended,
   pluginReact.configs.flat["jsx-runtime"],
@@ -56,12 +107,22 @@ export default [
         {
           zones: [
             {
-              from: "./app",
-              target: "./features",
+              from: "./src/app",
+              target: "./src/features",
             },
             {
-              from: ["./app", "./features"],
-              target: ["./components", "./lib"],
+              from: ["./src/app", "./src/features"],
+              target: [
+                "./src/components",
+                "./src/config",
+                "./src/lib",
+                "./src/types",
+              ],
+            },
+            {
+              except: ["./resume-analysis"],
+              from: "./src/features",
+              target: "./src/features/resume-analysis",
             },
           ],
         },
@@ -75,15 +136,16 @@ export default [
     },
   },
   {
-    files: ["lib/**/*.{ts,tsx}"],
+    files: ["src/lib/**/*.{ts,tsx}"],
     rules: {
       "unicorn/prevent-abbreviations": "off",
     },
   },
   {
     files: [
-      "features/resume-analysis/server/**/*.{ts,tsx}",
-      "features/resume-analysis/utils/**/*.{ts,tsx}",
+      "src/config/**/*.{ts,tsx}",
+      "src/features/resume-analysis/utils/**/*.{ts,tsx}",
+      "src/lib/server/**/*.{ts,tsx}",
     ],
     rules: {
       "unicorn/prevent-abbreviations": "off",
@@ -119,13 +181,14 @@ export default [
       "import/no-restricted-paths": "off",
       "sonarjs/no-nested-functions": "off",
       "unicorn/filename-case": "off",
+      "unicorn/no-useless-undefined": "off",
       "unicorn/prevent-abbreviations": "off",
       "vitest/max-nested-describe": ["error", { max: 3 }],
     },
   },
   {
     ...playwright.configs["flat/recommended"],
-    files: ["tests/**"],
+    files: ["e2e/**/*.{ts,tsx}"],
   },
   {
     files: ["e2e/**/*.{ts,tsx}"],

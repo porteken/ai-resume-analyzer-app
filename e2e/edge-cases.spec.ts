@@ -88,7 +88,7 @@ test.describe("File Upload Edge Cases", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(page.getByText(/file too large/i)).not.toBeVisible();
+    await expect(page.getByText(/file too large/i)).toBeHidden();
     await expect(page.getByText(/analysis complete/i)).toBeVisible({
       timeout: 10_000,
     });

@@ -31,5 +31,9 @@
   ],
   "eslint.format.enable": true,
   "npm.packageManager": "npm",
-  "css.lint.unknownAtRules": "ignore"
+  "css.lint.unknownAtRules": "ignore",
+  "sonarlint.connectedMode.project": {
+    "connectionId": "porteken",
+    "projectKey": "porteken_ai-resume-analyzer-app"
+  }
 }

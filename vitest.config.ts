@@ -6,14 +6,14 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "./"),
+      "@": path.resolve(import.meta.dirname, "./src"),
     },
   },
   test: {
     coverage: {
       exclude: [
         "node_modules/",
-        "tests/",
+        "src/testing/",
         ".next/",
         "e2e/",
         "*.config.*",
@@ -25,6 +25,6 @@ export default defineConfig({
     environment: "jsdom",
     exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**", "**/.next/**"],
     globals: true,
-    setupFiles: ["./tests/setup.ts"],
+    setupFiles: ["./src/testing/setup.ts"],
   },
 });

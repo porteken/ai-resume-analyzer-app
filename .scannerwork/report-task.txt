@@ -1,0 +1,7 @@
+organization=porteken
+projectKey=porteken_ai-resume-analyzer-app
+serverUrl=https://sonarcloud.io
+serverVersion=8.0.0.82941
+dashboardUrl=https://sonarcloud.io/dashboard?id=porteken_ai-resume-analyzer-app
+ceTaskId=AZzub2iqFulhUSH3EgSk
+ceTaskUrl=https://sonarcloud.io/api/ce/task?id=AZzub2iqFulhUSH3EgSk

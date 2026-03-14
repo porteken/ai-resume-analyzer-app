@@ -1,11 +1,11 @@
 import { test as base, Page } from "@playwright/test";
 
-import { MOCK_RESPONSES } from "@/tests/mocks/api";
+import { MOCK_RESPONSES } from "@/testing/mocks/api";
 import {
   createExactSizePDF as createExactSizePDFBuffer,
   createLargePDF as createLargePDFBuffer,
   createTestPDF as createTestPDFBuffer,
-} from "@/tests/mocks/file";
+} from "@/testing/mocks/file";
 
 export const test = base.extend({
   page: async ({ page }, use) => {

@@ -111,7 +111,7 @@ test.describe("Error Handling", () => {
 
     await submitForm(page);
 
-    await expect(page.getByText(/server error/i)).not.toBeVisible();
+    await expect(page.getByText(/server error/i)).toBeHidden();
     await expect(page.getByText(/analysis complete/i)).toBeVisible({
       timeout: 10_000,
     });
@@ -187,7 +187,7 @@ test.describe("Error Handling", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(page.getByText(/file too large/i)).not.toBeVisible();
+    await expect(page.getByText(/file too large/i)).toBeHidden();
 
     await expect(page.getByText(/analysis complete/i)).toBeVisible({
       timeout: 10_000,

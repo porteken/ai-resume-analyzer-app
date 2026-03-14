@@ -26,6 +26,7 @@ test.describe("Accessibility", () => {
     await expect(heading).toBeVisible();
   });
 
+  // eslint-disable-next-line playwright/no-skipped-test
   test.skip("should be keyboard navigable", async ({ page }) => {
     await page.keyboard.press("Tab");
     const fileInput = page.locator('input[type="file"]');
