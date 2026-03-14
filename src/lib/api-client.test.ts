@@ -97,7 +97,7 @@ describe("api-client", () => {
   it("surfaces structured JSON error payloads and logs them in development", async () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")
-      .mockImplementation(() => undefined);
+      .mockImplementation(() => {});
 
     vi.stubEnv("NODE_ENV", "development");
     fetchMock.mockResolvedValue(

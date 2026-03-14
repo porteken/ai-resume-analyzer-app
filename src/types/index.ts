@@ -1,1 +1,1 @@
-export type { AnalysisResultData } from "@/features/resume-analysis/types/analysis";
+export type { AnalysisResultData } from "@/types/analysis";

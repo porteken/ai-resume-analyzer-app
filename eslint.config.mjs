@@ -1,7 +1,7 @@
 // @ts-check
 import pluginJs from "@eslint/js";
-import nextVitals from "eslint-config-next/core-web-vitals";
 import vitest from "@vitest/eslint-plugin";
+import nextVitals from "eslint-config-next/core-web-vitals";
 import eslintConfigPrettier from "eslint-config-prettier";
 import importPlugin from "eslint-plugin-import";
 import { configs as perfectionistConfigs } from "eslint-plugin-perfectionist";
@@ -12,9 +12,12 @@ import sonarjs from "eslint-plugin-sonarjs";
 import tailwind from "eslint-plugin-tailwindcss";
 import eslintPluginUnicorn from "eslint-plugin-unicorn";
 import globals from "globals";
-import tseslint from "typescript-eslint";
+import {
+  configs as tseslintConfigs,
+  parser as tseslintParser,
+} from "typescript-eslint";
 
-export default [
+const config = [
   {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
   },
@@ -37,12 +40,15 @@ export default [
   },
   pluginJs.configs.recommended,
   ...nextVitals,
-  importPlugin.flatConfigs.recommended,
-  ...tseslint.configs.recommended,
+  {
+    languageOptions: importPlugin.flatConfigs.recommended.languageOptions,
+    rules: importPlugin.flatConfigs.recommended.rules,
+  },
+  ...tseslintConfigs.recommended,
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
-      parser: tseslint.parser,
+      parser: tseslintParser,
       parserOptions: {
         project: true,
         tsconfigRootDir: import.meta.dirname,
@@ -83,20 +89,19 @@ export default [
               target: "./src/features",
             },
             {
-              from: ["./src/features", "./src/app"],
+              from: [
+                "./src/features",
+                "./src/app",
+              ],
               target: [
                 "./src/components",
                 "./src/hooks",
                 "./src/lib",
-                "./src/types",
-                "./src/utils",
                 "./src/config",
                 "./src/stores",
+                "./src/types",
+                "./src/utils",
               ],
-            },
-            {
-              from: ["./src/components", "./src/hooks", "./src/utils"],
-              target: ["./src/features", "./src/app"],
             },
           ],
         },
@@ -105,7 +110,25 @@ export default [
       "react/jsx-uses-react": "error",
       "react/prop-types": "off",
       "unicorn/better-regex": "warn",
+      "unicorn/no-null": "off",
       "unicorn/prefer-global-this": "off",
+      "unicorn/prevent-abbreviations": [
+        "error",
+        {
+          allowList: {
+            API: true,
+            Api: true,
+            api: true,
+            el: true,
+            env: true,
+            Env: true,
+            ext: true,
+            utils: true,
+            Utils: true,
+          },
+          checkFilenames: false,
+        },
+      ],
     },
   },
   {
@@ -145,7 +168,16 @@ export default [
     },
   },
   {
+    files: ["e2e/**/*.{ts,tsx}"],
+    rules: {
+      "react-hooks/exhaustive-deps": "off",
+      "react-hooks/rules-of-hooks": "off",
+    },
+  },
+  {
     ...playwright.configs["flat/recommended"],
-    files: ["tests/**"],
+    files: ["e2e/**", "tests/**"],
   },
 ];
+
+export default config;

@@ -61,7 +61,7 @@ describe("request-utils", () => {
   it("logs and wraps non-JSON upstream responses", async () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")
-      .mockImplementation(() => undefined);
+      .mockImplementation(() => {});
     const response = new Response("x".repeat(250), {
       headers: { "content-type": "text/html" },
       status: 502,
