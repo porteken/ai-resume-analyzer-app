@@ -31,6 +31,7 @@ jobs:
 
       - run: npm run lint
       - run: npm run tsc
+      - run: npx knip
 
   vitest-unit:
     name: Vitest Unit (shard ${{ matrix.shard_index }}/5)
@@ -257,13 +258,7 @@ jobs:
   deploy:
     name: Deploy to Vercel
     if: github.event_name == 'push' && (github.ref_name == 'dev' || github.ref_name == 'prd')
-    needs:
-      [
-        quality-checks,
-        vitest-unit,
-        playwright-e2e,
-        sonarqube,
-      ]
+    needs: [quality-checks, vitest-unit, playwright-e2e, sonarqube]
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Vercel Deploy Hook
