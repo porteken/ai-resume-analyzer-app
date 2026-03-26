@@ -11,9 +11,7 @@ describe("About Page Component", () => {
 
   it("should render the app description", () => {
     render(<About />);
-    expect(
-      screen.getByText(/ai resume analyzer is a web application/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/ai resume analyzer is a web application/i)).toBeInTheDocument();
   });
 
   it("should render GitHub links", () => {
@@ -22,7 +20,7 @@ describe("About Page Component", () => {
     expect(frontendLink).toBeInTheDocument();
     expect(frontendLink).toHaveAttribute(
       "href",
-      "https://github.com/porteken/ai-resume-analyzer-app",
+      "https://github.com/porteken/ai-resume-analyzer-app"
     );
     expect(frontendLink).toHaveAttribute("target", "_blank");
     expect(frontendLink).toHaveAttribute("rel", "noopener noreferrer");
@@ -31,7 +29,7 @@ describe("About Page Component", () => {
     expect(backendLink).toBeInTheDocument();
     expect(backendLink).toHaveAttribute(
       "href",
-      "https://github.com/porteken/ai-resume-analyzer-sam",
+      "https://github.com/porteken/ai-resume-analyzer-sam"
     );
     expect(backendLink).toHaveAttribute("target", "_blank");
     expect(backendLink).toHaveAttribute("rel", "noopener noreferrer");

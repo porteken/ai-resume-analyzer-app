@@ -1,14 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": [
-    "import",
-    "typescript",
-    "promise",
-    "react",
-    "unicorn",
-    "nextjs",
-    "vitest"
-  ],
+  "plugins": ["import", "typescript", "promise", "react", "unicorn", "nextjs", "vitest"],
   "categories": {
     "correctness": "off"
   },
@@ -583,11 +575,7 @@
       }
     },
     {
-      "files": [
-        "**/__tests__/**/*.{ts,tsx}",
-        "**/*.test.{ts,tsx}",
-        "**/*.spec.{ts,tsx}"
-      ],
+      "files": ["**/__tests__/**/*.{ts,tsx}", "**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
       "rules": {
         "vitest/expect-expect": "error",
         "vitest/no-conditional-expect": "error",

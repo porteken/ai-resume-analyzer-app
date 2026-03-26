@@ -3,17 +3,14 @@ export default function About() {
     <div className="flex min-h-screen flex-col items-center justify-center p-6 bg-slate-50">
       <div className="w-full max-w-2xl space-y-6 bg-white p-8 rounded-xl shadow-sm border">
         <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold tracking-tight">
-            About AI Resume Analyzer
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight">About AI Resume Analyzer</h1>
         </div>
 
         <div className="prose prose-sm max-w-none text-center">
           <p className="text-slate-700">
-            AI Resume Analyzer is a web application that helps job seekers
-            evaluate how well their resume matches a specific job description.
-            Using Google&apos;s Gemini 2.5 Flash AI model, the app analyzes
-            uploaded PDF resumes and provides detailed feedback including
+            AI Resume Analyzer is a web application that helps job seekers evaluate how well their
+            resume matches a specific job description. Using Google&apos;s Gemini 2.5 Flash AI
+            model, the app analyzes uploaded PDF resumes and provides detailed feedback including
             strengths, gaps, and recommendations.
           </p>
         </div>

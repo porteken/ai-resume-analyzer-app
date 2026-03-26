@@ -24,9 +24,7 @@ test.describe("Error Handling", () => {
     await submitForm(page);
 
     await expect(page.getByText(/file too large/i)).toBeVisible();
-    await expect(
-      page.getByText(/please use a pdf smaller than 5mb/i),
-    ).toBeVisible();
+    await expect(page.getByText(/please use a pdf smaller than 5mb/i)).toBeVisible();
   });
 
   test("should not allow submission without file", async ({ page }) => {
@@ -36,9 +34,7 @@ test.describe("Error Handling", () => {
     await expect(button).toBeDisabled();
   });
 
-  test("should not allow submission without job description", async ({
-    page,
-  }) => {
+  test("should not allow submission without job description", async ({ page }) => {
     const pdfFile = createTestPDF();
     await uploadFile(page, pdfFile);
 
@@ -71,11 +67,11 @@ test.describe("Error Handling", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(
-      page.getByText(/failed to upload resume|network error|fetch failed/i),
-    ).toBeVisible({
-      timeout: 10_000,
-    });
+    await expect(page.getByText(/failed to upload resume|network error|fetch failed/i)).toBeVisible(
+      {
+        timeout: 10_000,
+      }
+    );
   });
 
   test("should handle failed job analysis", async ({ page }) => {
@@ -86,16 +82,12 @@ test.describe("Error Handling", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(
-      page.getByText(/pdf parsing failed|analysis failed/i),
-    ).toBeVisible({
+    await expect(page.getByText(/pdf parsing failed|analysis failed/i)).toBeVisible({
       timeout: 10_000,
     });
   });
 
-  test("should clear previous errors when submitting again", async ({
-    page,
-  }) => {
+  test("should clear previous errors when submitting again", async ({ page }) => {
     await mockAPIResponses.mockServerError(page);
 
     const pdfFile = createTestPDF();
@@ -144,7 +136,7 @@ test.describe("Error Handling", () => {
     await submitForm(page);
 
     await expect(
-      page.getByText(/unexpected response|no job_id or analysis_result found/i),
+      page.getByText(/unexpected response|no job_id or analysis_result found/i)
     ).toBeVisible({ timeout: 10_000 });
   });
 

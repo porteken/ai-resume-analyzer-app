@@ -16,7 +16,7 @@ describe("api-utils", () => {
     const response = createErrorResponse(
       "Invalid request body",
       400,
-      "Request body must be valid JSON.",
+      "Request body must be valid JSON."
     );
 
     expect(response.status).toBe(400);

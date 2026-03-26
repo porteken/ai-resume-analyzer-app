@@ -35,9 +35,7 @@ export default defineConfig({
     },
   ],
 
-  reporter: process.env.CI
-    ? [["html"], ["github"], ["list"]]
-    : [["html"], ["list"]],
+  reporter: process.env.CI ? [["html"], ["github"], ["list"]] : [["html"], ["list"]],
 
   retries: process.env.CI ? 2 : 0,
 

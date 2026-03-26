@@ -1,11 +1,8 @@
 export const MAX_JOB_DESCRIPTION_CHARS = 20_000;
 
-const REQUIRED_JOB_DESCRIPTION_ERROR =
-  "Please provide both a PDF resume and a Job Description.";
+const REQUIRED_JOB_DESCRIPTION_ERROR = "Please provide both a PDF resume and a Job Description.";
 
-export const validateJobDescription = (
-  jobDescription: string,
-): null | string => {
+export const validateJobDescription = (jobDescription: string): null | string => {
   const trimmedDescription = jobDescription.trim();
   if (!trimmedDescription) {
     return REQUIRED_JOB_DESCRIPTION_ERROR;

@@ -22,14 +22,10 @@ export const ResumeUploader = ({
 }: ResumeUploaderProperties) => {
   const [file, setFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState("");
-  const buttonLabel = isLoading
-    ? statusMessage || "Processing Resume..."
-    : "Analyze Resume";
+  const buttonLabel = isLoading ? statusMessage || "Processing Resume..." : "Analyze Resume";
 
   const handleSubmit = useCallback(() => {
-    const cleanedDescription = toAscii(
-      jobDescription.trim().replaceAll(/\s+/g, " "),
-    );
+    const cleanedDescription = toAscii(jobDescription.trim().replaceAll(/\s+/g, " "));
     setJobDescription(cleanedDescription);
     onSubmit(file, cleanedDescription);
   }, [file, jobDescription, onSubmit]);
@@ -45,9 +41,7 @@ export const ResumeUploader = ({
           className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-all duration-200 cursor-pointer"
           disabled={isLoading}
           id="resume"
-          onChange={(event) =>
-            setFile(event.target.files ? event.target.files[0] : null)
-          }
+          onChange={(event) => setFile(event.target.files ? event.target.files[0] : null)}
           type="file"
         />
       </div>

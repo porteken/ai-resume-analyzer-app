@@ -59,8 +59,7 @@ describe("Helper Functions", () => {
 
         private dispatchEvent(event: string) {
           if (this.listeners[event]) {
-            for (const callback of this.listeners[event])
-              callback({ target: this });
+            for (const callback of this.listeners[event]) callback({ target: this });
           }
         }
       }
@@ -69,9 +68,7 @@ describe("Helper Functions", () => {
 
       const file = createMockFile("test content", "test.pdf");
 
-      await expect(convertFileToBase64(file)).rejects.toThrow(
-        "File reading failed",
-      );
+      await expect(convertFileToBase64(file)).rejects.toThrow("File reading failed");
 
       globalThis.FileReader = originalFileReader;
     });
@@ -80,9 +77,7 @@ describe("Helper Functions", () => {
   describe("validateFile", () => {
     it("should return error for null file", () => {
       const result = validateFile(null);
-      expect(result).toBe(
-        "Please provide both a PDF resume and a Job Description.",
-      );
+      expect(result).toBe("Please provide both a PDF resume and a Job Description.");
     });
 
     it("should return null for valid file", () => {
@@ -118,9 +113,7 @@ describe("Helper Functions", () => {
   describe("validateJobDescription", () => {
     it("should return error for empty job description", () => {
       const result = validateJobDescription("   ");
-      expect(result).toBe(
-        "Please provide both a PDF resume and a Job Description.",
-      );
+      expect(result).toBe("Please provide both a PDF resume and a Job Description.");
     });
 
     it("should return null for valid job description", () => {

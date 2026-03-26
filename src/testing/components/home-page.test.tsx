@@ -5,28 +5,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Home from "@/app/page";
 import { MOCK_RESPONSES } from "@/testing/mocks/api";
-import {
-  createMockFile,
-  createMockLargePDFFile,
-  createMockPDFFile,
-} from "@/testing/mocks/file";
+import { createMockFile, createMockLargePDFFile, createMockPDFFile } from "@/testing/mocks/file";
 import { server } from "@/testing/mocks/server";
 
 const mockImmediateSuccess = () => {
-  server.use(
-    http.post("*/api/upload", () =>
-      HttpResponse.json(MOCK_RESPONSES.immediateSuccess),
-    ),
-  );
+  server.use(http.post("*/api/upload", () => HttpResponse.json(MOCK_RESPONSES.immediateSuccess)));
 };
 
 const mockAsyncJob = () => {
   let pollCount = 0;
 
   server.use(
-    http.post("*/api/upload", () =>
-      HttpResponse.json(MOCK_RESPONSES.asyncJobInitial),
-    ),
+    http.post("*/api/upload", () => HttpResponse.json(MOCK_RESPONSES.asyncJobInitial)),
     http.get("*/api/status/:jobId", () => {
       pollCount += 1;
       if (pollCount >= 2) {
@@ -34,7 +24,7 @@ const mockAsyncJob = () => {
       }
 
       return HttpResponse.json(MOCK_RESPONSES.asyncJobProcessing);
-    }),
+    })
   );
 };
 
@@ -55,11 +45,11 @@ const mockAnalyze503 = () => {
           },
           url: "https://bucket.s3.amazonaws.com",
         },
-      }),
+      })
     ),
     http.post(
       "https://bucket.s3.amazonaws.com",
-      () => new HttpResponse(null, { status: 204, statusText: "No Content" }),
+      () => new HttpResponse(null, { status: 204, statusText: "No Content" })
     ),
     http.post("*/api/analyze", () =>
       HttpResponse.json(
@@ -68,9 +58,9 @@ const mockAnalyze503 = () => {
             "Analysis service is temporarily unavailable due to high demand.\nPlease try again in a few minutes.",
           type: "ServiceUnavailable",
         },
-        { status: 503 },
-      ),
-    ),
+        { status: 503 }
+      )
+    )
   );
 };
 
@@ -264,8 +254,8 @@ describe("Home Page Component", () => {
             strengths: ["Example strength"],
             summary: "Senior engineer focused on web and analytics systems.",
           },
-        }),
-      ),
+        })
+      )
     );
 
     render(<Home />);
@@ -286,9 +276,7 @@ describe("Home Page Component", () => {
 
     expect(screen.queryByText("Kenneth J. Porter")).not.toBeInTheDocument();
     expect(screen.queryByText("TypeScript")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText(/senior systems engineer/i),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/senior systems engineer/i)).not.toBeInTheDocument();
     expect(screen.getByText(/^strengths$/i)).toBeInTheDocument();
     expect(screen.getByText(/^gaps$/i)).toBeInTheDocument();
     expect(screen.getByText(/^recommendations$/i)).toBeInTheDocument();
@@ -317,7 +305,7 @@ describe("Home Page Component", () => {
       () => {
         expect(screen.getByText(/analysis complete/i)).toBeInTheDocument();
       },
-      { timeout: 10_000 },
+      { timeout: 10_000 }
     );
   });
 
@@ -326,8 +314,8 @@ describe("Home Page Component", () => {
 
     server.use(
       http.post("*/api/upload", () =>
-        HttpResponse.json(MOCK_RESPONSES.serverError, { status: 500 }),
-      ),
+        HttpResponse.json(MOCK_RESPONSES.serverError, { status: 500 })
+      )
     );
 
     render(<Home />);
@@ -365,13 +353,9 @@ describe("Home Page Component", () => {
     await user.click(button);
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/analysis service is temporarily unavailable/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/analysis service is temporarily unavailable/i)).toBeInTheDocument();
     });
-    expect(
-      screen.getByText(/please try again in a few minutes/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/please try again in a few minutes/i)).toBeInTheDocument();
     expect(screen.getByRole("alert")).toBeInTheDocument();
   });
 
@@ -404,7 +388,7 @@ describe("Home Page Component", () => {
       http.post("*/api/upload", async () => {
         await delay(5000);
         return HttpResponse.json(MOCK_RESPONSES.immediateSuccess);
-      }),
+      })
     );
 
     render(<Home />);
@@ -455,12 +439,8 @@ describe("Home Page Component", () => {
     const user = userEvent.setup();
 
     server.use(
-      http.post("*/api/upload", () =>
-        HttpResponse.json(MOCK_RESPONSES.failedJobInitial),
-      ),
-      http.get("*/api/status/:jobId", () =>
-        HttpResponse.json(MOCK_RESPONSES.failedJobStatus),
-      ),
+      http.post("*/api/upload", () => HttpResponse.json(MOCK_RESPONSES.failedJobInitial)),
+      http.get("*/api/status/:jobId", () => HttpResponse.json(MOCK_RESPONSES.failedJobStatus))
     );
 
     render(<Home />);
@@ -479,7 +459,7 @@ describe("Home Page Component", () => {
       () => {
         expect(screen.getByText(/pdf parsing failed/i)).toBeInTheDocument();
       },
-      { timeout: 5000 },
+      { timeout: 5000 }
     );
   });
 });

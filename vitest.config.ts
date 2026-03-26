@@ -1,5 +1,6 @@
-import react from "@vitejs/plugin-react";
 import path from "node:path";
+
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
@@ -11,14 +12,7 @@ export default defineConfig({
   },
   test: {
     coverage: {
-      exclude: [
-        "node_modules/",
-        "src/testing/",
-        ".next/",
-        "e2e/",
-        "*.config.*",
-        "components.json",
-      ],
+      exclude: ["node_modules/", "src/testing/", ".next/", "e2e/", "*.config.*", "components.json"],
       provider: "v8",
       reporter: ["text", "json", "html", "lcov"],
     },

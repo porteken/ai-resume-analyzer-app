@@ -1,36 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import {
-  getApiConfig,
-  getApiConfigDiagnostics,
-  getEndpointLogValue,
-} from "@/config/env";
+import { getApiConfig, getApiConfigDiagnostics, getEndpointLogValue } from "@/config/env";
 import { validateJobDescription } from "@/features/resume-analysis/utils/job-description";
-import {
-  createErrorResponse,
-  isTimeoutError,
-  UPSTREAM_TIMEOUT_MS,
-} from "@/lib/server/api-utils";
-import {
-  handleNonJsonResponse,
-  parseRequestBody,
-} from "@/lib/server/request-utils";
+import { createErrorResponse, isTimeoutError, UPSTREAM_TIMEOUT_MS } from "@/lib/server/api-utils";
+import { handleNonJsonResponse, parseRequestBody } from "@/lib/server/request-utils";
 
 export const maxDuration = 300;
 
-const validateBodyJobDescription = (
-  body: Record<string, unknown>,
-): NextResponse | null => {
+const validateBodyJobDescription = (body: Record<string, unknown>): NextResponse | null => {
   const jobDescription = body.job_description;
   if (typeof jobDescription !== "string") return null;
 
   const jobDescriptionError = validateJobDescription(jobDescription);
   if (jobDescriptionError) {
-    return createErrorResponse(
-      "Invalid job description",
-      400,
-      jobDescriptionError,
-    );
+    return createErrorResponse("Invalid job description", 400, jobDescriptionError);
   }
   return null;
 };
@@ -39,7 +22,7 @@ const warnOnForbiddenUpstreamResponse = (
   response: Response,
   data: unknown,
   apiConfigDiagnostics: ReturnType<typeof getApiConfigDiagnostics>,
-  uploadEndpoint: string,
+  uploadEndpoint: string
 ): void => {
   if (response.status !== 403) return;
 
@@ -72,7 +55,7 @@ export async function POST(request: NextRequest) {
     if (!apiConfig) {
       return createErrorResponse(
         "Server configuration error: Missing API_ENDPOINT (or NEXT_PUBLIC_API_ENDPOINT) or API_KEY",
-        500,
+        500
       );
     }
 
@@ -101,12 +84,7 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
-    warnOnForbiddenUpstreamResponse(
-      response,
-      data,
-      apiConfigDiagnostics,
-      apiConfig.uploadEndpoint,
-    );
+    warnOnForbiddenUpstreamResponse(response, data, apiConfigDiagnostics, apiConfig.uploadEndpoint);
 
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
@@ -114,7 +92,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse(
         "Upstream API request timed out",
         504,
-        `External API did not respond within ${UPSTREAM_TIMEOUT_MS / 1000} seconds`,
+        `External API did not respond within ${UPSTREAM_TIMEOUT_MS / 1000} seconds`
       );
     }
 
@@ -122,7 +100,7 @@ export async function POST(request: NextRequest) {
     return createErrorResponse(
       "Failed to upload resume",
       500,
-      error instanceof Error ? error.message : "Unknown error",
+      error instanceof Error ? error.message : "Unknown error"
     );
   }
 }

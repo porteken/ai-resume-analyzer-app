@@ -40,11 +40,7 @@ export async function submitForm(page: Page) {
   await button.click();
 }
 
-export async function uploadFile(
-  page: Page,
-  fileContent: Buffer,
-  fileName: string = "resume.pdf",
-) {
+export async function uploadFile(page: Page, fileContent: Buffer, fileName: string = "resume.pdf") {
   const fileInput = page.locator('input[type="file"]');
   await fileInput.setInputFiles({
     buffer: fileContent,
@@ -54,10 +50,7 @@ export async function uploadFile(
 }
 
 export const mockAPIResponses = {
-  async mockAsyncJob(
-    page: Page,
-    jobId: string = MOCK_RESPONSES.asyncJobInitial.job_id,
-  ) {
+  async mockAsyncJob(page: Page, jobId: string = MOCK_RESPONSES.asyncJobInitial.job_id) {
     let pollCount = 0;
 
     await page.route("**/api/upload", async (route) => {
@@ -85,10 +78,7 @@ export const mockAPIResponses = {
     });
   },
 
-  async mockFailedJob(
-    page: Page,
-    jobId: string = MOCK_RESPONSES.failedJobInitial.job_id,
-  ) {
+  async mockFailedJob(page: Page, jobId: string = MOCK_RESPONSES.failedJobInitial.job_id) {
     await page.route("**/api/upload", async (route) => {
       await route.fulfill({
         body: JSON.stringify(MOCK_RESPONSES.failedJobInitial),

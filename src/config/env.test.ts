@@ -15,10 +15,7 @@ describe("getApiConfig", () => {
   });
 
   it("derives endpoints from upload endpoint input", () => {
-    vi.stubEnv(
-      "NEXT_PUBLIC_API_ENDPOINT",
-      "https://api.example.com/prod/upload",
-    );
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "https://api.example.com/prod/upload");
     vi.stubEnv("API_KEY", "test-key");
 
     const config = getApiConfig();
@@ -32,10 +29,7 @@ describe("getApiConfig", () => {
   });
 
   it("derives endpoints from analyze endpoint input", () => {
-    vi.stubEnv(
-      "NEXT_PUBLIC_API_ENDPOINT",
-      "https://api.example.com/prod/analyze",
-    );
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "https://api.example.com/prod/analyze");
     vi.stubEnv("API_KEY", "test-key");
 
     const config = getApiConfig();
@@ -49,10 +43,7 @@ describe("getApiConfig", () => {
   });
 
   it("derives endpoints from status endpoint input", () => {
-    vi.stubEnv(
-      "NEXT_PUBLIC_API_ENDPOINT",
-      "https://api.example.com/prod/status/job-123",
-    );
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "https://api.example.com/prod/status/job-123");
     vi.stubEnv("API_KEY", "test-key");
 
     const config = getApiConfig();
@@ -72,10 +63,7 @@ describe("getApiConfig", () => {
   });
 
   it("returns null when only NEXT_PUBLIC_API_KEY is provided", () => {
-    vi.stubEnv(
-      "NEXT_PUBLIC_API_ENDPOINT",
-      "https://api.example.com/prod/upload",
-    );
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "https://api.example.com/prod/upload");
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "public-key");
 
     expect(getApiConfig()).toBeNull();
@@ -106,10 +94,7 @@ describe("getApiConfig", () => {
   });
 
   it("prefers API_ENDPOINT over NEXT_PUBLIC_API_ENDPOINT", () => {
-    vi.stubEnv(
-      "NEXT_PUBLIC_API_ENDPOINT",
-      "https://api.example.com/prod/analyze",
-    );
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "https://api.example.com/prod/analyze");
     vi.stubEnv("API_ENDPOINT", "https://api.example.com/dev/analyze");
     vi.stubEnv("API_KEY", "test-key");
 
@@ -119,10 +104,7 @@ describe("getApiConfig", () => {
   });
 
   it("uses API_KEY when NEXT_PUBLIC_API_ENDPOINT is set", () => {
-    vi.stubEnv(
-      "NEXT_PUBLIC_API_ENDPOINT",
-      "https://api.example.com/dev/analyze",
-    );
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "https://api.example.com/dev/analyze");
     vi.stubEnv("API_KEY", "server-only-key");
 
     const config = getApiConfig();
@@ -132,10 +114,7 @@ describe("getApiConfig", () => {
 
   it("reports conflicting endpoint values", () => {
     vi.stubEnv("API_ENDPOINT", "https://api.example.com/dev/analyze");
-    vi.stubEnv(
-      "NEXT_PUBLIC_API_ENDPOINT",
-      "https://api.example.com/prod/analyze",
-    );
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "https://api.example.com/prod/analyze");
     vi.stubEnv("API_KEY", "server-only-key");
 
     const diagnostics = getApiConfigDiagnostics();
@@ -143,16 +122,11 @@ describe("getApiConfig", () => {
     expect(diagnostics.endpointSource).toBe("API_ENDPOINT");
     expect(diagnostics.apiKeySource).toBe("API_KEY");
     expect(diagnostics.hasEndpointConflict).toBe(true);
-    expect(diagnostics.endpointForLog).toBe(
-      "https://api.example.com/dev/analyze",
-    );
+    expect(diagnostics.endpointForLog).toBe("https://api.example.com/dev/analyze");
   });
 
   it("reports API key source as missing when API_KEY is absent", () => {
-    vi.stubEnv(
-      "NEXT_PUBLIC_API_ENDPOINT",
-      "https://api.example.com/dev/analyze",
-    );
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "https://api.example.com/dev/analyze");
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "public-key");
 
     const diagnostics = getApiConfigDiagnostics();
@@ -162,10 +136,7 @@ describe("getApiConfig", () => {
   });
 
   it("reports API key fingerprint using API_KEY", () => {
-    vi.stubEnv(
-      "NEXT_PUBLIC_API_ENDPOINT",
-      "https://api.example.com/dev/analyze",
-    );
+    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "https://api.example.com/dev/analyze");
     vi.stubEnv("API_KEY", "server-only-key");
 
     const diagnostics = getApiConfigDiagnostics();

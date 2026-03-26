@@ -2,9 +2,7 @@
   "playwright.env": {
     "NODE_ENV": "test"
   },
-  "tailwindCSS.experimental.classRegex": [
-    ["className\\s*:\\s*['\"]([^'\"]*)['\"]"]
-  ],
+  "tailwindCSS.experimental.classRegex": [["className\\s*:\\s*['\"]([^'\"]*)['\"]"]],
   "javascript.updateImportsOnFileMove.enabled": "always",
   "typescript.updateImportsOnFileMove.enabled": "always",
   "[json]": {
@@ -23,12 +21,7 @@
     "source.fixAll": "always",
     "source.organizeImports": "never"
   },
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact"
-  ],
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
   "eslint.format.enable": true,
   "npm.packageManager": "npm",
   "css.lint.unknownAtRules": "ignore",

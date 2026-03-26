@@ -15,9 +15,7 @@ const hasText = (value: unknown): value is string =>
   typeof value === "string" && value.trim().length > 0;
 
 const toStringList = (value: unknown): string[] =>
-  Array.isArray(value)
-    ? value.filter((item): item is string => hasText(item))
-    : [];
+  Array.isArray(value) ? value.filter((item): item is string => hasText(item)) : [];
 
 const extractAnalysisSectionsMarkdown = (markdown: string): string => {
   const normalizedMarkdown = markdown.replaceAll("\r\n", "\n");
@@ -68,9 +66,7 @@ const extractAnalysisSectionsMarkdown = (markdown: string): string => {
   return sections.join("\n\n");
 };
 
-const renderStructuredResult = (
-  result: Exclude<AnalysisResultData, string>,
-) => {
+const renderStructuredResult = (result: Exclude<AnalysisResultData, string>) => {
   const strengths = toStringList(result.strengths);
   const gaps = toStringList(result.gaps);
   const recommendations = toStringList(result.recommendations);
@@ -104,9 +100,7 @@ const renderStructuredResult = (
       </section>
 
       <section className="rounded-lg border border-emerald-200 bg-emerald-50/70 p-4">
-        <h3 className="text-base font-semibold text-emerald-900">
-          Recommendations
-        </h3>
+        <h3 className="text-base font-semibold text-emerald-900">Recommendations</h3>
         {recommendations.length > 0 ? (
           <ul className="mt-2 list-disc space-y-1 pl-5 text-emerald-900/80">
             {recommendations.map((recommendation) => (
@@ -114,9 +108,7 @@ const renderStructuredResult = (
             ))}
           </ul>
         ) : (
-          <p className="mt-2 text-sm text-emerald-900/70">
-            No recommendations provided.
-          </p>
+          <p className="mt-2 text-sm text-emerald-900/70">No recommendations provided.</p>
         )}
       </section>
     </div>

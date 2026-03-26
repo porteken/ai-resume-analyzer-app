@@ -44,12 +44,10 @@ describe("file-validation utilities", () => {
       value: 6 * 1024 * 1024,
     });
 
-    expect(validateFile(null)).toBe(
-      "Please provide both a PDF resume and a Job Description.",
-    );
+    expect(validateFile(null)).toBe("Please provide both a PDF resume and a Job Description.");
     expect(validateFile(nonPdfFile)).toBe("Please upload a PDF file.");
     expect(validateFile(oversizedFile)).toBe(
-      "File too large (6.00MB). Please use a PDF smaller than 5MB.",
+      "File too large (6.00MB). Please use a PDF smaller than 5MB."
     );
   });
 });

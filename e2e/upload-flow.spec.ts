@@ -15,15 +15,11 @@ test.describe("Page Display and Initial State", () => {
   });
 
   test("should display the main page with title and form", async ({ page }) => {
-    await expect(
-      page.getByRole("heading", { name: /ai resume analyzer/i }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: /ai resume analyzer/i })).toBeVisible();
 
     await expect(page.getByLabel(/resume \(pdf\)/i)).toBeVisible();
     await expect(page.getByLabel(/job description/i)).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: /analyze resume/i }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: /analyze resume/i })).toBeVisible();
   });
 
   test("should have submit button disabled initially", async ({ page }) => {
@@ -35,9 +31,7 @@ test.describe("Page Display and Initial State", () => {
     await page.setViewportSize({ height: 667, width: 375 });
     await mockAPIResponses.mockImmediateSuccess(page);
 
-    await expect(
-      page.getByRole("heading", { name: /ai resume analyzer/i }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: /ai resume analyzer/i })).toBeVisible();
 
     const pdfFile = createTestPDF();
     await uploadFile(page, pdfFile);
@@ -70,9 +64,7 @@ test.describe("Resume Analysis Flow", () => {
     await expect(button).toBeEnabled();
   });
 
-  test("should successfully upload and analyze resume with immediate result", async ({
-    page,
-  }) => {
+  test("should successfully upload and analyze resume with immediate result", async ({ page }) => {
     await mockAPIResponses.mockImmediateSuccess(page);
 
     const pdfFile = createTestPDF();
@@ -108,9 +100,7 @@ test.describe("Resume Analysis Flow", () => {
     await expect(page.getByText(/strengths/i)).toBeVisible();
   });
 
-  test("should display all result sections with proper formatting", async ({
-    page,
-  }) => {
+  test("should display all result sections with proper formatting", async ({ page }) => {
     await mockAPIResponses.mockImmediateSuccess(page);
 
     const pdfFile = createTestPDF();
