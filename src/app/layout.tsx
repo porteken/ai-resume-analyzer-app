@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  description: "Upload your resume to match against any job description using Gemini 2.5 Flash AI.",
+  description:
+    "Upload your resume to match against any job description using Gemini 2.5 Flash AI.",
   title: "AI Resume Analyzer",
 };
 
@@ -25,7 +26,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        {children}
+      </body>
     </html>
   );
 }

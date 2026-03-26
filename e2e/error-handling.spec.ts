@@ -23,8 +23,12 @@ test.describe("Error Handling", () => {
     await fillJobDescription(page, "Test job description");
     await submitForm(page);
 
-    await expect(page.getByText(/file too large/i)).toBeVisible();
-    await expect(page.getByText(/please use a pdf smaller than 5mb/i)).toBeVisible();
+    await expect(page.getByTestId("analysis-error")).toContainText(
+      /file too large/i,
+    );
+    await expect(page.getByTestId("analysis-error")).toContainText(
+      /please use a pdf smaller than 5mb/i,
+    );
   });
 
   test("should not allow submission without file", async ({ page }) => {
@@ -34,7 +38,9 @@ test.describe("Error Handling", () => {
     await expect(button).toBeDisabled();
   });
 
-  test("should not allow submission without job description", async ({ page }) => {
+  test("should not allow submission without job description", async ({
+    page,
+  }) => {
     const pdfFile = createTestPDF();
     await uploadFile(page, pdfFile);
 
@@ -50,10 +56,15 @@ test.describe("Error Handling", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(page.getByText(/server error/i)).toBeVisible({
-      timeout: 10_000,
-    });
-    await expect(page.getByText(/internal server error/i)).toBeVisible();
+    await expect(page.getByTestId("analysis-error")).toContainText(
+      /server error/i,
+      {
+        timeout: 10_000,
+      },
+    );
+    await expect(page.getByTestId("analysis-error")).toContainText(
+      /internal server error/i,
+    );
 
     const button = page.getByRole("button", { name: /analyze resume/i });
     await expect(button).toBeEnabled();
@@ -67,10 +78,11 @@ test.describe("Error Handling", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(page.getByText(/failed to upload resume|network error|fetch failed/i)).toBeVisible(
+    await expect(page.getByTestId("analysis-error")).toContainText(
+      /failed to upload resume|network error|fetch failed/i,
       {
         timeout: 10_000,
-      }
+      },
     );
   });
 
@@ -82,12 +94,17 @@ test.describe("Error Handling", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(page.getByText(/pdf parsing failed|analysis failed/i)).toBeVisible({
-      timeout: 10_000,
-    });
+    await expect(page.getByTestId("analysis-error")).toContainText(
+      /pdf parsing failed|analysis failed/i,
+      {
+        timeout: 10_000,
+      },
+    );
   });
 
-  test("should clear previous errors when submitting again", async ({ page }) => {
+  test("should clear previous errors when submitting again", async ({
+    page,
+  }) => {
     await mockAPIResponses.mockServerError(page);
 
     const pdfFile = createTestPDF();
@@ -95,9 +112,12 @@ test.describe("Error Handling", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(page.getByText(/server error/i)).toBeVisible({
-      timeout: 10_000,
-    });
+    await expect(page.getByTestId("analysis-error")).toContainText(
+      /server error/i,
+      {
+        timeout: 10_000,
+      },
+    );
 
     await mockAPIResponses.mockImmediateSuccess(page);
 
@@ -135,9 +155,10 @@ test.describe("Error Handling", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(
-      page.getByText(/unexpected response|no job_id or analysis_result found/i)
-    ).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId("analysis-error")).toContainText(
+      /unexpected response|no job_id or analysis_result found/i,
+      { timeout: 10_000 },
+    );
   });
 
   test("should preserve form data after error", async ({ page }) => {
@@ -150,9 +171,12 @@ test.describe("Error Handling", () => {
     await fillJobDescription(page, jobDescription);
     await submitForm(page);
 
-    await expect(page.getByText(/server error/i)).toBeVisible({
-      timeout: 10_000,
-    });
+    await expect(page.getByTestId("analysis-error")).toContainText(
+      /server error/i,
+      {
+        timeout: 10_000,
+      },
+    );
 
     const textarea = page.getByLabel(/job description/i);
     await expect(textarea).toHaveValue(jobDescription);
@@ -164,7 +188,7 @@ test.describe("Error Handling", () => {
     await fillJobDescription(page, "Test");
     await submitForm(page);
 
-    const errorText = await page.getByText(/file too large/i).textContent();
+    const errorText = await page.getByTestId("analysis-error").textContent();
 
     expect(errorText).toContain("MB");
     expect(errorText).toMatch(/\d/);

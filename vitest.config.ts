@@ -12,7 +12,14 @@ export default defineConfig({
   },
   test: {
     coverage: {
-      exclude: ["node_modules/", "src/testing/", ".next/", "e2e/", "*.config.*", "components.json"],
+      exclude: [
+        "node_modules/",
+        "src/testing/",
+        ".next/",
+        "e2e/",
+        "*.config.*",
+        "components.json",
+      ],
       provider: "v8",
       reporter: ["text", "json", "html", "lcov"],
     },

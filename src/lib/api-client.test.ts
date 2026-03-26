@@ -22,7 +22,9 @@ const createResponse = ({
   textReject?: boolean;
 }): Response =>
   ({
-    headers: new Headers(contentType ? { "content-type": contentType } : undefined),
+    headers: new Headers(
+      contentType ? { "content-type": contentType } : undefined,
+    ),
     json: vi.fn(async () => {
       if (jsonReject) {
         throw new Error("Invalid JSON");
@@ -62,7 +64,11 @@ describe("api-client", () => {
 
     fetchMock.mockResolvedValue(response);
 
-    const result = await postJson("/api/upload", { filename: "resume.pdf" }, { signal });
+    const result = await postJson(
+      "/api/upload",
+      { filename: "resume.pdf" },
+      { signal },
+    );
 
     expect(result).toBe(response);
     expect(fetchMock).toHaveBeenCalledWith("/api/upload", {
@@ -89,7 +95,9 @@ describe("api-client", () => {
   });
 
   it("surfaces structured JSON error payloads and logs them in development", async () => {
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
     vi.stubEnv("NODE_ENV", "development");
     fetchMock.mockResolvedValue(
@@ -100,7 +108,7 @@ describe("api-client", () => {
         },
         ok: false,
         status: 503,
-      })
+      }),
     );
 
     const error = await postJson("/api/upload", {
@@ -117,7 +125,9 @@ describe("api-client", () => {
       status: 503,
       url: "/api/upload",
     });
-    expect((error as ApiClientError).message).toBe("Upload failed. Try again later.");
+    expect((error as ApiClientError).message).toBe(
+      "Upload failed. Try again later.",
+    );
     expect(consoleErrorSpy).toHaveBeenCalledWith("API client request failed", {
       data: {
         details: "Try again later.",
@@ -136,7 +146,7 @@ describe("api-client", () => {
         ok: false,
         status: 500,
         text: "Upstream service failed.",
-      })
+      }),
     );
 
     await expect(getJson("/api/status/job-123")).rejects.toMatchObject({
@@ -151,7 +161,7 @@ describe("api-client", () => {
         data: 123,
         ok: false,
         status: 418,
-      })
+      }),
     );
 
     await expect(getJson("/api/status/job-123")).rejects.toMatchObject({
@@ -167,7 +177,7 @@ describe("api-client", () => {
         ok: false,
         status: 502,
         textReject: true,
-      })
+      }),
     );
 
     await expect(getJson("/api/status/job-123")).rejects.toMatchObject({
@@ -184,10 +194,12 @@ describe("api-client", () => {
         jsonReject: true,
         ok: false,
         status: 400,
-      })
+      }),
     );
 
-    await expect(postJson("/api/upload", { filename: "resume.pdf" })).rejects.toMatchObject({
+    await expect(
+      postJson("/api/upload", { filename: "resume.pdf" }),
+    ).rejects.toMatchObject({
       data: null,
       message: "POST /api/upload failed with status 400",
       status: 400,

@@ -5,7 +5,8 @@ import { ResumeUploader } from "@/features/resume-analysis/components/resume-upl
 import { useResumeAnalysis } from "@/features/resume-analysis/hooks/use-resume-analysis";
 
 export const ResumeUploaderClient = () => {
-  const { error, isLoading, result, statusMessage, submitAnalysis } = useResumeAnalysis();
+  const { error, isLoading, result, statusMessage, submitAnalysis } =
+    useResumeAnalysis();
 
   return (
     <>

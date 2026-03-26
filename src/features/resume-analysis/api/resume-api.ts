@@ -56,13 +56,15 @@ const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 const isStringRecord = (value: unknown): value is Record<string, string> =>
-  isObjectRecord(value) && Object.values(value).every((entry) => typeof entry === "string");
+  isObjectRecord(value) &&
+  Object.values(value).every((entry) => typeof entry === "string");
 
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === "string" && value.trim().length > 0;
 
 const isAnalysisResultData = (value: unknown): value is AnalysisResultData =>
-  (typeof value === "string" && value.trim().length > 0) || isObjectRecord(value);
+  (typeof value === "string" && value.trim().length > 0) ||
+  isObjectRecord(value);
 
 const parseAnalysisResult = (value: unknown): AnalysisResultData | null =>
   isAnalysisResultData(value) ? value : null;
@@ -79,7 +81,9 @@ const parseApiErrorResponse = (value: unknown): ApiErrorResponse => {
   };
 };
 
-const parseUploadResumeResponse = (value: unknown): null | UploadResumeResponse => {
+const parseUploadResumeResponse = (
+  value: unknown,
+): null | UploadResumeResponse => {
   if (!isObjectRecord(value)) {
     return null;
   }
@@ -97,7 +101,9 @@ const parseUploadResumeResponse = (value: unknown): null | UploadResumeResponse 
   };
 };
 
-const parsePresignedUploadResponse = (value: unknown): null | PresignedUploadResponse => {
+const parsePresignedUploadResponse = (
+  value: unknown,
+): null | PresignedUploadResponse => {
   if (!isObjectRecord(value) || !isNonEmptyString(value.job_id)) {
     return null;
   }
@@ -141,7 +147,8 @@ const parseStatusResponse = (value: unknown): null | StatusResponseData => {
   };
 };
 
-const createAbortError = (): DOMException => new DOMException("Request was aborted.", "AbortError");
+const createAbortError = (): DOMException =>
+  new DOMException("Request was aborted.", "AbortError");
 
 const throwIfAborted = (signal?: AbortSignal): void => {
   if (signal?.aborted) {
@@ -149,8 +156,10 @@ const throwIfAborted = (signal?: AbortSignal): void => {
   }
 };
 
-const sendUploadRequest = async (requestBody: object, signal?: AbortSignal): Promise<Response> =>
-  postJson("/api/upload", requestBody, { signal });
+const sendUploadRequest = async (
+  requestBody: object,
+  signal?: AbortSignal,
+): Promise<Response> => postJson("/api/upload", requestBody, { signal });
 
 const getUploadErrorMessage = (errorData: ApiErrorResponse) =>
   errorData.error || errorData.details
@@ -163,7 +172,10 @@ const isMetadataTooLargeError = (message: string): boolean =>
 const SERVICE_UNAVAILABLE_MESSAGE =
   "Analysis service is temporarily unavailable due to high demand. Please try again in a few minutes.";
 
-const getErrorMessageFromError = (error: unknown, fallbackMessage: string): string => {
+const getErrorMessageFromError = (
+  error: unknown,
+  fallbackMessage: string,
+): string => {
   if (error instanceof ApiClientError) {
     const errorData = parseApiErrorResponse(error.data);
     const message = getUploadErrorMessage(errorData);
@@ -191,12 +203,12 @@ const getUploadFailureMessage = (error: unknown): string =>
     error,
     error instanceof ApiClientError
       ? `Upload failed with status: ${error.status}`
-      : "Upload failed."
+      : "Upload failed.",
   );
 
 const sendMetadataSafeLegacyUploadRequest = async (
   pdfBase64: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<Response> => {
   const metadataSafeLegacyPayload: UploadRequestPayload = {
     filename: "resume.pdf",
@@ -210,7 +222,7 @@ const sendMetadataSafeLegacyUploadRequest = async (
       throw error;
     }
 
-    throw new Error(getUploadFailureMessage(error));
+    throw new Error(getUploadFailureMessage(error), { cause: error });
   }
 };
 
@@ -218,12 +230,15 @@ const sendLegacyUploadRequest = async (
   file: File,
   payload: UploadRequestPayload,
   truncatedDescription: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<Response> => {
   const pdfBase64 = await convertFileToBase64(file);
   const legacyPayload: UploadRequestPayload = {
     ...payload,
-    job_description: truncatedDescription.slice(0, LEGACY_SAFE_JOB_DESCRIPTION_LENGTH),
+    job_description: truncatedDescription.slice(
+      0,
+      LEGACY_SAFE_JOB_DESCRIPTION_LENGTH,
+    ),
     pdf_base64: pdfBase64,
   };
 
@@ -237,14 +252,17 @@ const sendLegacyUploadRequest = async (
     const legacyErrorMessage = getUploadFailureMessage(error);
 
     if (!isMetadataTooLargeError(legacyErrorMessage)) {
-      throw new Error(legacyErrorMessage);
+      throw new Error(legacyErrorMessage, { cause: error });
     }
 
     return sendMetadataSafeLegacyUploadRequest(pdfBase64, signal);
   }
 };
 
-const getStatusResponse = async (statusUrl: string, signal?: AbortSignal): Promise<Response> => {
+const getStatusResponse = async (
+  statusUrl: string,
+  signal?: AbortSignal,
+): Promise<Response> => {
   try {
     return await getJson(statusUrl, { signal });
   } catch (error) {
@@ -257,14 +275,17 @@ const getStatusResponse = async (statusUrl: string, signal?: AbortSignal): Promi
         error,
         error instanceof ApiClientError
           ? `Status check failed with status: ${error.status}`
-          : "Status check failed."
-      )
+          : "Status check failed.",
+      ),
+      { cause: error },
     );
   }
 };
 
 /* eslint-disable sonarjs/function-return-type */
-const getCompletedPollResult = (statusData: StatusResponseData): AnalysisResultData | null => {
+const getCompletedPollResult = (
+  statusData: StatusResponseData,
+): AnalysisResultData | null => {
   const analysisResult = statusData.analysis_result;
 
   if (analysisResult !== undefined) {
@@ -288,7 +309,7 @@ const uploadToS3 = async (
   file: File,
   presignedUrl: string,
   fields: PresignedUrlFields,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<void> => {
   throwIfAborted(signal);
 
@@ -309,12 +330,17 @@ const uploadToS3 = async (
   if (!response.ok) {
     const errorText = await response.text();
 
-    if (errorText.includes("MetadataTooLarge") || errorText.includes("metadata headers exceed")) {
+    if (
+      errorText.includes("MetadataTooLarge") ||
+      errorText.includes("metadata headers exceed")
+    ) {
       throw new Error(
-        "File metadata is too large. Please try renaming your PDF file to be shorter."
+        "File metadata is too large. Please try renaming your PDF file to be shorter.",
       );
     }
-    throw new Error(`S3 upload failed: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `S3 upload failed: ${response.status} ${response.statusText}`,
+    );
   }
 };
 
@@ -324,7 +350,7 @@ const triggerAnalysis = async (
     jobDescription?: string;
     s3Url?: string;
   },
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<null | UploadResumeResponse> => {
   const payload: {
     job_description?: string;
@@ -356,8 +382,9 @@ const triggerAnalysis = async (
         error,
         error instanceof ApiClientError
           ? `Analysis trigger failed with status: ${error.status}`
-          : "Analysis trigger failed."
-      )
+          : "Analysis trigger failed.",
+      ),
+      { cause: error },
     );
   }
 
@@ -374,7 +401,7 @@ const sendUploadRequestWithFallbacks = async (
   file: File,
   payload: UploadRequestPayload,
   truncatedDescription: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<Response> => {
   throwIfAborted(signal);
 
@@ -388,7 +415,7 @@ const sendUploadRequestWithFallbacks = async (
     const errorMessage = getUploadFailureMessage(error);
 
     if (!/pdf_base64/i.test(errorMessage)) {
-      throw new Error(errorMessage);
+      throw new Error(errorMessage, { cause: error });
     }
 
     throwIfAborted(signal);
@@ -401,7 +428,7 @@ export const uploadResume = async (
   file: File,
   jobDescription: string,
   onProgress?: (message: string) => void,
-  options?: UploadRequestOptions
+  options?: UploadRequestOptions,
 ): Promise<UploadResumeResponse> => {
   const sanitizedFilename = sanitizeFilename(file.name);
   const truncatedDescription = truncateJobDescription(jobDescription);
@@ -415,7 +442,7 @@ export const uploadResume = async (
     file,
     payload,
     truncatedDescription,
-    options?.signal
+    options?.signal,
   );
 
   const uploadJson = await uploadResponse.json().catch(() => null);
@@ -423,7 +450,12 @@ export const uploadResume = async (
 
   if (uploadData) {
     onProgress?.("Uploading Resume...");
-    await uploadToS3(file, uploadData.upload.url, uploadData.upload.fields, options?.signal);
+    await uploadToS3(
+      file,
+      uploadData.upload.url,
+      uploadData.upload.fields,
+      options?.signal,
+    );
 
     onProgress?.("Analyzing Resume...");
     const analyzeResponse = await triggerAnalysis(
@@ -432,7 +464,7 @@ export const uploadResume = async (
         jobDescription: truncatedDescription,
         s3Url: uploadData.s3_url,
       },
-      options?.signal
+      options?.signal,
     );
 
     if (analyzeResponse?.analysis_result) {
@@ -456,12 +488,13 @@ export const uploadResume = async (
 export const pollForResults = async (
   jobId: string,
   onProgress: (message: string) => void,
-  options?: UploadRequestOptions
+  options?: UploadRequestOptions,
 ): Promise<AnalysisResultData> => {
   const statusUrl = `/api/status/${jobId}`;
   const maxAttempts = 150;
   let attempts = 0;
 
+  /* eslint-disable no-await-in-loop */
   while (attempts < maxAttempts) {
     attempts++;
 
@@ -485,12 +518,13 @@ export const pollForResults = async (
 
     onProgress("Analyzing Resume...");
   }
+  /* eslint-enable no-await-in-loop */
 
   throw new Error("Request timed out.");
 };
 
 function assertCompletedPollResult(
-  analysisResult: AnalysisResultData | undefined
+  analysisResult: AnalysisResultData | undefined,
 ): asserts analysisResult is AnalysisResultData {
   if (typeof analysisResult === "string" && !analysisResult.trim()) {
     throw new Error("Analysis completed, but no result was returned.");

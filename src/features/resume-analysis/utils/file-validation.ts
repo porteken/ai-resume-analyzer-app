@@ -2,7 +2,8 @@ const MAX_FILENAME_LENGTH = 200;
 const MAX_JOB_DESCRIPTION_LENGTH = 10_000;
 
 export const sanitizeFilename = (filename: string): string => {
-  const base = filename.split("/").pop() || filename.split("\\").pop() || filename;
+  const base =
+    filename.split("/").pop() || filename.split("\\").pop() || filename;
 
   let safe = base.replaceAll(/[^\w.-]/g, "_");
 

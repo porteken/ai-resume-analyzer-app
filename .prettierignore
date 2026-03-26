@@ -1,0 +1,8 @@
+src/components
+playwright-final.log
+playwright-results.log
+playwright-results/
+test-results/
+coverage/
+.next/
+node_modules/

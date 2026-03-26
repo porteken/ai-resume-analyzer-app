@@ -15,7 +15,9 @@ test.describe("Job Description Edge Cases", () => {
     await page.goto("/");
   });
 
-  test("should handle empty job description with whitespace only", async ({ page }) => {
+  test("should handle empty job description with whitespace only", async ({
+    page,
+  }) => {
     const pdfFile = createTestPDF();
     await uploadFile(page, pdfFile);
     await fillJobDescription(page, "   ");
@@ -39,7 +41,9 @@ test.describe("Job Description Edge Cases", () => {
     });
   });
 
-  test("should handle special characters in job description", async ({ page }) => {
+  test("should handle special characters in job description", async ({
+    page,
+  }) => {
     await mockAPIResponses.mockImmediateSuccess(page);
 
     const pdfFile = createTestPDF();
@@ -106,11 +110,14 @@ test.describe("Analysis and Processing Edge Cases", () => {
     await page.goto("/");
   });
 
-  test("should handle analysis result with empty sections", async ({ page }) => {
+  test("should handle analysis result with empty sections", async ({
+    page,
+  }) => {
     await page.route("**/api/upload", async (route) => {
       await route.fulfill({
         body: JSON.stringify({
-          analysis_result: "## Match Score\n\n## Strengths\n\n## Gaps\n\n## Recommendations\n",
+          analysis_result:
+            "## Match Score\n\n## Strengths\n\n## Gaps\n\n## Recommendations\n",
         }),
         contentType: "application/json",
         status: 200,
@@ -130,7 +137,9 @@ test.describe("Analysis and Processing Edge Cases", () => {
     await expect(page.getByText(/recommendations/i)).toBeVisible();
   });
 
-  test("should handle analysis result with only match score", async ({ page }) => {
+  test("should handle analysis result with only match score", async ({
+    page,
+  }) => {
     await page.route("**/api/upload", async (route) => {
       await route.fulfill({
         body: JSON.stringify({
@@ -152,11 +161,14 @@ test.describe("Analysis and Processing Edge Cases", () => {
     await expect(page.getByText(/75% match/i)).toBeVisible();
   });
 
-  test("should handle malformed markdown in analysis result", async ({ page }) => {
+  test("should handle malformed markdown in analysis result", async ({
+    page,
+  }) => {
     await page.route("**/api/upload", async (route) => {
       await route.fulfill({
         body: JSON.stringify({
-          analysis_result: "### Wrong Header Level\nSome content\n\n**Bold *italic** mismatch",
+          analysis_result:
+            "### Wrong Header Level\nSome content\n\n**Bold *italic** mismatch",
         }),
         contentType: "application/json",
         status: 200,
@@ -215,7 +227,9 @@ test.describe("Analysis and Processing Edge Cases", () => {
     });
   });
 
-  test("should handle missing analysis_result in completed status", async ({ page }) => {
+  test("should handle missing analysis_result in completed status", async ({
+    page,
+  }) => {
     const jobId = "incomplete-job-123";
 
     await page.route("**/api/upload", async (route) => {
@@ -239,8 +253,9 @@ test.describe("Analysis and Processing Edge Cases", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(page.getByText(/no result was returned|unexpected|error/i)).toBeVisible({
-      timeout: 10_000,
-    });
+    await expect(page.getByTestId("analysis-error")).toContainText(
+      /no result was returned|unexpected|error/i,
+      { timeout: 10_000 },
+    );
   });
 });

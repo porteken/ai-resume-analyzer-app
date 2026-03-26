@@ -79,7 +79,8 @@ const deriveBaseEndpoint = (apiEndpoint: string): null | string => {
 
     if (pathSegments.length > 0) {
       const lastSegment = pathSegments.at(-1);
-      const secondLastSegment = pathSegments.length > 1 ? pathSegments.at(-2) : null;
+      const secondLastSegment =
+        pathSegments.length > 1 ? pathSegments.at(-2) : null;
 
       if (lastSegment === "upload" || lastSegment === "analyze") {
         pathSegments.pop();
@@ -134,17 +135,26 @@ export const getApiConfigDiagnostics = (): ApiConfigDiagnostics => {
   const selectedApiKey = apiKeySource === "API_KEY" ? apiKey : null;
 
   return {
-    apiKeyFingerprint: selectedApiKey ? getSecretFingerprint(selectedApiKey) : null,
+    apiKeyFingerprint: selectedApiKey
+      ? getSecretFingerprint(selectedApiKey)
+      : null,
     apiKeySource,
-    endpointForLog: selectedEndpoint ? getEndpointLogValue(selectedEndpoint) : null,
+    endpointForLog: selectedEndpoint
+      ? getEndpointLogValue(selectedEndpoint)
+      : null,
     endpointSource,
     hasEndpointConflict:
-      apiEndpoint !== null && publicApiEndpoint !== null && apiEndpoint !== publicApiEndpoint,
+      apiEndpoint !== null &&
+      publicApiEndpoint !== null &&
+      apiEndpoint !== publicApiEndpoint,
   };
 };
 
 export const getApiConfig = (): ApiConfig | null => {
-  const apiEndpoint = getFirstNonEmptyEnv("API_ENDPOINT", "NEXT_PUBLIC_API_ENDPOINT");
+  const apiEndpoint = getFirstNonEmptyEnv(
+    "API_ENDPOINT",
+    "NEXT_PUBLIC_API_ENDPOINT",
+  );
   const apiKey = getFirstNonEmptyEnv("API_KEY");
 
   if (!apiEndpoint || !apiKey) {

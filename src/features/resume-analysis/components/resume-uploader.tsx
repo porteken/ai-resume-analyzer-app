@@ -22,39 +22,55 @@ export const ResumeUploader = ({
 }: ResumeUploaderProperties) => {
   const [file, setFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState("");
-  const buttonLabel = isLoading ? statusMessage || "Processing Resume..." : "Analyze Resume";
+  const buttonLabel = isLoading
+    ? statusMessage || "Processing Resume..."
+    : "Analyze Resume";
+
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) =>
+      setFile(event.target.files ? event.target.files[0] : null),
+    [],
+  );
+
+  const handleJobDescChange = useCallback(
+    (event: React.ChangeEvent<HTMLTextAreaElement>) =>
+      setJobDescription(event.target.value),
+    [],
+  );
 
   const handleSubmit = useCallback(() => {
-    const cleanedDescription = toAscii(jobDescription.trim().replaceAll(/\s+/g, " "));
+    const cleanedDescription = toAscii(
+      jobDescription.trim().replaceAll(/\s+/g, " "),
+    );
     setJobDescription(cleanedDescription);
     onSubmit(file, cleanedDescription);
   }, [file, jobDescription, onSubmit]);
 
   return (
     <div className="grid gap-6">
-      <div className="grid gap-2 animate-in fade-in slide-in-from-left-4 duration-500">
-        <Label className="text-slate-700 font-medium" htmlFor="resume">
+      <div className="animate-in fade-in slide-in-from-left-4 grid gap-2 duration-500">
+        <Label className="font-medium text-slate-700" htmlFor="resume">
           Resume (PDF)
         </Label>
         <Input
           accept=".pdf"
-          className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-all duration-200 cursor-pointer"
+          className="cursor-pointer transition-all duration-200 file:mr-4 file:rounded-full file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100"
           disabled={isLoading}
           id="resume"
-          onChange={(event) => setFile(event.target.files ? event.target.files[0] : null)}
+          onChange={handleFileChange}
           type="file"
         />
       </div>
 
-      <div className="grid gap-2 animate-in fade-in slide-in-from-right-4 duration-500 delay-100">
-        <Label className="text-slate-700 font-medium" htmlFor="job-desc">
+      <div className="animate-in fade-in slide-in-from-right-4 grid gap-2 delay-100 duration-500">
+        <Label className="font-medium text-slate-700" htmlFor="job-desc">
           Job Description
         </Label>
         <Textarea
-          className="min-h-[120px] resize-none focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
+          className="min-h-[120px] resize-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/20"
           disabled={isLoading}
           id="job-desc"
-          onChange={(event) => setJobDescription(event.target.value)}
+          onChange={handleJobDescChange}
           placeholder="Paste the job description here..."
           value={jobDescription}
         />
@@ -62,7 +78,7 @@ export const ResumeUploader = ({
 
       <Button
         aria-label={buttonLabel}
-        className="w-full bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
+        className="w-full transform bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:from-indigo-700 hover:to-cyan-700 hover:shadow-xl active:scale-[0.98]"
         disabled={isLoading || !file || !jobDescription.trim()}
         onClick={handleSubmit}
       >

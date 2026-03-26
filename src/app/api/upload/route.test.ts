@@ -67,7 +67,7 @@ describe("Upload API Route", () => {
           "x-api-key": mockApiKey,
         },
         method: "POST",
-      })
+      }),
     );
     expect(response.status).toBe(200);
     expect(data).toEqual(mockResponseData);
@@ -81,7 +81,9 @@ describe("Upload API Route", () => {
     globalThis.fetch = mockedFetch as typeof fetch;
     const POST = await loadPostHandler();
 
-    const response = await POST(createRequest({ job_description: "test", pdf_base64: "test" }));
+    const response = await POST(
+      createRequest({ job_description: "test", pdf_base64: "test" }),
+    );
     const data = await response.json();
 
     expect(response.status).toBe(500);
@@ -98,7 +100,9 @@ describe("Upload API Route", () => {
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
-    const response = await POST(createRequest({ job_description: "test", pdf_base64: "test" }));
+    const response = await POST(
+      createRequest({ job_description: "test", pdf_base64: "test" }),
+    );
     const data = await response.json();
 
     expect(response.status).toBe(502);
@@ -113,7 +117,9 @@ describe("Upload API Route", () => {
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
-    const response = await POST(createRequest({ job_description: "test", pdf_base64: "test" }));
+    const response = await POST(
+      createRequest({ job_description: "test", pdf_base64: "test" }),
+    );
     const data = await response.json();
 
     expect(response.status).toBe(504);
@@ -127,7 +133,9 @@ describe("Upload API Route", () => {
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
-    const response = await POST(createRequest({ job_description: "test", pdf_base64: "test" }));
+    const response = await POST(
+      createRequest({ job_description: "test", pdf_base64: "test" }),
+    );
     const data = await response.json();
 
     expect(response.status).toBe(500);
@@ -168,7 +176,7 @@ describe("Upload API Route", () => {
     const POST = await loadPostHandler();
     const longDescription = "a".repeat(MAX_JOB_DESCRIPTION_CHARS + 1);
     const response = await POST(
-      createRequest({ job_description: longDescription, pdf_base64: "test" })
+      createRequest({ job_description: longDescription, pdf_base64: "test" }),
     );
     const data = await response.json();
 
@@ -187,7 +195,9 @@ describe("Upload API Route", () => {
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
-    const response = await POST(createRequest({ job_description: "test", pdf_base64: "test" }));
+    const response = await POST(
+      createRequest({ job_description: "test", pdf_base64: "test" }),
+    );
     const data = await response.json();
 
     expect(response.status).toBe(400);

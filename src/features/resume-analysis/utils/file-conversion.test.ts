@@ -2,7 +2,11 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { convertFileToBase64 } from "@/features/resume-analysis/utils/file-conversion";
 
-type FileReaderMode = "error" | "missing-base64" | "non-string-result" | "success";
+type FileReaderMode =
+  | "error"
+  | "missing-base64"
+  | "non-string-result"
+  | "success";
 
 const originalFileReader = globalThis.FileReader;
 
@@ -69,7 +73,9 @@ describe("convertFileToBase64", () => {
     fileReaderMode = "non-string-result";
 
     await expect(
-      convertFileToBase64(new File(["pdf-content"], "resume.pdf", { type: "application/pdf" }))
+      convertFileToBase64(
+        new File(["pdf-content"], "resume.pdf", { type: "application/pdf" }),
+      ),
     ).rejects.toThrow("File reading failed");
   });
 
@@ -77,7 +83,9 @@ describe("convertFileToBase64", () => {
     fileReaderMode = "missing-base64";
 
     await expect(
-      convertFileToBase64(new File(["pdf-content"], "resume.pdf", { type: "application/pdf" }))
+      convertFileToBase64(
+        new File(["pdf-content"], "resume.pdf", { type: "application/pdf" }),
+      ),
     ).rejects.toThrow("File reading failed");
   });
 
@@ -85,7 +93,9 @@ describe("convertFileToBase64", () => {
     fileReaderMode = "error";
 
     await expect(
-      convertFileToBase64(new File(["pdf-content"], "resume.pdf", { type: "application/pdf" }))
+      convertFileToBase64(
+        new File(["pdf-content"], "resume.pdf", { type: "application/pdf" }),
+      ),
     ).rejects.toThrow("File reading failed");
   });
 });

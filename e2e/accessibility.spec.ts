@@ -26,8 +26,13 @@ test.describe("Accessibility", () => {
     await expect(heading).toBeVisible();
   });
 
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip("should be keyboard navigable", async ({ page }) => {
+  test("should be keyboard navigable", async ({ page }) => {
+    // Tab to 'About' link
+    await page.keyboard.press("Tab");
+    const aboutLink = page.getByRole("link", { name: /about/i });
+    await expect(aboutLink).toBeFocused();
+
+    // Tab to file input
     await page.keyboard.press("Tab");
     const fileInput = page.locator('input[type="file"]');
     await expect(fileInput).toBeFocused();
@@ -35,6 +40,17 @@ test.describe("Accessibility", () => {
     await page.keyboard.press("Tab");
     const textarea = page.getByLabel(/job description/i);
     await expect(textarea).toBeFocused();
+
+    // Fill fields to enable the button
+    await fileInput.setInputFiles({
+      buffer: Buffer.from("test pdf content"),
+      mimeType: "application/pdf",
+      name: "test.pdf",
+    });
+    await textarea.fill("Test job description");
+
+    // Refocus textarea so we can tab to button
+    await textarea.focus();
 
     await page.keyboard.press("Tab");
     const button = page.getByRole("button", { name: /analyze resume/i });
@@ -61,24 +77,29 @@ test.describe("Accessibility", () => {
     await expect(errorMessage).toBeVisible();
   });
 
-  test("should have accessible links with proper attributes", async ({ page }) => {
+  test("should have accessible links with proper attributes", async ({
+    page,
+  }) => {
     await page.goto("/about");
 
     const frontendLink = page.getByText("Frontend App on GitHub");
     await expect(frontendLink).toHaveAttribute(
       "href",
-      "https://github.com/porteken/ai-resume-analyzer-app"
+      "https://github.com/porteken/ai-resume-analyzer-app",
     );
     await expect(frontendLink).toHaveAttribute("target", "_blank");
 
     const backendLink = page.getByText("Backend API on GitHub");
     await expect(backendLink).toHaveAttribute(
       "href",
-      "https://github.com/porteken/ai-resume-analyzer-sam"
+      "https://github.com/porteken/ai-resume-analyzer-sam",
     );
     await expect(backendLink).toHaveAttribute("target", "_blank");
 
     const emailLink = page.getByText("porteken@gmail.com");
-    await expect(emailLink).toHaveAttribute("href", "mailto:porteken@gmail.com");
+    await expect(emailLink).toHaveAttribute(
+      "href",
+      "mailto:porteken@gmail.com",
+    );
   });
 });

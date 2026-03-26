@@ -65,7 +65,7 @@ describe("Analyze API Route", () => {
           "x-api-key": mockApiKey,
         },
         method: "POST",
-      })
+      }),
     );
     expect(response.status).toBe(200);
     expect(data).toEqual(mockResponseData);
@@ -79,7 +79,9 @@ describe("Analyze API Route", () => {
     globalThis.fetch = mockedFetch as typeof fetch;
     const POST = await loadPostHandler();
 
-    const response = await POST(createRequest({ job_description: "test", job_id: "job-123" }));
+    const response = await POST(
+      createRequest({ job_description: "test", job_id: "job-123" }),
+    );
     const data = await response.json();
 
     expect(response.status).toBe(500);

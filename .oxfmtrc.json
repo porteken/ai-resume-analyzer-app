@@ -1,9 +1,12 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 80,
   "semi": true,
   "singleQuote": false,
   "tabWidth": 2,
-  "trailingComma": "es5",
+  "trailingComma": "all",
+  "sortTailwindcss": {},
+  "sortPackageJson": true,
   "sortImports": {
     "groups": [
       "side_effect",

@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { pollForResults, uploadResume } from "@/features/resume-analysis/api/resume-api";
+import {
+  pollForResults,
+  uploadResume,
+} from "@/features/resume-analysis/api/resume-api";
 
 const originalFetch = globalThis.fetch;
 
@@ -54,7 +57,7 @@ describe("uploadResume", () => {
             },
             url: "https://bucket.s3.amazonaws.com",
           },
-        })
+        }),
       )
       .mockResolvedValueOnce(createJsonResponse(204, {}))
       .mockResolvedValueOnce(createJsonResponse(200, { status: "ok" }));
@@ -91,9 +94,11 @@ describe("uploadResume", () => {
       .mockResolvedValueOnce(
         createJsonResponse(400, {
           error: "Missing required field: pdf_base64",
-        })
+        }),
       )
-      .mockResolvedValueOnce(createJsonResponse(200, { analysis_result: "legacy-analysis" }));
+      .mockResolvedValueOnce(
+        createJsonResponse(200, { analysis_result: "legacy-analysis" }),
+      );
 
     const file = new File(["legacy-pdf-content"], "resume.pdf", {
       type: "application/pdf",
@@ -120,21 +125,24 @@ describe("uploadResume", () => {
       .mockResolvedValueOnce(
         createJsonResponse(400, {
           error: "Missing required field: pdf_base64",
-        })
+        }),
       )
       .mockResolvedValueOnce(
         createJsonResponse(500, {
-          error: "An error occurred (MetadataTooLarge) when calling the PutObject operation",
-        })
+          error:
+            "An error occurred (MetadataTooLarge) when calling the PutObject operation",
+        }),
       )
-      .mockResolvedValueOnce(createJsonResponse(200, { analysis_result: "legacy-analysis" }));
+      .mockResolvedValueOnce(
+        createJsonResponse(200, { analysis_result: "legacy-analysis" }),
+      );
 
     const file = new File(["legacy-pdf-content"], "resume.pdf", {
       type: "application/pdf",
     });
     const result = await uploadResume(
       file,
-      "A very long description that should not be sent as metadata in the final retry path."
+      "A very long description that should not be sent as metadata in the final retry path.",
     );
 
     expect(result).toEqual({ analysis_result: "legacy-analysis" });
@@ -174,7 +182,7 @@ describe("uploadResume", () => {
             },
             url: "https://bucket.s3.amazonaws.com",
           },
-        })
+        }),
       )
       .mockResolvedValueOnce(createJsonResponse(204, {}))
       .mockResolvedValueOnce(
@@ -182,7 +190,7 @@ describe("uploadResume", () => {
           error:
             "Analysis service is temporarily unavailable due to high demand.\nPlease try again in a few minutes.",
           type: "ServiceUnavailable",
-        })
+        }),
       );
 
     const file = new File(["pdf-content"], "resume.pdf", {
@@ -198,10 +206,10 @@ describe("uploadResume", () => {
 
     expect(thrownError).toBeInstanceOf(Error);
     expect((thrownError as Error).message).toContain(
-      "Analysis service is temporarily unavailable due to high demand."
+      "Analysis service is temporarily unavailable due to high demand.",
     );
     expect((thrownError as Error).message).not.toContain(
-      "Analysis trigger failed with status: 503"
+      "Analysis trigger failed with status: 503",
     );
   });
 
@@ -212,9 +220,9 @@ describe("uploadResume", () => {
       type: "application/pdf",
     });
 
-    await expect(uploadResume(file, "Senior software engineer")).rejects.toThrow(
-      "Unexpected response from upload endpoint."
-    );
+    await expect(
+      uploadResume(file, "Senior software engineer"),
+    ).rejects.toThrow("Unexpected response from upload endpoint.");
   });
 });
 
@@ -239,7 +247,9 @@ describe("pollForResults", () => {
     const pollPromise = pollForResults("job-123", vi.fn());
     await Promise.all([
       vi.advanceTimersByTimeAsync(2000),
-      expect(pollPromise).rejects.toThrow("Unexpected response from status endpoint."),
+      expect(pollPromise).rejects.toThrow(
+        "Unexpected response from status endpoint.",
+      ),
     ]);
   });
 
@@ -248,7 +258,7 @@ describe("pollForResults", () => {
     abortController.abort();
 
     await expect(
-      pollForResults("job-123", vi.fn(), { signal: abortController.signal })
+      pollForResults("job-123", vi.fn(), { signal: abortController.signal }),
     ).rejects.toMatchObject({
       name: "AbortError",
     });

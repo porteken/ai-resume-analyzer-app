@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getApiConfig } from "@/config/env";
-import { ANALYZE_TIMEOUT_MS, createErrorResponse, isTimeoutError } from "@/lib/server/api-utils";
-import { handleNonJsonResponse, parseRequestBody } from "@/lib/server/request-utils";
+import {
+  ANALYZE_TIMEOUT_MS,
+  createErrorResponse,
+  isTimeoutError,
+} from "@/lib/server/api-utils";
+import {
+  handleNonJsonResponse,
+  parseRequestBody,
+} from "@/lib/server/request-utils";
 
 export const maxDuration = 300;
 
@@ -12,7 +19,7 @@ export async function POST(request: NextRequest) {
     if (!apiConfig) {
       return createErrorResponse(
         "Server configuration error: Missing API_ENDPOINT (or NEXT_PUBLIC_API_ENDPOINT) or API_KEY",
-        500
+        500,
       );
     }
 
@@ -42,7 +49,7 @@ export async function POST(request: NextRequest) {
       return createErrorResponse(
         "Upstream API request timed out",
         504,
-        `External API did not respond within ${ANALYZE_TIMEOUT_MS / 1000} seconds`
+        `External API did not respond within ${ANALYZE_TIMEOUT_MS / 1000} seconds`,
       );
     }
 
@@ -50,7 +57,7 @@ export async function POST(request: NextRequest) {
     return createErrorResponse(
       "Failed to analyze resume",
       500,
-      error instanceof Error ? error.message : "Unknown error"
+      error instanceof Error ? error.message : "Unknown error",
     );
   }
 }

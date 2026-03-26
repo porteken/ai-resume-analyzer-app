@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createErrorResponse } from "@/lib/server/api-utils";
 
 export const parseRequestBody = async (
-  request: NextRequest
+  request: NextRequest,
 ): Promise<{
   body: null | Record<string, unknown>;
   error: NextResponse | null;
@@ -16,7 +16,11 @@ export const parseRequestBody = async (
     if (error instanceof SyntaxError) {
       return {
         body: null,
-        error: createErrorResponse("Invalid request body", 400, "Request body must be valid JSON."),
+        error: createErrorResponse(
+          "Invalid request body",
+          400,
+          "Request body must be valid JSON.",
+        ),
       };
     }
 
@@ -29,7 +33,7 @@ export const parseRequestBody = async (
       error: createErrorResponse(
         "Invalid request body",
         400,
-        "Request body must be a JSON object."
+        "Request body must be a JSON object.",
       ),
     };
   }
@@ -39,7 +43,7 @@ export const parseRequestBody = async (
 
 export const handleNonJsonResponse = async (
   response: Response,
-  logContext = "Non-JSON response"
+  logContext = "Non-JSON response",
 ): Promise<NextResponse> => {
   const text = await response.text();
 
@@ -52,6 +56,6 @@ export const handleNonJsonResponse = async (
   return createErrorResponse(
     `External API returned non-JSON response (${response.status}). Check API_ENDPOINT / API_KEY server env vars`,
     502,
-    text.slice(0, 200)
+    text.slice(0, 200),
   );
 };

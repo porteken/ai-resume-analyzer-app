@@ -50,7 +50,7 @@ describe("Status API Route", () => {
           "x-api-key": mockApiKey,
         },
         method: "GET",
-      })
+      }),
     );
   });
 
@@ -69,7 +69,7 @@ describe("Status API Route", () => {
 
     expect(mockedFetch).toHaveBeenCalledWith(
       "https://api.example.com/status/job-xyz",
-      expect.any(Object)
+      expect.any(Object),
     );
   });
 
@@ -87,7 +87,7 @@ describe("Status API Route", () => {
 
     expect(mockedFetch).toHaveBeenCalledWith(
       "https://api.example.com/status/job%2F123%3Fx%3D1",
-      expect.any(Object)
+      expect.any(Object),
     );
   });
 
@@ -116,7 +116,10 @@ describe("Status API Route", () => {
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const GET = await loadGetHandler();
-    const response = await GET(createRequest("invalid-id"), createContext("invalid-id"));
+    const response = await GET(
+      createRequest("invalid-id"),
+      createContext("invalid-id"),
+    );
     const data = await response.json();
 
     expect(response.status).toBe(502);
@@ -141,7 +144,9 @@ describe("Status API Route", () => {
   it("should handle non-timeout fetch errors", async () => {
     const mockedFetch = vi
       .fn()
-      .mockImplementation(() => Promise.reject(new Error("Connection timeout")));
+      .mockImplementation(() =>
+        Promise.reject(new Error("Connection timeout")),
+      );
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const GET = await loadGetHandler();
@@ -162,7 +167,10 @@ describe("Status API Route", () => {
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const GET = await loadGetHandler();
-    const response = await GET(createRequest("nonexistent"), createContext("nonexistent"));
+    const response = await GET(
+      createRequest("nonexistent"),
+      createContext("nonexistent"),
+    );
     const data = await response.json();
 
     expect(response.status).toBe(404);
