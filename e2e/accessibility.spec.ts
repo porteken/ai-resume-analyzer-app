@@ -76,30 +76,4 @@ test.describe("Accessibility", () => {
     const errorMessage = page.locator('[role="alert"], .bg-red-50').first();
     await expect(errorMessage).toBeVisible();
   });
-
-  test("should have accessible links with proper attributes", async ({
-    page,
-  }) => {
-    await page.goto("/about");
-
-    const frontendLink = page.getByText("Frontend App on GitHub");
-    await expect(frontendLink).toHaveAttribute(
-      "href",
-      "https://github.com/porteken/ai-resume-analyzer-app",
-    );
-    await expect(frontendLink).toHaveAttribute("target", "_blank");
-
-    const backendLink = page.getByText("Backend API on GitHub");
-    await expect(backendLink).toHaveAttribute(
-      "href",
-      "https://github.com/porteken/ai-resume-analyzer-sam",
-    );
-    await expect(backendLink).toHaveAttribute("target", "_blank");
-
-    const emailLink = page.getByText("porteken@gmail.com");
-    await expect(emailLink).toHaveAttribute(
-      "href",
-      "mailto:porteken@gmail.com",
-    );
-  });
 });

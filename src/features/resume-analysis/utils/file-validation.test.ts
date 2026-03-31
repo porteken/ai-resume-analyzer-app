@@ -32,6 +32,15 @@ describe("file-validation utilities", () => {
     expect(validateFile(file)).toBeNull();
   });
 
+  it("accepts a file exactly at the 5MB limit", () => {
+    const content = "x".repeat(5 * 1024 * 1024);
+    const file = new File([content], "exact.pdf", {
+      type: "application/pdf",
+    });
+
+    expect(validateFile(file)).toBeNull();
+  });
+
   it("rejects missing, non-pdf, and oversized files", () => {
     const nonPdfFile = new File(["text"], "resume.txt", {
       type: "text/plain",

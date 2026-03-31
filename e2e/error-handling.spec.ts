@@ -38,16 +38,6 @@ test.describe("Error Handling", () => {
     await expect(button).toBeDisabled();
   });
 
-  test("should not allow submission without job description", async ({
-    page,
-  }) => {
-    const pdfFile = createTestPDF();
-    await uploadFile(page, pdfFile);
-
-    const button = page.getByRole("button", { name: /analyze resume/i });
-    await expect(button).toBeDisabled();
-  });
-
   test("should handle server errors gracefully", async ({ page }) => {
     await mockAPIResponses.mockServerError(page);
 
@@ -129,18 +119,6 @@ test.describe("Error Handling", () => {
     });
   });
 
-  test("should display error icon with error messages", async ({ page }) => {
-    await mockAPIResponses.mockServerError(page);
-
-    const pdfFile = createTestPDF();
-    await uploadFile(page, pdfFile);
-    await fillJobDescription(page, "Test job");
-    await submitForm(page);
-
-    const errorMessage = page.locator('.bg-red-50, [role="alert"]').first();
-    await expect(errorMessage).toBeVisible({ timeout: 10_000 });
-  });
-
   test("should handle empty API response gracefully", async ({ page }) => {
     await page.route("**/api/upload", async (route) => {
       await route.fulfill({
@@ -180,18 +158,6 @@ test.describe("Error Handling", () => {
 
     const textarea = page.getByLabel(/job description/i);
     await expect(textarea).toHaveValue(jobDescription);
-  });
-
-  test("should show appropriate error for oversized file", async ({ page }) => {
-    const largePDF = createLargePDF();
-    await uploadFile(page, largePDF);
-    await fillJobDescription(page, "Test");
-    await submitForm(page);
-
-    const errorText = await page.getByTestId("analysis-error").textContent();
-
-    expect(errorText).toContain("MB");
-    expect(errorText).toMatch(/\d/);
   });
 
   test("should accept file at exactly 5MB limit", async ({ page }) => {

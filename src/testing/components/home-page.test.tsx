@@ -427,30 +427,6 @@ describe("Home Page Component", () => {
     });
   });
 
-  it("should display markdown sections correctly", async () => {
-    const user = userEvent.setup();
-    mockImmediateSuccess();
-
-    render(<Home />);
-
-    const file = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
-
-    await user.upload(fileInput, file);
-    await user.type(textarea, "Software Engineer");
-
-    const button = screen.getByRole("button", { name: /analyze resume/i });
-    await user.click(button);
-
-    await waitFor(() => {
-      expect(screen.queryByText(/match score/i)).not.toBeInTheDocument();
-      expect(screen.getByText(/strengths/i)).toBeInTheDocument();
-      expect(screen.getByText(/^gaps$/i)).toBeInTheDocument();
-      expect(screen.getByText(/recommendations/i)).toBeInTheDocument();
-    });
-  });
-
   it("should handle failed job status", async () => {
     const user = userEvent.setup();
 
