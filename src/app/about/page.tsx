@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  description:
+    "Learn more about AI Resume Analyzer — a tool that uses Gemini 2.5 Flash AI to evaluate resume-job description fit.",
+  title: "About | AI Resume Analyzer",
+};
+
 export default function About() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-6">
