@@ -56,7 +56,7 @@ export default defineConfig({
   },
 
   webServer: {
-    command: "npm run dev",
+    command: "NEXT_PUBLIC_E2E_TEST=1 env NODE_ENV=test npm run dev",
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
     url: "http://localhost:3000",

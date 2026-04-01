@@ -117,7 +117,9 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
           return;
         }
 
-        console.error(error_);
+        if (process.env.NEXT_PUBLIC_E2E_TEST !== "1") {
+          console.error(error_);
+        }
         setError(getSubmitErrorMessage(error_));
       } finally {
         if (abortControllerReference.current === abortController) {

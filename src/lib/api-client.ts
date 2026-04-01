@@ -91,7 +91,10 @@ const request = async (url: string, init: RequestInit): Promise<Response> => {
     url,
   });
 
-  if (process.env.NODE_ENV === "development") {
+  if (
+    process.env.NODE_ENV === "development" &&
+    process.env.NEXT_PUBLIC_E2E_TEST !== "1"
+  ) {
     console.error("API client request failed", {
       data,
       method,
