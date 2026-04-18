@@ -14,6 +14,7 @@ export const test = base.extend({
         return;
       }
     });
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     await use(page);
   },
 });
