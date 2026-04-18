@@ -30,7 +30,7 @@
     "typescriptreact"
   ],
   "eslint.format.enable": true,
-  "npm.packageManager": "npm",
+  "npm.packageManager": "pnpm",
   "css.lint.unknownAtRules": "ignore",
   "sonarlint.connectedMode.project": {
     "connectionId": "porteken",

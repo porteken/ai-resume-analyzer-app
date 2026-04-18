@@ -21,18 +21,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+          run_install: false
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          cache: pnpm
 
       - name: Install Dependencies
-        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - run: npm run fmt:check
-      - run: npm run lint
-      - run: npm run tsc
-      - run: npx knip
+      - run: pnpm run fmt:check
+      - run: pnpm run lint
+      - run: pnpm run tsc
+      - run: pnpm exec knip
 
   vitest-unit:
     name: Vitest Unit (shard ${{ matrix.shard_index }}/5)
@@ -43,15 +47,19 @@ jobs:
         shard_index: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+          run_install: false
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          cache: pnpm
 
       - name: Install Dependencies
-        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - run: npm run test:unit -- --reporter=blob --shard=${{ matrix.shard_index }}/5
+      - run: pnpm run test:unit -- --reporter=blob --shard=${{ matrix.shard_index }}/5
 
       - name: Upload Vitest unit blob report
         if: always()
@@ -69,13 +77,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+          run_install: false
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          cache: pnpm
 
       - name: Install Dependencies
-        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Download Vitest unit blob reports
         uses: actions/download-artifact@v4
@@ -85,7 +97,7 @@ jobs:
           merge-multiple: true
 
       - name: Merge Vitest unit reports
-        run: npx vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=junit
+        run: pnpm exec vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=junit
 
   playwright-e2e:
     name: Playwright E2E (shard ${{ matrix.shard_index }}/20)
@@ -123,17 +135,21 @@ jobs:
           ]
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+          run_install: false
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          cache: pnpm
 
       - name: Install Node Dependencies
-        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Get Playwright Version
         id: playwright-version
-        run: echo "PLAYWRIGHT_VERSION=$(npx playwright --version | awk '{print $2}')" >> $GITHUB_ENV
+        run: echo "PLAYWRIGHT_VERSION=$(pnpm exec playwright --version | awk '{print $2}')" >> $GITHUB_ENV
 
       - name: Cache Playwright Browsers
         uses: actions/cache@v4
@@ -144,14 +160,14 @@ jobs:
 
       - name: Install Playwright Browsers & OS Deps
         if: steps.cache-playwright.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps
+        run: pnpm exec playwright install --with-deps
 
       - name: Install Playwright OS Dependencies (Cache Hit)
         if: steps.cache-playwright.outputs.cache-hit == 'true'
-        run: npx playwright install-deps
+        run: pnpm exec playwright install-deps
 
       - name: Run Playwright Shard
-        run: npx playwright test --shard=${{ matrix.shard_index }}/20 --reporter=list,blob
+        run: pnpm exec playwright test --shard=${{ matrix.shard_index }}/20 --reporter=list,blob
 
       - name: Upload Playwright Blob
         if: always()
@@ -168,13 +184,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+          run_install: false
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          cache: pnpm
 
       - name: Install Dependencies
-        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Download All Playwright Blobs
         uses: actions/download-artifact@v4
@@ -184,7 +204,7 @@ jobs:
           merge-multiple: true
 
       - name: Merge Playwright Reports
-        run: npx playwright merge-reports --reporter=line,html ./playwright-blobs
+        run: pnpm exec playwright merge-reports --reporter=line,html ./playwright-blobs
         shell: bash
 
       - name: Upload Playwright HTML Report
@@ -206,20 +226,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+          run_install: false
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          cache: pnpm
 
       - name: Install Dependencies
-        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Run Vitest with coverage
         run: |
-          if npm run --silent | grep -q "test:coverage"; then
-            npm run test:coverage
+          if node -e "process.exit(require('./package.json').scripts['test:coverage'] ? 0 : 1)"; then
+            pnpm run test:coverage
           else
-            npm run test -- --coverage
+            pnpm run test -- --coverage
           fi
 
       - name: Upload coverage report for SonarQube
