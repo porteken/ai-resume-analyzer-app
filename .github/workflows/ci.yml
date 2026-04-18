@@ -59,7 +59,7 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - run: pnpm run test:unit -- --reporter=blob --shard=${{ matrix.shard_index }}/5
+      - run: pnpm run test:unit --reporter=blob --shard=${{ matrix.shard_index }}/5
 
       - name: Upload Vitest unit blob report
         if: always()
@@ -239,12 +239,7 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Run Vitest with coverage
-        run: |
-          if node -e "process.exit(require('./package.json').scripts['test:coverage'] ? 0 : 1)"; then
-            pnpm run test:coverage
-          else
-            pnpm run test -- --coverage
-          fi
+        run: pnpm run test:coverage
 
       - name: Upload coverage report for SonarQube
         uses: actions/upload-artifact@v4

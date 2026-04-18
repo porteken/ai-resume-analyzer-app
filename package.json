@@ -11,6 +11,7 @@
     "fmt:check": "oxfmt --check",
     "test": "vitest",
     "test:unit": "vitest",
+    "test:coverage": "vitest --coverage",
     "test:e2e": "playwright test",
     "tsc": "tsc --noEmit"
   },
