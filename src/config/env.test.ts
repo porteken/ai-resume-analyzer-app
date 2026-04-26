@@ -11,6 +11,7 @@ describe("getApiConfig", () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.unstubAllEnvs();
   });
 
@@ -68,7 +69,20 @@ describe("getApiConfig", () => {
   it("returns null when API variables are missing", () => {
     vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
 
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
     expect(getApiConfig()).toBeNull();
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "Missing environment variables:",
+      {
+        hasApiEndpoint: false,
+        hasApiKey: false,
+        hasPublicApiEndpoint: false,
+      },
+    );
   });
 
   it("returns null when only NEXT_PUBLIC_API_KEY is provided", () => {
@@ -78,7 +92,20 @@ describe("getApiConfig", () => {
     );
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "public-key");
 
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
     expect(getApiConfig()).toBeNull();
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "Missing environment variables:",
+      {
+        hasApiEndpoint: false,
+        hasApiKey: false,
+        hasPublicApiEndpoint: true,
+      },
+    );
   });
 
   it("uses API_ENDPOINT when NEXT_PUBLIC_API_ENDPOINT is not set", () => {
