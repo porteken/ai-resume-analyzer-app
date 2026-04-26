@@ -135,6 +135,24 @@ export const AnalysisResult = ({ error, result }: AnalysisResultProperties) => {
     [result],
   );
 
+  const renderedResultContent = (() => {
+    if (markdownContent) {
+      return (
+        <div className="prose prose-sm prose-slate prose-headings:text-slate-800 prose-headings:font-semibold prose-h3:text-lg prose-p:text-slate-600 prose-li:text-slate-600 prose-strong:text-slate-800 max-w-none">
+          <ReactMarkdown remarkPlugins={remarkPlugins}>
+            {markdownContent}
+          </ReactMarkdown>
+        </div>
+      );
+    }
+
+    if (result && typeof result === "object") {
+      return renderStructuredResult(result);
+    }
+
+    return null;
+  })();
+
   return (
     <>
       {error && (
@@ -155,15 +173,7 @@ export const AnalysisResult = ({ error, result }: AnalysisResultProperties) => {
             <CheckCircle className="h-5 w-5" />
             <span>Analysis Complete</span>
           </div>
-          {markdownContent ? (
-            <div className="prose prose-sm prose-slate prose-headings:text-slate-800 prose-headings:font-semibold prose-h3:text-lg prose-p:text-slate-600 prose-li:text-slate-600 prose-strong:text-slate-800 max-w-none">
-              <ReactMarkdown remarkPlugins={remarkPlugins}>
-                {markdownContent}
-              </ReactMarkdown>
-            </div>
-          ) : typeof result !== "string" ? (
-            renderStructuredResult(result)
-          ) : null}
+          {renderedResultContent}
         </div>
       )}
     </>
