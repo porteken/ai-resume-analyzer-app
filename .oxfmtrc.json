@@ -15,9 +15,10 @@
       ["internal", "subpath"],
       ["parent", "sibling", "index"],
       "style",
+      "type",
       "unknown"
     ],
-    "internalPattern": ["@/"],
+    "internalPattern": ["^@/"],
     "newlinesBetween": true,
     "order": "asc",
     "sortSideEffects": false
