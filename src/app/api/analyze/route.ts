@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+/* eslint-disable sort-imports */
 
 import { getApiConfig } from "@/config/env";
 import {
@@ -10,10 +10,11 @@ import {
   handleNonJsonResponse,
   parseRequestBody,
 } from "@/lib/server/request-utils";
+import { NextResponse } from "next/server";
 
 export const maxDuration = 300;
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const apiConfig = getApiConfig();
     if (!apiConfig) {
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     const contentType = response.headers.get("content-type");
     if (!contentType?.includes("application/json")) {
-      return handleNonJsonResponse(response, "Non-JSON response from analyze");
+      return handleNonJsonResponse(response);
     }
 
     const data = await response.json();
@@ -53,7 +54,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("Analyze API error:", error);
     return createErrorResponse(
       "Failed to analyze resume",
       500,

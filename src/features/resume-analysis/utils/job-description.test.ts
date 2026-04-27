@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
+/* eslint-disable jest/prefer-expect-assertions, vitest/prefer-describe-function-title, vitest/prefer-expect-assertions */
 
 import {
   MAX_JOB_DESCRIPTION_CHARS,
   validateJobDescription,
 } from "@/features/resume-analysis/utils/job-description";
+import { describe, expect, it } from "vitest";
 
 describe("validateJobDescription", () => {
   it("returns error for empty or whitespace-only input", () => {

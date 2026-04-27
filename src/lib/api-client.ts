@@ -4,9 +4,9 @@ const JSON_HEADERS = {
   "Content-Type": "application/json",
 } as const;
 
-interface RequestOptions {
+type RequestOptions = {
   signal?: AbortSignal;
-}
+};
 
 const getErrorMessageFromPayload = (payload: unknown): null | string => {
   if (typeof payload === "string" && payload.trim() !== "") {
@@ -37,7 +37,7 @@ const getErrorMessageFromPayload = (payload: unknown): null | string => {
   return error ?? details ?? message;
 };
 
-const parseErrorPayload = async (response: Response): Promise<unknown> => {
+const parseErrorPayload = (response: Response): Promise<unknown> => {
   const contentType = response.headers.get("content-type");
 
   if (contentType?.includes("application/json")) {
@@ -89,18 +89,6 @@ const request = async (url: string, init: RequestInit): Promise<Response> => {
     response,
     url,
   });
-
-  if (
-    process.env.NODE_ENV === "development" &&
-    process.env.NEXT_PUBLIC_E2E_TEST !== "1"
-  ) {
-    console.error("API client request failed", {
-      data,
-      method,
-      status: response.status,
-      url,
-    });
-  }
 
   throw error;
 };

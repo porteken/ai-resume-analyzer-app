@@ -1,3 +1,5 @@
+/* eslint-disable jest/no-hooks, jest/prefer-expect-assertions, vitest/prefer-expect-assertions */
+
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -19,7 +21,7 @@ const createContext = (jobId: string) => ({
   params: Promise.resolve({ jobId }),
 });
 
-describe("Status API Route", () => {
+describe("status API Route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
@@ -39,7 +41,7 @@ describe("Status API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({ status: "processing" }),
+        json: () => Promise.resolve({ status: "processing" }),
         status: 200,
       }),
     );
@@ -65,7 +67,7 @@ describe("Status API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({ status: "processing" }),
+        json: () => Promise.resolve({ status: "processing" }),
         status: 200,
       }),
     );
@@ -84,7 +86,7 @@ describe("Status API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({ status: "processing" }),
+        json: () => Promise.resolve({ status: "processing" }),
         status: 200,
       }),
     );
@@ -121,7 +123,7 @@ describe("Status API Route", () => {
       createMockResponse({
         headers: new Headers({ "content-type": "text/html" }),
         status: 404,
-        text: async () => "<html>Not Found</html>",
+        text: () => Promise.resolve("<html>Not Found</html>"),
       }),
     );
     globalThis.fetch = mockedFetch as typeof fetch;
@@ -153,8 +155,8 @@ describe("Status API Route", () => {
   });
 
   it("should handle non-timeout fetch errors", async () => {
-    const mockedFetch = createFetchMock().mockImplementation(() =>
-      Promise.reject(new Error("Connection timeout")),
+    const mockedFetch = createFetchMock().mockRejectedValue(
+      new Error("Connection timeout"),
     );
     globalThis.fetch = mockedFetch as typeof fetch;
 
@@ -171,7 +173,7 @@ describe("Status API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({ error: "Job not found" }),
+        json: () => Promise.resolve({ error: "Job not found" }),
         status: 404,
       }),
     );

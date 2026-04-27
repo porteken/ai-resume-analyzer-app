@@ -1,4 +1,4 @@
-import { test as base, Page } from "@playwright/test";
+/* eslint-disable import/consistent-type-specifier-style, react-hooks/rules-of-hooks, sort-imports */
 
 import { MOCK_RESPONSES } from "@/testing/mocks/api";
 import {
@@ -6,16 +6,11 @@ import {
   createLargePDF as createLargePDFBuffer,
   createTestPDF as createTestPDFBuffer,
 } from "@/testing/mocks/file";
+import { type Page, test as base } from "@playwright/test";
 
 export const test = base.extend({
-  page: async ({ page }, use) => {
-    page.on("console", (message) => {
-      if (message.type() === "error") {
-        return;
-      }
-    });
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    await use(page);
+  page: async ({ page }, runPage) => {
+    await runPage(page);
   },
 });
 
@@ -44,7 +39,7 @@ export async function submitForm(page: Page) {
 export async function uploadFile(
   page: Page,
   fileContent: Buffer,
-  fileName: string = "resume.pdf",
+  fileName = "resume.pdf",
 ) {
   const fileInput = page.locator('input[type="file"]');
   await fileInput.setInputFiles({

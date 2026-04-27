@@ -1,20 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+/* eslint-disable sort-imports */
 
-import {
-  getApiConfig,
-  getApiConfigDiagnostics,
-  getEndpointLogValue,
-} from "@/config/env";
+import { getApiConfig } from "@/config/env";
 import { validateJobDescription } from "@/features/resume-analysis/utils/job-description";
 import {
+  UPSTREAM_TIMEOUT_MS,
   createErrorResponse,
   isTimeoutError,
-  UPSTREAM_TIMEOUT_MS,
 } from "@/lib/server/api-utils";
 import {
   handleNonJsonResponse,
   parseRequestBody,
 } from "@/lib/server/request-utils";
+import { NextResponse } from "next/server";
 
 export const maxDuration = 300;
 
@@ -35,40 +32,9 @@ const validateBodyJobDescription = (
   return null;
 };
 
-const warnOnForbiddenUpstreamResponse = (
-  response: Response,
-  data: unknown,
-  apiConfigDiagnostics: ReturnType<typeof getApiConfigDiagnostics>,
-  uploadEndpoint: string,
-): void => {
-  if (response.status !== 403) return;
-
-  const responseMessage =
-    typeof data === "object" &&
-    data !== null &&
-    "message" in data &&
-    typeof (data as { message?: unknown }).message === "string"
-      ? (data as { message: string }).message
-      : undefined;
-
-  const responseHeaders: Record<string, string> = {};
-  for (const [key, value] of response.headers.entries()) {
-    responseHeaders[key] = value;
-  }
-
-  console.warn("Upload proxy upstream 403", {
-    apiConfigDiagnostics,
-    responseHeaders,
-    responseMessage,
-    targetEndpoint: getEndpointLogValue(uploadEndpoint),
-    vercelEnv: process.env.VERCEL_ENV ?? "local",
-  });
-};
-
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const apiConfig = getApiConfig();
-    const apiConfigDiagnostics = getApiConfigDiagnostics();
     if (!apiConfig) {
       return createErrorResponse(
         "Server configuration error: Missing API_ENDPOINT (or NEXT_PUBLIC_API_ENDPOINT) or API_KEY",
@@ -79,7 +45,7 @@ export async function POST(request: NextRequest) {
     const { body, error: parseError } = await parseRequestBody(request);
     if (parseError) return parseError;
 
-    const jobDescriptionError = validateBodyJobDescription(body!);
+    const jobDescriptionError = validateBodyJobDescription(body);
     if (jobDescriptionError) return jobDescriptionError;
 
     const headers = {
@@ -101,13 +67,6 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
-    warnOnForbiddenUpstreamResponse(
-      response,
-      data,
-      apiConfigDiagnostics,
-      apiConfig.uploadEndpoint,
-    );
-
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
     if (isTimeoutError(error)) {
@@ -118,7 +77,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.error("Upload API error:", error);
     return createErrorResponse(
       "Failed to upload resume",
       500,

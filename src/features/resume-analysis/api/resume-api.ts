@@ -1,3 +1,5 @@
+/* eslint-disable jsdoc/require-param, sort-imports */
+
 import { convertFileToBase64 } from "@/features/resume-analysis/utils/file-conversion";
 import {
   sanitizeFilename,
@@ -7,50 +9,49 @@ import { sleep } from "@/features/resume-analysis/utils/sleep";
 import { throwIfAborted } from "@/lib/abort-utils";
 import { ApiClientError, getJson, postJson } from "@/lib/api-client";
 import { isObjectRecord } from "@/lib/type-guards";
-import { type AnalysisResultData } from "@/types";
+
+import type { AnalysisResultData } from "@/types";
 
 const LEGACY_SAFE_JOB_DESCRIPTION_LENGTH = 500;
 const POLL_DELAY_BY_ATTEMPT_MS = [1000, 2000, 3000, 5000] as const;
 
-interface ApiErrorResponse {
+type ApiErrorResponse = {
   details?: string;
   error?: string;
   type?: string;
-}
+};
 
-interface PresignedUploadResponse {
+type PresignedUploadResponse = {
   job_id: string;
   s3_url?: string;
   upload: {
     fields: PresignedUrlFields;
     url: string;
   };
-}
+};
 
-interface PresignedUrlFields {
-  [key: string]: string;
-}
+type PresignedUrlFields = Record<string, string>;
 
-interface StatusResponseData {
+type StatusResponseData = {
   analysis_result?: AnalysisResultData;
   error?: string;
   status?: string;
-}
+};
 
-interface UploadRequestOptions {
+type UploadRequestOptions = {
   signal?: AbortSignal;
-}
+};
 
-interface UploadRequestPayload {
+type UploadRequestPayload = {
   filename: string;
   job_description?: string;
   pdf_base64?: string;
-}
+};
 
-interface UploadResumeResponse {
+type UploadResumeResponse = {
   analysis_result?: AnalysisResultData;
   job_id?: string;
-}
+};
 
 const isAbortError = (error: unknown): boolean =>
   error instanceof Error && error.name === "AbortError";
@@ -112,7 +113,7 @@ const parsePresignedUploadResponse = (
     return null;
   }
 
-  const fields = value.upload.fields;
+  const { fields } = value.upload;
   if (!isStringRecord(fields)) {
     return null;
   }
@@ -152,7 +153,7 @@ const getPollDelayMs = (attempt: number): number =>
     Math.min(attempt - 1, POLL_DELAY_BY_ATTEMPT_MS.length - 1)
   ] ?? 5000;
 
-const sendUploadRequest = async (
+const sendUploadRequest = (
   requestBody: object,
   signal?: AbortSignal,
 ): Promise<Response> => postJson("/api/upload", requestBody, { signal });

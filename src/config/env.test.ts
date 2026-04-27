@@ -1,8 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+/* eslint-disable jest/no-hooks, jest/prefer-expect-assertions, vitest/prefer-describe-function-title, vitest/prefer-expect-assertions, vitest/prefer-to-be-truthy */
 
 import { getApiConfig, getApiConfigDiagnostics } from "@/config/env";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-describe("getApiConfig", () => {
+describe("aPI environment config", () => {
   beforeEach(() => {
     vi.stubEnv("API_ENDPOINT", "");
     vi.stubEnv("API_KEY", "");
@@ -24,7 +25,7 @@ describe("getApiConfig", () => {
 
     const config = getApiConfig();
 
-    expect(config).toEqual({
+    expect(config).toStrictEqual({
       analyzeEndpoint: "https://api.example.com/prod/analyze",
       apiKey: "test-key",
       statusEndpoint: "https://api.example.com/prod/status",
@@ -41,7 +42,7 @@ describe("getApiConfig", () => {
 
     const config = getApiConfig();
 
-    expect(config).toEqual({
+    expect(config).toStrictEqual({
       analyzeEndpoint: "https://api.example.com/prod/analyze",
       apiKey: "test-key",
       statusEndpoint: "https://api.example.com/prod/status",
@@ -58,7 +59,7 @@ describe("getApiConfig", () => {
 
     const config = getApiConfig();
 
-    expect(config).toEqual({
+    expect(config).toStrictEqual({
       analyzeEndpoint: "https://api.example.com/prod/analyze",
       apiKey: "test-key",
       statusEndpoint: "https://api.example.com/prod/status",
@@ -69,20 +70,7 @@ describe("getApiConfig", () => {
   it("returns null when API variables are missing", () => {
     vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
 
-    const consoleErrorSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
-
     expect(getApiConfig()).toBeNull();
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Missing environment variables:",
-      {
-        hasApiEndpoint: false,
-        hasApiKey: false,
-        hasPublicApiEndpoint: false,
-      },
-    );
   });
 
   it("returns null when only NEXT_PUBLIC_API_KEY is provided", () => {
@@ -92,20 +80,7 @@ describe("getApiConfig", () => {
     );
     vi.stubEnv("NEXT_PUBLIC_API_KEY", "public-key");
 
-    const consoleErrorSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
-
     expect(getApiConfig()).toBeNull();
-    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Missing environment variables:",
-      {
-        hasApiEndpoint: false,
-        hasApiKey: false,
-        hasPublicApiEndpoint: true,
-      },
-    );
   });
 
   it("uses API_ENDPOINT when NEXT_PUBLIC_API_ENDPOINT is not set", () => {
@@ -114,7 +89,7 @@ describe("getApiConfig", () => {
 
     const config = getApiConfig();
 
-    expect(config).toEqual({
+    expect(config).toStrictEqual({
       analyzeEndpoint: "https://api.example.com/dev/analyze",
       apiKey: "test-key",
       statusEndpoint: "https://api.example.com/dev/status",

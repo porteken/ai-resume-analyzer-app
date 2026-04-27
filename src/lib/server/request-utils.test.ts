@@ -1,9 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
+/* eslint-disable jest/prefer-expect-assertions, require-await, vitest/prefer-expect-assertions */
 
 import {
   handleNonJsonResponse,
   parseRequestBody,
 } from "@/lib/server/request-utils";
+import { describe, expect, it, vi } from "vitest";
 
 const createRequest = (json: () => Promise<unknown>) =>
   ({
@@ -16,7 +17,7 @@ describe("request-utils", () => {
       createRequest(async () => ({ job_description: "Engineer" })),
     );
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       body: { job_description: "Engineer" },
       error: null,
     });
@@ -31,7 +32,7 @@ describe("request-utils", () => {
 
     expect(result.body).toBeNull();
     expect(result.error?.status).toBe(400);
-    await expect(result.error?.json()).resolves.toEqual({
+    await expect(result.error?.json()).resolves.toStrictEqual({
       details: "Request body must be valid JSON.",
       error: "Invalid request body",
     });
@@ -42,7 +43,7 @@ describe("request-utils", () => {
 
     expect(result.body).toBeNull();
     expect(result.error?.status).toBe(400);
-    await expect(result.error?.json()).resolves.toEqual({
+    await expect(result.error?.json()).resolves.toStrictEqual({
       details: "Request body must be a JSON object.",
       error: "Invalid request body",
     });
@@ -81,7 +82,7 @@ describe("request-utils", () => {
         status: 502,
       },
     );
-    await expect(result.json()).resolves.toEqual({
+    await expect(result.json()).resolves.toStrictEqual({
       details: "x".repeat(200),
       error:
         "External API returned non-JSON response (502). Check API_ENDPOINT / API_KEY server env vars",

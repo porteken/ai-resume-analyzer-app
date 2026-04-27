@@ -5,9 +5,9 @@ import remarkGfm from "remark-gfm";
 
 const MARKDOWN_REMARK_PLUGINS = [remarkGfm];
 
-interface AnalysisMarkdownProperties {
+type AnalysisMarkdownProperties = {
   content: string;
-}
+};
 
 export default function AnalysisMarkdown({
   content,

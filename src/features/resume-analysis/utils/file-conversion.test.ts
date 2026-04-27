@@ -1,6 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+/* eslint-disable jest/no-hooks, jest/prefer-expect-assertions, jest/require-hook, vitest/prefer-describe-function-title, vitest/prefer-expect-assertions */
 
 import { convertFileToBase64 } from "@/features/resume-analysis/utils/file-conversion";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 type FileReaderMode =
   | "error"
@@ -51,7 +52,7 @@ class MockFileReader {
   }
 }
 
-describe("convertFileToBase64", () => {
+describe("file conversion", () => {
   beforeEach(() => {
     fileReaderMode = "success";
     globalThis.FileReader = MockFileReader as unknown as typeof FileReader;

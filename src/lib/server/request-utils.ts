@@ -1,6 +1,6 @@
-import { type NextRequest, NextResponse } from "next/server";
-
 import { createErrorResponse } from "@/lib/server/api-utils";
+
+import type { NextRequest, NextResponse } from "next/server";
 
 export const parseRequestBody = async (
   request: NextRequest,
@@ -43,15 +43,8 @@ export const parseRequestBody = async (
 
 export const handleNonJsonResponse = async (
   response: Response,
-  logContext = "Non-JSON response",
 ): Promise<NextResponse> => {
   const text = await response.text();
-
-  console.error(logContext, {
-    contentType: response.headers.get("content-type"),
-    preview: text.slice(0, 200),
-    status: response.status,
-  });
 
   return createErrorResponse(
     `External API returned non-JSON response (${response.status}). Check API_ENDPOINT / API_KEY server env vars`,

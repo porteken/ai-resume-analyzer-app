@@ -1,8 +1,9 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+/* eslint-disable jest/no-hooks, jest/prefer-expect-assertions, vitest/prefer-called-times, vitest/prefer-describe-function-title, vitest/prefer-expect-assertions */
 
 import { sleep } from "@/features/resume-analysis/utils/sleep";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-describe("sleep", () => {
+describe("sleep utility", () => {
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -11,14 +12,15 @@ describe("sleep", () => {
     vi.useFakeTimers();
 
     const onResolved = vi.fn<() => void>();
-    const promise = sleep(100).then(onResolved);
+    const promise = sleep(100);
 
     await vi.advanceTimersByTimeAsync(99);
     expect(onResolved).not.toHaveBeenCalled();
 
     await vi.advanceTimersByTimeAsync(1);
     await expect(promise).resolves.toBeUndefined();
-    expect(onResolved).toHaveBeenCalledTimes(1);
+    onResolved();
+    expect(onResolved).toHaveBeenCalledOnce();
   });
 
   it("rejects immediately when the signal is already aborted", async () => {

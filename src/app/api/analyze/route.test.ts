@@ -1,3 +1,5 @@
+/* eslint-disable jest/no-hooks, jest/prefer-expect-assertions, vitest/prefer-expect-assertions */
+
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -24,7 +26,7 @@ const createRawRequest = (body: string) =>
     method: "POST",
   });
 
-describe("Analyze API Route", () => {
+describe("analyze API Route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
@@ -45,7 +47,7 @@ describe("Analyze API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => mockResponseData,
+        json: () => Promise.resolve(mockResponseData),
         status: 200,
       }),
     );
@@ -73,7 +75,7 @@ describe("Analyze API Route", () => {
       }),
     );
     expect(response.status).toBe(200);
-    expect(data).toEqual(mockResponseData);
+    expect(data).toStrictEqual(mockResponseData);
   });
 
   it("should return 500 if required env vars are missing", async () => {
@@ -125,7 +127,7 @@ describe("Analyze API Route", () => {
       createMockResponse({
         headers: new Headers({ "content-type": "text/plain" }),
         status: 502,
-        text: async () => "gateway error",
+        text: () => Promise.resolve("gateway error"),
       }),
     );
     globalThis.fetch = mockedFetch as typeof fetch;
@@ -154,8 +156,8 @@ describe("Analyze API Route", () => {
   });
 
   it("should handle non-timeout fetch errors", async () => {
-    const mockedFetch = createFetchMock().mockImplementation(() =>
-      Promise.reject(new Error("Network error")),
+    const mockedFetch = createFetchMock().mockRejectedValue(
+      new Error("Network error"),
     );
     globalThis.fetch = mockedFetch as typeof fetch;
 
@@ -172,7 +174,7 @@ describe("Analyze API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({ error: "Bad request" }),
+        json: () => Promise.resolve({ error: "Bad request" }),
         status: 400,
       }),
     );

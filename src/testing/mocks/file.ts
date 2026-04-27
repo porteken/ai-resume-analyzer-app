@@ -76,8 +76,8 @@ export function createLargePDF(): Buffer {
 
 export function createMockFile(
   content: Buffer | string = "test content",
-  filename: string = "test.pdf",
-  mimeType: string = "application/pdf",
+  filename = "test.pdf",
+  mimeType = "application/pdf",
 ): File {
   const blobContent =
     typeof content === "string" ? content : new Uint8Array(content);

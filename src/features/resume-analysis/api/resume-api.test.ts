@@ -1,9 +1,18 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+/* eslint-disable jest/max-expects, jest/no-hooks, jest/prefer-ending-with-an-expect, jest/prefer-expect-assertions, vitest/prefer-called-once, vitest/prefer-describe-function-title, vitest/prefer-expect-assertions */
 
 import {
   pollForResults,
   uploadResume,
 } from "@/features/resume-analysis/api/resume-api";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  expectTypeOf,
+  it,
+  vi,
+} from "vitest";
 
 const originalFetch = globalThis.fetch;
 const createFetchMock = () => vi.fn<typeof fetch>();
@@ -11,11 +20,13 @@ const createFetchMock = () => vi.fn<typeof fetch>();
 const createJsonResponse = (status: number, data: unknown): Response =>
   ({
     headers: new Headers({ "content-type": "application/json" }),
-    json: vi.fn<() => Promise<unknown>>(async () => data),
+    json: vi.fn<() => Promise<unknown>>(() => Promise.resolve(data)),
     ok: status >= 200 && status < 300,
     status,
     statusText: "OK",
-    text: vi.fn<() => Promise<string>>(async () => JSON.stringify(data)),
+    text: vi.fn<() => Promise<string>>(() =>
+      Promise.resolve(JSON.stringify(data)),
+    ),
   }) as unknown as Response;
 
 const parseRequestJsonBody = <T>(request: RequestInit | undefined): T => {
@@ -28,7 +39,7 @@ const parseRequestJsonBody = <T>(request: RequestInit | undefined): T => {
   return JSON.parse(body) as T;
 };
 
-describe("uploadResume", () => {
+describe("resume upload API", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -68,7 +79,7 @@ describe("uploadResume", () => {
     });
     const result = await uploadResume(file, "Senior software engineer");
 
-    expect(result).toEqual({ job_id: "job-123" });
+    expect(result).toStrictEqual({ job_id: "job-123" });
     expect(fetchMock).toHaveBeenCalledTimes(3);
 
     const firstRequest = fetchMock.mock.calls[0]?.[1] as RequestInit;
@@ -106,7 +117,7 @@ describe("uploadResume", () => {
     });
     const result = await uploadResume(file, "Backend engineer");
 
-    expect(result).toEqual({ analysis_result: "legacy-analysis" });
+    expect(result).toStrictEqual({ analysis_result: "legacy-analysis" });
     expect(fetchMock).toHaveBeenCalledTimes(2);
 
     const firstPayload = parseRequestJsonBody<{
@@ -117,7 +128,7 @@ describe("uploadResume", () => {
     const secondPayload = parseRequestJsonBody<{
       pdf_base64?: string;
     }>(fetchMock.mock.calls[1]?.[1] as RequestInit);
-    expect(typeof secondPayload.pdf_base64).toBe("string");
+    expectTypeOf(secondPayload.pdf_base64).toBeString();
     expect(secondPayload.pdf_base64?.length).toBeGreaterThan(0);
   });
 
@@ -146,7 +157,7 @@ describe("uploadResume", () => {
       "A very long description that should not be sent as metadata in the final retry path.",
     );
 
-    expect(result).toEqual({ analysis_result: "legacy-analysis" });
+    expect(result).toStrictEqual({ analysis_result: "legacy-analysis" });
     expect(fetchMock).toHaveBeenCalledTimes(3);
 
     const secondPayload = parseRequestJsonBody<{
@@ -227,7 +238,7 @@ describe("uploadResume", () => {
   });
 });
 
-describe("pollForResults", () => {
+describe("resume polling API", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {

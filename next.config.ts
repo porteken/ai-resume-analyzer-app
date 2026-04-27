@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
-  headers: async () => [
+  headers: () => [
     {
       headers: [
         {

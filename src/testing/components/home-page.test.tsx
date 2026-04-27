@@ -1,7 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { delay, http, HttpResponse } from "msw";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+/* eslint-disable jest/max-expects, jest/no-hooks, jest/prefer-ending-with-an-expect, jest/prefer-expect-assertions, sort-imports, vitest/max-expects, vitest/no-hooks, vitest/prefer-expect-assertions */
 
 import Home from "@/app/page";
 import { MAX_JOB_DESCRIPTION_CHARS } from "@/features/resume-analysis/utils/job-description";
@@ -12,6 +9,10 @@ import {
   createMockPDFFile,
 } from "@/testing/mocks/file";
 import { server } from "@/testing/mocks/server";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { HttpResponse, delay, http } from "msw";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockImmediateSuccess = () => {
   server.use(
@@ -75,7 +76,7 @@ const mockAnalyze503 = () => {
   );
 };
 
-describe("Home Page Component", () => {
+describe("home Page Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "error").mockImplementation(() => {});

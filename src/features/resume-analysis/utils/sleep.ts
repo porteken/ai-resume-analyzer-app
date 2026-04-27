@@ -12,11 +12,11 @@ export const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>
       resolve();
     }, ms);
 
-    const onAbort = () => {
+    function onAbort() {
       clearTimeout(timeoutId);
       signal?.removeEventListener("abort", onAbort);
       reject(createAbortError());
-    };
+    }
 
     signal?.addEventListener("abort", onAbort, { once: true });
   });

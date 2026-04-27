@@ -1,13 +1,13 @@
-import { describe, expect, it } from "vitest";
-
 import { createErrorResponse, isTimeoutError } from "@/lib/server/api-utils";
+/* eslint-disable jest/prefer-expect-assertions, vitest/prefer-expect-assertions, vitest/prefer-strict-boolean-matchers */
+import { describe, expect, it } from "vitest";
 
 describe("api-utils", () => {
   it("creates JSON error responses without details", async () => {
     const response = createErrorResponse("Missing API key", 500);
 
     expect(response.status).toBe(500);
-    await expect(response.json()).resolves.toEqual({
+    await expect(response.json()).resolves.toStrictEqual({
       error: "Missing API key",
     });
   });
@@ -20,7 +20,7 @@ describe("api-utils", () => {
     );
 
     expect(response.status).toBe(400);
-    await expect(response.json()).resolves.toEqual({
+    await expect(response.json()).resolves.toStrictEqual({
       details: "Request body must be valid JSON.",
       error: "Invalid request body",
     });
@@ -32,9 +32,9 @@ describe("api-utils", () => {
     const timeoutError = new Error("Timed out");
     timeoutError.name = "TimeoutError";
 
-    expect(isTimeoutError(abortError)).toBe(true);
-    expect(isTimeoutError(timeoutError)).toBe(true);
-    expect(isTimeoutError(new Error("Different failure"))).toBe(false);
-    expect(isTimeoutError("TimeoutError")).toBe(false);
+    expect(isTimeoutError(abortError)).toBeTruthy();
+    expect(isTimeoutError(timeoutError)).toBeTruthy();
+    expect(isTimeoutError(new Error("Different failure"))).toBeFalsy();
+    expect(isTimeoutError("TimeoutError")).toBeFalsy();
   });
 });

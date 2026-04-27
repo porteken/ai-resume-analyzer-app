@@ -1,10 +1,11 @@
-import { describe, expect, it } from "vitest";
+/* eslint-disable jest/prefer-expect-assertions, vitest/prefer-expect-assertions, vitest/prefer-to-be-truthy */
 
 import {
   sanitizeFilename,
   truncateJobDescription,
   validateFile,
 } from "@/features/resume-analysis/utils/file-validation";
+import { describe, expect, it } from "vitest";
 
 describe("file-validation utilities", () => {
   it("sanitizes filenames and appends a pdf extension when needed", () => {

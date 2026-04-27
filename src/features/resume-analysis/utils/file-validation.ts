@@ -23,7 +23,7 @@ export const truncateJobDescription = (description: string): string => {
   if (description.length <= MAX_JOB_DESCRIPTION_LENGTH) {
     return description;
   }
-  return description.slice(0, MAX_JOB_DESCRIPTION_LENGTH) + "... [truncated]";
+  return `${description.slice(0, MAX_JOB_DESCRIPTION_LENGTH)}... [truncated]`;
 };
 
 export const validateFile = (file: File | null): null | string => {

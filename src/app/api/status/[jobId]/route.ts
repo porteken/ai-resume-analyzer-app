@@ -1,15 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+/* eslint-disable sort-imports */
 
 import { getApiConfig } from "@/config/env";
 import {
+  UPSTREAM_TIMEOUT_MS,
   createErrorResponse,
   isTimeoutError,
-  UPSTREAM_TIMEOUT_MS,
 } from "@/lib/server/api-utils";
 import { handleNonJsonResponse } from "@/lib/server/request-utils";
+import { NextResponse } from "next/server";
 
 export async function GET(
-  _request: NextRequest,
+  _request: Request,
   { params }: { params: Promise<{ jobId: string }> },
 ) {
   try {
@@ -50,7 +51,6 @@ export async function GET(
       );
     }
 
-    console.error("Status API error:", error);
     return createErrorResponse(
       "Failed to check status",
       500,

@@ -1,9 +1,9 @@
-interface MockAnalysisResult {
+type MockAnalysisResult = {
   gaps?: string;
   matchScore?: string;
   recommendations?: string;
   strengths?: string;
-}
+};
 
 function createMockAnalysisResult(overrides?: MockAnalysisResult): string {
   const defaults = {

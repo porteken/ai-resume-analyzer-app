@@ -1,9 +1,11 @@
+/* eslint-disable jest/max-expects, jest/prefer-expect-assertions, sort-imports, vitest/max-expects, vitest/prefer-expect-assertions */
+
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import About from "./page";
 
-describe("About Page Component", () => {
+describe("about page component", () => {
   it("should render the main heading", () => {
     render(<About />);
     expect(screen.getByText("About AI Resume Analyzer")).toBeInTheDocument();

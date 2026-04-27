@@ -1,6 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+/* eslint-disable jest/no-hooks, jest/prefer-expect-assertions, vitest/prefer-expect-assertions */
 
 import { ApiClientError, getJson, postJson } from "@/lib/api-client";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const originalFetch = globalThis.fetch;
 const createFetchMock = () => vi.fn<typeof fetch>();
@@ -26,21 +27,23 @@ const createResponse = ({
     headers: new Headers(
       contentType ? { "content-type": contentType } : undefined,
     ),
-    json: vi.fn<() => Promise<unknown>>(async () => {
+    json: vi.fn<() => Promise<unknown>>(() => {
       if (jsonReject) {
-        throw new Error("Invalid JSON");
+        return Promise.reject(new Error("Invalid JSON"));
       }
 
-      return data;
+      return Promise.resolve(data);
     }),
     ok,
     status,
-    text: vi.fn<() => Promise<string>>(async () => {
+    text: vi.fn<() => Promise<string>>(() => {
       if (textReject) {
-        throw new Error("Unable to read text");
+        return Promise.reject(new Error("Unable to read text"));
       }
 
-      return text ?? (typeof data === "string" ? data : JSON.stringify(data));
+      return Promise.resolve(
+        text ?? (typeof data === "string" ? data : JSON.stringify(data)),
+      );
     }),
   }) as unknown as Response;
 
@@ -61,7 +64,7 @@ describe("api-client", () => {
 
   it("posts JSON payloads with the expected request config", async () => {
     const response = createResponse({ data: { ok: true } });
-    const signal = new AbortController().signal;
+    const { signal } = new AbortController();
 
     fetchMock.mockResolvedValue(response);
 
@@ -82,7 +85,7 @@ describe("api-client", () => {
 
   it("issues GET requests with an optional abort signal", async () => {
     const response = createResponse({ data: { status: "ok" } });
-    const signal = new AbortController().signal;
+    const { signal } = new AbortController();
 
     fetchMock.mockResolvedValue(response);
 

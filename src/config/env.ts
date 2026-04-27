@@ -1,17 +1,17 @@
-interface ApiConfig {
+type ApiConfig = {
   analyzeEndpoint: string;
   apiKey: string;
   statusEndpoint: string;
   uploadEndpoint: string;
-}
+};
 
-interface ApiConfigDiagnostics {
+type ApiConfigDiagnostics = {
   apiKeyFingerprint: null | string;
   apiKeySource: ApiKeySource;
   endpointForLog: null | string;
   endpointSource: EndpointSource;
   hasEndpointConflict: boolean;
-}
+};
 
 type ApiKeySource = "API_KEY" | "missing";
 type EndpointSource = "API_ENDPOINT" | "missing" | "NEXT_PUBLIC_API_ENDPOINT";
@@ -108,7 +108,7 @@ const getSecretFingerprint = (value: string): string => {
   return `len:${value.length}..${suffix}`;
 };
 
-export const getEndpointLogValue = (endpoint: string): string => {
+const getEndpointLogValue = (endpoint: string): string => {
   try {
     const parsed = new URL(endpoint);
     return `${parsed.origin}${parsed.pathname}`;
@@ -158,18 +158,12 @@ export const getApiConfig = (): ApiConfig | null => {
   const apiKey = getFirstNonEmptyEnv("API_KEY");
 
   if (!apiEndpoint || !apiKey) {
-    console.error("Missing environment variables:", {
-      hasApiEndpoint: hasNonEmptyEnv("API_ENDPOINT"),
-      hasApiKey: hasNonEmptyEnv("API_KEY"),
-      hasPublicApiEndpoint: hasNonEmptyEnv("NEXT_PUBLIC_API_ENDPOINT"),
-    });
     return null;
   }
 
   const baseEndpoint = deriveBaseEndpoint(apiEndpoint);
 
   if (!baseEndpoint) {
-    console.error("Invalid API endpoint URL:", { apiEndpoint });
     return null;
   }
 

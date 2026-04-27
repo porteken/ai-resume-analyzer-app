@@ -1,10 +1,12 @@
+/* eslint-disable sort-imports */
+
 import "./globals.css";
 
+import { SITE_DESCRIPTION, SITE_NAME, getSiteUrl } from "@/lib/site-url";
 import { Analytics } from "@vercel/analytics/next";
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-import { getSiteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site-url";
+import type { Metadata } from "next";
 
 const geistSans = Geist({
   subsets: ["latin"],

@@ -1,7 +1,8 @@
-import { NextRequest } from "next/server";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+/* eslint-disable jest/no-hooks, jest/prefer-expect-assertions, sort-imports, vitest/prefer-expect-assertions */
 
 import { MAX_JOB_DESCRIPTION_CHARS } from "@/features/resume-analysis/utils/job-description";
+import { NextRequest } from "next/server";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockApiEndpoint = "https://api.example.com/analyze";
 const mockApiKey = "test-api-key";
@@ -26,7 +27,7 @@ const createRawRequest = (body: string) =>
     method: "POST",
   });
 
-describe("Upload API Route", () => {
+describe("upload API Route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
@@ -47,7 +48,7 @@ describe("Upload API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => mockResponseData,
+        json: () => Promise.resolve(mockResponseData),
         status: 200,
       }),
     );
@@ -75,7 +76,7 @@ describe("Upload API Route", () => {
       }),
     );
     expect(response.status).toBe(200);
-    expect(data).toEqual(mockResponseData);
+    expect(data).toStrictEqual(mockResponseData);
   });
 
   it("should return 500 if required env vars are missing", async () => {
@@ -101,7 +102,7 @@ describe("Upload API Route", () => {
       createMockResponse({
         headers: new Headers({ "content-type": "text/html" }),
         status: 502,
-        text: async () => "<html>Error page</html>",
+        text: () => Promise.resolve("<html>Error page</html>"),
       }),
     );
     globalThis.fetch = mockedFetch as typeof fetch;
@@ -134,8 +135,8 @@ describe("Upload API Route", () => {
   });
 
   it("should handle non-timeout fetch errors", async () => {
-    const mockedFetch = createFetchMock().mockImplementation(() =>
-      Promise.reject(new Error("Network error")),
+    const mockedFetch = createFetchMock().mockRejectedValue(
+      new Error("Network error"),
     );
     globalThis.fetch = mockedFetch as typeof fetch;
 
@@ -197,7 +198,7 @@ describe("Upload API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({ error: "Invalid input" }),
+        json: () => Promise.resolve({ error: "Invalid input" }),
         status: 400,
       }),
     );

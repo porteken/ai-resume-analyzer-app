@@ -1,6 +1,6 @@
-"use client";
+/* eslint-disable sort-imports */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+"use client";
 
 import {
   pollForResults,
@@ -8,15 +8,17 @@ import {
 } from "@/features/resume-analysis/api/resume-api";
 import { validateFile } from "@/features/resume-analysis/utils/file-validation";
 import { validateJobDescription } from "@/features/resume-analysis/utils/job-description";
-import { type AnalysisResultData } from "@/types";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-interface UseResumeAnalysisReturn {
+import type { AnalysisResultData } from "@/types";
+
+type UseResumeAnalysisReturn = {
   error: null | string;
   isLoading: boolean;
   result: AnalysisResultData | null;
   statusMessage: string;
   submitAnalysis: (file: File | null, jobDescription: string) => Promise<void>;
-}
+};
 
 const getSubmitErrorMessage = (error_: unknown): string => {
   if (!(error_ instanceof Error)) {
@@ -60,14 +62,73 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
     [],
   );
 
+  const resetForValidationError = (validationError: string) => {
+    setResult(null);
+    setStatusMessage("");
+    setError(validationError);
+  };
+
+  const startRequest = (): AbortController => {
+    abortControllerReference.current?.abort();
+    const abortController = new AbortController();
+    abortControllerReference.current = abortController;
+    setIsLoading(true);
+    setError(null);
+    setResult(null);
+    setStatusMessage("Uploading Resume...");
+    return abortController;
+  };
+
+  const finishRequest = (abortController: AbortController) => {
+    if (abortControllerReference.current === abortController) {
+      abortControllerReference.current = null;
+      setIsLoading(false);
+      setStatusMessage("");
+    }
+  };
+
+  const runAnalysis = async (
+    file: File,
+    jobDescription: string,
+    abortController: AbortController,
+  ) => {
+    const uploadData = await uploadResume(
+      file,
+      jobDescription.trim(),
+      setStatusMessage,
+      {
+        signal: abortController.signal,
+      },
+    );
+
+    if (uploadData.analysis_result) {
+      setResult(uploadData.analysis_result);
+      return;
+    }
+
+    if (!uploadData.job_id) {
+      throw new Error(
+        "Unexpected response format from server. No job_id or analysis_result found.",
+      );
+    }
+
+    setStatusMessage("Analyzing Resume...");
+    const analysisResult = await pollForResults(
+      uploadData.job_id,
+      setStatusMessage,
+      {
+        signal: abortController.signal,
+      },
+    );
+    setResult(analysisResult);
+  };
+
   const submitAnalysis = useCallback(
     async (file: File | null, jobDescription: string) => {
       const validationError =
         validateFile(file) || validateJobDescription(jobDescription);
       if (validationError) {
-        setResult(null);
-        setStatusMessage("");
-        setError(validationError);
+        resetForValidationError(validationError);
         return;
       }
 
@@ -75,58 +136,18 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
         return;
       }
 
-      abortControllerReference.current?.abort();
-      const abortController = new AbortController();
-      abortControllerReference.current = abortController;
-
-      setIsLoading(true);
-      setError(null);
-      setResult(null);
-      setStatusMessage("Uploading Resume...");
+      const abortController = startRequest();
 
       try {
-        setStatusMessage("Uploading Resume...");
-        const uploadData = await uploadResume(
-          file,
-          jobDescription.trim(),
-          setStatusMessage,
-          {
-            signal: abortController.signal,
-          },
-        );
-
-        if (uploadData.analysis_result) {
-          setResult(uploadData.analysis_result);
-        } else if (uploadData.job_id) {
-          setStatusMessage("Analyzing Resume...");
-          const analysisResult = await pollForResults(
-            uploadData.job_id,
-            setStatusMessage,
-            {
-              signal: abortController.signal,
-            },
-          );
-          setResult(analysisResult);
-        } else {
-          throw new Error(
-            "Unexpected response format from server. No job_id or analysis_result found.",
-          );
-        }
+        await runAnalysis(file, jobDescription, abortController);
       } catch (error_: unknown) {
         if (error_ instanceof Error && error_.name === "AbortError") {
           return;
         }
 
-        if (process.env.NEXT_PUBLIC_E2E_TEST !== "1") {
-          console.error(error_);
-        }
         setError(getSubmitErrorMessage(error_));
       } finally {
-        if (abortControllerReference.current === abortController) {
-          abortControllerReference.current = null;
-          setIsLoading(false);
-          setStatusMessage("");
-        }
+        finishRequest(abortController);
       }
     },
     [],

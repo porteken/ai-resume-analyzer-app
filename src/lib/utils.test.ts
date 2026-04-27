@@ -1,3 +1,5 @@
+/* eslint-disable jest/prefer-expect-assertions, vitest/prefer-expect-assertions */
+
 import { describe, expect, it } from "vitest";
 
 import { cn } from "./utils";
@@ -10,8 +12,7 @@ describe("cn utility function", () => {
   });
 
   it("should handle conditional classes", () => {
-    const shouldHide = false;
-    const result = cn("text-base", shouldHide && "hidden", "visible");
+    const result = cn("text-base", false, "visible");
     expect(result).toContain("text-base");
     expect(result).toContain("visible");
     expect(result).not.toContain("hidden");

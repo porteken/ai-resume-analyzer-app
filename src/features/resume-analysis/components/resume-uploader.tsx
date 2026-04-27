@@ -1,7 +1,6 @@
-"use client";
+/* eslint-disable import/consistent-type-specifier-style, sort-imports */
 
-import { FileText, Loader2, Sparkles, Upload, X } from "lucide-react";
-import { type RefObject, useCallback, useMemo, useRef, useState } from "react";
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -9,12 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { MAX_JOB_DESCRIPTION_CHARS } from "@/features/resume-analysis/utils/job-description";
 import { toAscii } from "@/features/resume-analysis/utils/text";
 import { cn } from "@/lib/utils";
+import { FileText, Loader2, Sparkles, Upload, X } from "lucide-react";
+import { type RefObject, useCallback, useMemo, useRef, useState } from "react";
 
-interface ResumeUploaderProperties {
+type ResumeUploaderProperties = {
   isLoading: boolean;
   onSubmit: (file: File | null, jobDescription: string) => Promise<void>;
   statusMessage: string;
-}
+};
 
 const formatFileSize = (fileSizeInBytes: number): string => {
   if (fileSizeInBytes < 1024 * 1024) {
@@ -38,7 +39,7 @@ const getStatusProgress = (statusMessage: string): number => {
   return normalizedStatusMessage ? 20 : 12;
 };
 
-interface ResumeFileFieldProperties {
+type ResumeFileFieldProperties = {
   clearSelectedFile: () => void;
   file: File | null;
   fileInputReference: RefObject<HTMLInputElement | null>;
@@ -50,7 +51,7 @@ interface ResumeFileFieldProperties {
   handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   isDragging: boolean;
   isLoading: boolean;
-}
+};
 
 const ResumeFileField = ({
   clearSelectedFile,
@@ -170,11 +171,11 @@ const ResumeFileField = ({
   </div>
 );
 
-interface ResumeUploadProgressProperties {
+type ResumeUploadProgressProperties = {
   progressBarStyle: { width: string };
   progressValue: number;
   statusMessage: string;
-}
+};
 
 const ResumeUploadProgress = ({
   progressBarStyle,
@@ -198,10 +199,10 @@ const ResumeUploadProgress = ({
   </div>
 );
 
-interface ResumeSubmitButtonContentProperties {
+type ResumeSubmitButtonContentProperties = {
   buttonLabel: string;
   isLoading: boolean;
-}
+};
 
 const ResumeSubmitButtonContent = ({
   buttonLabel,

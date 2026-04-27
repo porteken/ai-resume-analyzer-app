@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import {
   AlertCircle,
   CheckCircle,
@@ -7,15 +8,14 @@ import {
   Lightbulb,
   TriangleAlert,
 } from "lucide-react";
-import { lazy, Suspense, useMemo } from "react";
+import { Suspense, lazy, useMemo } from "react";
 
-import { cn } from "@/lib/utils";
-import { type AnalysisResultData } from "@/types";
+import type { AnalysisResultData } from "@/types";
 
-interface AnalysisResultProperties {
+type AnalysisResultProperties = {
   error: null | string;
   result: AnalysisResultData | null;
-}
+};
 
 type StructuredAnalysisResult = Exclude<AnalysisResultData, string>;
 

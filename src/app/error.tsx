@@ -1,24 +1,18 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { AlertTriangle, Home, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { useEffect } from "react";
 
-import { Button } from "@/components/ui/button";
-
-interface ErrorPageProperties {
+type ErrorPageProperties = {
   error: Error & { digest?: string };
   reset: () => void;
-}
+};
 
 export default function ErrorPage({
   error,
   reset,
 }: Readonly<ErrorPageProperties>) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
-
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden p-6 text-center">
       <div className="animate-gradient-shift absolute inset-0 bg-linear-to-br from-indigo-100 via-white to-cyan-100 bg-size-[200%_200%]" />

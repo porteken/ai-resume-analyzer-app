@@ -1,3 +1,5 @@
+/* eslint-disable jest/no-conditional-in-test, sort-imports, vitest/no-conditional-in-test */
+
 import { expect } from "@playwright/test";
 
 import {
