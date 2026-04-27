@@ -18,7 +18,9 @@ describe("About Page Component", () => {
 
   it("should render GitHub links", () => {
     render(<About />);
-    const frontendLink = screen.getByText("Frontend App on GitHub");
+    const frontendLink = screen.getByRole("link", {
+      name: /frontend app on github/i,
+    });
     expect(frontendLink).toBeInTheDocument();
     expect(frontendLink).toHaveAttribute(
       "href",
@@ -27,7 +29,9 @@ describe("About Page Component", () => {
     expect(frontendLink).toHaveAttribute("target", "_blank");
     expect(frontendLink).toHaveAttribute("rel", "noopener noreferrer");
 
-    const backendLink = screen.getByText("Backend API on GitHub");
+    const backendLink = screen.getByRole("link", {
+      name: /backend api on github/i,
+    });
     expect(backendLink).toBeInTheDocument();
     expect(backendLink).toHaveAttribute(
       "href",
@@ -42,6 +46,14 @@ describe("About Page Component", () => {
     const emailLink = screen.getByText("porteken@gmail.com");
     expect(emailLink).toBeInTheDocument();
     expect(emailLink).toHaveAttribute("href", "mailto:porteken@gmail.com");
+  });
+
+  it("should render a back to home link", () => {
+    render(<About />);
+
+    const backLink = screen.getByRole("link", { name: /back to home/i });
+    expect(backLink).toBeInTheDocument();
+    expect(backLink).toHaveAttribute("href", "/");
   });
 
   it("should render project links and contact sections", () => {

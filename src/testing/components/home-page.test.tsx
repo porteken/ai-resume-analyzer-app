@@ -4,6 +4,7 @@ import { delay, http, HttpResponse } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Home from "@/app/page";
+import { MAX_JOB_DESCRIPTION_CHARS } from "@/features/resume-analysis/utils/job-description";
 import { MOCK_RESPONSES } from "@/testing/mocks/api";
 import {
   createMockFile,
@@ -129,6 +130,43 @@ describe("Home Page Component", () => {
 
     const button = screen.getByRole("button", { name: /analyze resume/i });
     expect(button).toBeDisabled();
+  });
+
+  it("should show a live character count for the job description", async () => {
+    const user = userEvent.setup();
+    render(<Home />);
+
+    const textarea = screen.getByLabelText(/job description/i);
+    expect(
+      screen.getByText(`0 / ${MAX_JOB_DESCRIPTION_CHARS.toLocaleString()}`),
+    ).toBeInTheDocument();
+
+    await user.type(textarea, "AI");
+
+    expect(
+      screen.getByText(`2 / ${MAX_JOB_DESCRIPTION_CHARS.toLocaleString()}`),
+    ).toBeInTheDocument();
+  });
+
+  it("should show the selected filename and allow removing it", async () => {
+    const user = userEvent.setup();
+    render(<Home />);
+
+    const file = createMockPDFFile();
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
+
+    await user.upload(fileInput, file);
+
+    expect(screen.getByText(file.name)).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: /remove selected resume/i }),
+    );
+
+    expect(screen.queryByText(file.name)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /analyze resume/i }),
+    ).toBeDisabled();
   });
 
   it("should show error when file is too large", async () => {

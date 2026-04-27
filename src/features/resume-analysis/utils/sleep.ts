@@ -1,5 +1,4 @@
-const createAbortError = (): DOMException =>
-  new DOMException("Request was aborted.", "AbortError");
+import { createAbortError } from "@/lib/abort-utils";
 
 export const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>
   new Promise((resolve, reject) => {

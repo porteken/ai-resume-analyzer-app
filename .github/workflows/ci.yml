@@ -39,12 +39,12 @@ jobs:
       - run: pnpm exec knip
 
   vitest-unit:
-    name: Vitest Unit (shard ${{ matrix.shard_index }}/5)
+    name: Vitest Unit (shard ${{ matrix.shard_index }}/2)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        shard_index: [1, 2, 3, 4, 5]
+        shard_index: [1, 2]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
@@ -59,7 +59,7 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - run: pnpm run test:unit --reporter=blob --shard=${{ matrix.shard_index }}/5
+      - run: pnpm run test:unit --reporter=blob --shard=${{ matrix.shard_index }}/2
 
       - name: Upload Vitest unit blob report
         if: always()
@@ -100,7 +100,7 @@ jobs:
         run: pnpm exec vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=junit
 
   playwright-e2e:
-    name: Playwright E2E (shard ${{ matrix.shard_index }}/20)
+    name: Playwright E2E (shard ${{ matrix.shard_index }}/5)
     runs-on: ubuntu-latest
 
     env:
@@ -110,29 +110,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard_index:
-          [
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            19,
-            20,
-          ]
+        shard_index: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
@@ -167,7 +145,7 @@ jobs:
         run: pnpm exec playwright install-deps
 
       - name: Run Playwright Shard
-        run: pnpm exec playwright test --shard=${{ matrix.shard_index }}/20 --reporter=list,blob
+        run: pnpm exec playwright test --shard=${{ matrix.shard_index }}/5 --reporter=list,blob
 
       - name: Upload Playwright Blob
         if: always()

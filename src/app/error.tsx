@@ -1,5 +1,7 @@
 "use client";
 
+import { AlertTriangle, Home, RefreshCw } from "lucide-react";
+import Link from "next/link";
 import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -18,16 +20,46 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="text-2xl font-semibold text-slate-900">
-        Something went wrong
-      </h1>
-      <p className="text-sm text-slate-600">
-        The page failed to load correctly. Please retry.
-      </p>
-      <Button onClick={reset} type="button" variant="outline">
-        Try again
-      </Button>
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden p-6 text-center">
+      <div className="animate-gradient-shift absolute inset-0 bg-linear-to-br from-indigo-100 via-white to-cyan-100 bg-size-[200%_200%]" />
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM2MzY2ZjEiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
+
+      <div className="relative z-10 mx-auto flex w-full max-w-xl flex-col gap-6 rounded-3xl border border-white/50 bg-white/75 p-8 shadow-2xl backdrop-blur-xl md:p-10">
+        <div className="animate-in fade-in zoom-in-95 mx-auto flex size-16 items-center justify-center rounded-3xl bg-linear-to-br from-amber-500 to-rose-500 text-white shadow-lg duration-700">
+          <AlertTriangle className="h-8 w-8" />
+        </div>
+
+        <div className="space-y-3">
+          <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
+            Something went wrong
+          </h1>
+          <p className="text-sm leading-6 text-slate-600 md:text-base">
+            The page failed to load correctly. Please retry or head back home.
+          </p>
+          {error.digest && (
+            <p className="text-xs font-medium tracking-wide text-slate-400 uppercase">
+              Reference: {error.digest}
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+          <Button
+            className="bg-linear-to-r from-indigo-600 to-cyan-600 text-white hover:from-indigo-700 hover:to-cyan-700"
+            onClick={reset}
+            type="button"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Try again
+          </Button>
+          <Button asChild type="button" variant="outline">
+            <Link href="/">
+              <Home className="h-4 w-4" />
+              Back to Home
+            </Link>
+          </Button>
+        </div>
+      </div>
     </main>
   );
 }

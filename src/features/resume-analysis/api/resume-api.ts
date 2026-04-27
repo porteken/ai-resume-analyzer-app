@@ -4,10 +4,13 @@ import {
   truncateJobDescription,
 } from "@/features/resume-analysis/utils/file-validation";
 import { sleep } from "@/features/resume-analysis/utils/sleep";
+import { throwIfAborted } from "@/lib/abort-utils";
 import { ApiClientError, getJson, postJson } from "@/lib/api-client";
+import { isObjectRecord } from "@/lib/type-guards";
 import { type AnalysisResultData } from "@/types";
 
 const LEGACY_SAFE_JOB_DESCRIPTION_LENGTH = 500;
+const POLL_DELAY_BY_ATTEMPT_MS = [1000, 2000, 3000, 5000] as const;
 
 interface ApiErrorResponse {
   details?: string;
@@ -51,9 +54,6 @@ interface UploadResumeResponse {
 
 const isAbortError = (error: unknown): boolean =>
   error instanceof Error && error.name === "AbortError";
-
-const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const isStringRecord = (value: unknown): value is Record<string, string> =>
   isObjectRecord(value) &&
@@ -147,14 +147,10 @@ const parseStatusResponse = (value: unknown): null | StatusResponseData => {
   };
 };
 
-const createAbortError = (): DOMException =>
-  new DOMException("Request was aborted.", "AbortError");
-
-const throwIfAborted = (signal?: AbortSignal): void => {
-  if (signal?.aborted) {
-    throw createAbortError();
-  }
-};
+const getPollDelayMs = (attempt: number): number =>
+  POLL_DELAY_BY_ATTEMPT_MS[
+    Math.min(attempt - 1, POLL_DELAY_BY_ATTEMPT_MS.length - 1)
+  ] ?? 5000;
 
 const sendUploadRequest = async (
   requestBody: object,
@@ -498,7 +494,7 @@ export const pollForResults = async (
   while (attempts < maxAttempts) {
     attempts++;
 
-    await sleep(2000, options?.signal);
+    await sleep(getPollDelayMs(attempts), options?.signal);
     throwIfAborted(options?.signal);
 
     const statusResponse = await getStatusResponse(statusUrl, options?.signal);

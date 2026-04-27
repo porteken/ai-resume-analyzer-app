@@ -250,11 +250,37 @@ describe("pollForResults", () => {
       vi.fn<(message: string) => void>(),
     );
     await Promise.all([
-      vi.advanceTimersByTimeAsync(2000),
+      vi.advanceTimersByTimeAsync(1000),
       expect(pollPromise).rejects.toThrow(
         "Unexpected response from status endpoint.",
       ),
     ]);
+  });
+
+  it("uses stepped backoff delays between polling attempts", async () => {
+    vi.useFakeTimers();
+    fetchMock
+      .mockResolvedValueOnce(createJsonResponse(200, { status: "processing" }))
+      .mockResolvedValueOnce(
+        createJsonResponse(200, {
+          analysis_result: "completed-analysis",
+          status: "completed",
+        }),
+      );
+
+    const onProgress = vi.fn<(message: string) => void>();
+    const pollPromise = pollForResults("job-123", onProgress);
+
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(onProgress).toHaveBeenCalledWith("Analyzing Resume...");
+
+    await vi.advanceTimersByTimeAsync(1999);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(1);
+    await expect(pollPromise).resolves.toBe("completed-analysis");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("supports aborting polling before the first request", async () => {

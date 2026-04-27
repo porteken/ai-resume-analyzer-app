@@ -4,6 +4,8 @@ import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { getSiteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site-url";
+
 const geistSans = Geist({
   subsets: ["latin"],
   variable: "--font-geist-sans",
@@ -14,10 +16,31 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
 });
 
+const siteUrl = getSiteUrl();
+
 export const metadata: Metadata = {
-  description:
-    "Upload your resume to match against any job description using Gemini 2.5 Flash AI.",
-  title: "AI Resume Analyzer",
+  alternates: {
+    canonical: "/",
+  },
+  applicationName: SITE_NAME,
+  description: SITE_DESCRIPTION,
+  metadataBase: new URL(siteUrl),
+  openGraph: {
+    description: SITE_DESCRIPTION,
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    type: "website",
+    url: siteUrl,
+  },
+  title: {
+    default: SITE_NAME,
+    template: `%s | ${SITE_NAME}`,
+  },
+  twitter: {
+    card: "summary",
+    description: SITE_DESCRIPTION,
+    title: SITE_NAME,
+  },
 };
 
 export default function RootLayout({

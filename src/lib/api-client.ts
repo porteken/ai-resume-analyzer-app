@@ -1,3 +1,5 @@
+import { isObjectRecord } from "@/lib/type-guards";
+
 const JSON_HEADERS = {
   "Content-Type": "application/json",
 } as const;
@@ -5,9 +7,6 @@ const JSON_HEADERS = {
 interface RequestOptions {
   signal?: AbortSignal;
 }
-
-const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const getErrorMessageFromPayload = (payload: unknown): null | string => {
   if (typeof payload === "string" && payload.trim() !== "") {
