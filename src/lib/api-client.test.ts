@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiClientError, getJson, postJson } from "@/lib/api-client";
 
 const originalFetch = globalThis.fetch;
+const createFetchMock = () => vi.fn<typeof fetch>();
 
 const createResponse = ({
   contentType = "application/json",
@@ -25,7 +26,7 @@ const createResponse = ({
     headers: new Headers(
       contentType ? { "content-type": contentType } : undefined,
     ),
-    json: vi.fn(async () => {
+    json: vi.fn<() => Promise<unknown>>(async () => {
       if (jsonReject) {
         throw new Error("Invalid JSON");
       }
@@ -34,7 +35,7 @@ const createResponse = ({
     }),
     ok,
     status,
-    text: vi.fn(async () => {
+    text: vi.fn<() => Promise<string>>(async () => {
       if (textReject) {
         throw new Error("Unable to read text");
       }
@@ -47,7 +48,7 @@ describe("api-client", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    fetchMock = vi.fn();
+    fetchMock = createFetchMock();
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     vi.stubEnv("NODE_ENV", "test");
   });

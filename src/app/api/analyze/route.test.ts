@@ -3,6 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockApiEndpoint = "https://api.example.com/upload";
 const mockApiKey = "test-api-key";
+const createFetchMock = () => vi.fn<typeof fetch>();
+const createMockResponse = (response: object): Response =>
+  response as unknown as Response;
 
 const loadPostHandler = async () => {
   const routeModule = await import("./route");
@@ -39,11 +42,13 @@ describe("Analyze API Route", () => {
 
   it("should proxy analyze requests to the canonical analyze endpoint", async () => {
     const mockResponseData = { status: "queued" };
-    const mockedFetch = vi.fn().mockResolvedValue({
-      headers: new Headers({ "content-type": "application/json" }),
-      json: async () => mockResponseData,
-      status: 200,
-    });
+    const mockedFetch = createFetchMock().mockResolvedValue(
+      createMockResponse({
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => mockResponseData,
+        status: 200,
+      }),
+    );
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
@@ -75,7 +80,7 @@ describe("Analyze API Route", () => {
     vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
     vi.stubEnv("API_KEY", "");
 
-    const mockedFetch = vi.fn();
+    const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch as typeof fetch;
     const POST = await loadPostHandler();
 
@@ -90,7 +95,7 @@ describe("Analyze API Route", () => {
   });
 
   it("should return 400 for invalid JSON body", async () => {
-    const mockedFetch = vi.fn();
+    const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
@@ -103,7 +108,7 @@ describe("Analyze API Route", () => {
   });
 
   it("should return 400 for non-object JSON body", async () => {
-    const mockedFetch = vi.fn();
+    const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
@@ -116,11 +121,13 @@ describe("Analyze API Route", () => {
   });
 
   it("should handle non-JSON responses from external API", async () => {
-    const mockedFetch = vi.fn().mockResolvedValue({
-      headers: new Headers({ "content-type": "text/plain" }),
-      status: 502,
-      text: async () => "gateway error",
-    });
+    const mockedFetch = createFetchMock().mockResolvedValue(
+      createMockResponse({
+        headers: new Headers({ "content-type": "text/plain" }),
+        status: 502,
+        text: async () => "gateway error",
+      }),
+    );
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
@@ -135,7 +142,7 @@ describe("Analyze API Route", () => {
     const timeoutError = Object.assign(new Error("Request timeout"), {
       name: "TimeoutError",
     });
-    const mockedFetch = vi.fn().mockRejectedValue(timeoutError);
+    const mockedFetch = createFetchMock().mockRejectedValue(timeoutError);
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
@@ -147,9 +154,9 @@ describe("Analyze API Route", () => {
   });
 
   it("should handle non-timeout fetch errors", async () => {
-    const mockedFetch = vi
-      .fn()
-      .mockImplementation(() => Promise.reject(new Error("Network error")));
+    const mockedFetch = createFetchMock().mockImplementation(() =>
+      Promise.reject(new Error("Network error")),
+    );
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
@@ -162,11 +169,13 @@ describe("Analyze API Route", () => {
   });
 
   it("should forward API response status codes", async () => {
-    const mockedFetch = vi.fn().mockResolvedValue({
-      headers: new Headers({ "content-type": "application/json" }),
-      json: async () => ({ error: "Bad request" }),
-      status: 400,
-    });
+    const mockedFetch = createFetchMock().mockResolvedValue(
+      createMockResponse({
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ error: "Bad request" }),
+        status: 400,
+      }),
+    );
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();

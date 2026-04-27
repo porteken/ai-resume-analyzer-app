@@ -21,11 +21,11 @@ afterAll(() => {
 vi.mock("next/navigation", () => ({
   usePathname: () => "",
   useRouter: () => ({
-    prefetch: vi.fn(),
-    push: vi.fn(),
-    replace: vi.fn(),
+    prefetch: vi.fn<() => Promise<void>>(),
+    push: vi.fn<(href: string) => void>(),
+    replace: vi.fn<(href: string) => void>(),
   }),
   useSearchParams: () => ({
-    get: vi.fn(),
+    get: vi.fn<(key: string) => null | string>().mockReturnValue(null),
   }),
 }));

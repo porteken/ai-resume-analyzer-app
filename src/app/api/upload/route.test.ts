@@ -5,6 +5,9 @@ import { MAX_JOB_DESCRIPTION_CHARS } from "@/features/resume-analysis/utils/job-
 
 const mockApiEndpoint = "https://api.example.com/analyze";
 const mockApiKey = "test-api-key";
+const createFetchMock = () => vi.fn<typeof fetch>();
+const createMockResponse = (response: object): Response =>
+  response as unknown as Response;
 
 const loadPostHandler = async () => {
   const routeModule = await import("./route");
@@ -41,11 +44,13 @@ describe("Upload API Route", () => {
 
   it("should proxy upload requests to the canonical upload endpoint", async () => {
     const mockResponseData = { job_id: "123", status: "processing" };
-    const mockedFetch = vi.fn().mockResolvedValue({
-      headers: new Headers({ "content-type": "application/json" }),
-      json: async () => mockResponseData,
-      status: 200,
-    });
+    const mockedFetch = createFetchMock().mockResolvedValue(
+      createMockResponse({
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => mockResponseData,
+        status: 200,
+      }),
+    );
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
@@ -77,7 +82,7 @@ describe("Upload API Route", () => {
     vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
     vi.stubEnv("API_KEY", "");
 
-    const mockedFetch = vi.fn();
+    const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch as typeof fetch;
     const POST = await loadPostHandler();
 
@@ -92,11 +97,13 @@ describe("Upload API Route", () => {
   });
 
   it("should handle non-JSON responses from external API", async () => {
-    const mockedFetch = vi.fn().mockResolvedValue({
-      headers: new Headers({ "content-type": "text/html" }),
-      status: 502,
-      text: async () => "<html>Error page</html>",
-    });
+    const mockedFetch = createFetchMock().mockResolvedValue(
+      createMockResponse({
+        headers: new Headers({ "content-type": "text/html" }),
+        status: 502,
+        text: async () => "<html>Error page</html>",
+      }),
+    );
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
@@ -113,7 +120,7 @@ describe("Upload API Route", () => {
     const timeoutError = Object.assign(new Error("Request timeout"), {
       name: "TimeoutError",
     });
-    const mockedFetch = vi.fn().mockRejectedValue(timeoutError);
+    const mockedFetch = createFetchMock().mockRejectedValue(timeoutError);
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
@@ -127,9 +134,9 @@ describe("Upload API Route", () => {
   });
 
   it("should handle non-timeout fetch errors", async () => {
-    const mockedFetch = vi
-      .fn()
-      .mockImplementation(() => Promise.reject(new Error("Network error")));
+    const mockedFetch = createFetchMock().mockImplementation(() =>
+      Promise.reject(new Error("Network error")),
+    );
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
@@ -144,7 +151,7 @@ describe("Upload API Route", () => {
   });
 
   it("should return 400 for invalid JSON body", async () => {
-    const mockedFetch = vi.fn();
+    const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
@@ -157,7 +164,7 @@ describe("Upload API Route", () => {
   });
 
   it("should return 400 for non-object JSON body", async () => {
-    const mockedFetch = vi.fn();
+    const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
@@ -170,7 +177,7 @@ describe("Upload API Route", () => {
   });
 
   it("should return 400 for overly long job descriptions", async () => {
-    const mockedFetch = vi.fn();
+    const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();
@@ -187,11 +194,13 @@ describe("Upload API Route", () => {
   });
 
   it("should forward API response status codes", async () => {
-    const mockedFetch = vi.fn().mockResolvedValue({
-      headers: new Headers({ "content-type": "application/json" }),
-      json: async () => ({ error: "Invalid input" }),
-      status: 400,
-    });
+    const mockedFetch = createFetchMock().mockResolvedValue(
+      createMockResponse({
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ error: "Invalid input" }),
+        status: 400,
+      }),
+    );
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const POST = await loadPostHandler();

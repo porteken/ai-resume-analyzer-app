@@ -3,6 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockApiEndpoint = "https://api.example.com/upload";
 const mockApiKey = "test-api-key";
+const createFetchMock = () => vi.fn<typeof fetch>();
+const createMockResponse = (response: object): Response =>
+  response as unknown as Response;
 
 const loadGetHandler = async () => {
   const routeModule = await import("./route");
@@ -33,11 +36,13 @@ describe("Status API Route", () => {
   });
 
   it("should construct the status URL from upload endpoint", async () => {
-    const mockedFetch = vi.fn().mockResolvedValue({
-      headers: new Headers({ "content-type": "application/json" }),
-      json: async () => ({ status: "processing" }),
-      status: 200,
-    });
+    const mockedFetch = createFetchMock().mockResolvedValue(
+      createMockResponse({
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ status: "processing" }),
+        status: 200,
+      }),
+    );
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const GET = await loadGetHandler();
@@ -57,11 +62,13 @@ describe("Status API Route", () => {
   it("should construct the status URL from analyze endpoint", async () => {
     vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "https://api.example.com/analyze");
 
-    const mockedFetch = vi.fn().mockResolvedValue({
-      headers: new Headers({ "content-type": "application/json" }),
-      json: async () => ({ status: "processing" }),
-      status: 200,
-    });
+    const mockedFetch = createFetchMock().mockResolvedValue(
+      createMockResponse({
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ status: "processing" }),
+        status: 200,
+      }),
+    );
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const GET = await loadGetHandler();
@@ -74,11 +81,13 @@ describe("Status API Route", () => {
   });
 
   it("should URL-encode special characters in job ID", async () => {
-    const mockedFetch = vi.fn().mockResolvedValue({
-      headers: new Headers({ "content-type": "application/json" }),
-      json: async () => ({ status: "processing" }),
-      status: 200,
-    });
+    const mockedFetch = createFetchMock().mockResolvedValue(
+      createMockResponse({
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ status: "processing" }),
+        status: 200,
+      }),
+    );
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const jobId = "job/123?x=1";
@@ -95,7 +104,7 @@ describe("Status API Route", () => {
     vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
     vi.stubEnv("API_KEY", "");
 
-    const mockedFetch = vi.fn();
+    const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const GET = await loadGetHandler();
@@ -108,11 +117,13 @@ describe("Status API Route", () => {
   });
 
   it("should handle non-JSON responses from external API", async () => {
-    const mockedFetch = vi.fn().mockResolvedValue({
-      headers: new Headers({ "content-type": "text/html" }),
-      status: 404,
-      text: async () => "<html>Not Found</html>",
-    });
+    const mockedFetch = createFetchMock().mockResolvedValue(
+      createMockResponse({
+        headers: new Headers({ "content-type": "text/html" }),
+        status: 404,
+        text: async () => "<html>Not Found</html>",
+      }),
+    );
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const GET = await loadGetHandler();
@@ -130,7 +141,7 @@ describe("Status API Route", () => {
     const timeoutError = Object.assign(new Error("Request timeout"), {
       name: "TimeoutError",
     });
-    const mockedFetch = vi.fn().mockRejectedValue(timeoutError);
+    const mockedFetch = createFetchMock().mockRejectedValue(timeoutError);
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const GET = await loadGetHandler();
@@ -142,11 +153,9 @@ describe("Status API Route", () => {
   });
 
   it("should handle non-timeout fetch errors", async () => {
-    const mockedFetch = vi
-      .fn()
-      .mockImplementation(() =>
-        Promise.reject(new Error("Connection timeout")),
-      );
+    const mockedFetch = createFetchMock().mockImplementation(() =>
+      Promise.reject(new Error("Connection timeout")),
+    );
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const GET = await loadGetHandler();
@@ -159,11 +168,13 @@ describe("Status API Route", () => {
   });
 
   it("should forward API response status codes", async () => {
-    const mockedFetch = vi.fn().mockResolvedValue({
-      headers: new Headers({ "content-type": "application/json" }),
-      json: async () => ({ error: "Job not found" }),
-      status: 404,
-    });
+    const mockedFetch = createFetchMock().mockResolvedValue(
+      createMockResponse({
+        headers: new Headers({ "content-type": "application/json" }),
+        json: async () => ({ error: "Job not found" }),
+        status: 404,
+      }),
+    );
     globalThis.fetch = mockedFetch as typeof fetch;
 
     const GET = await loadGetHandler();

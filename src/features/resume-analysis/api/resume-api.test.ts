@@ -6,15 +6,16 @@ import {
 } from "@/features/resume-analysis/api/resume-api";
 
 const originalFetch = globalThis.fetch;
+const createFetchMock = () => vi.fn<typeof fetch>();
 
 const createJsonResponse = (status: number, data: unknown): Response =>
   ({
     headers: new Headers({ "content-type": "application/json" }),
-    json: vi.fn(async () => data),
+    json: vi.fn<() => Promise<unknown>>(async () => data),
     ok: status >= 200 && status < 300,
     status,
     statusText: "OK",
-    text: vi.fn(async () => JSON.stringify(data)),
+    text: vi.fn<() => Promise<string>>(async () => JSON.stringify(data)),
   }) as unknown as Response;
 
 const parseRequestJsonBody = <T>(request: RequestInit | undefined): T => {
@@ -31,7 +32,7 @@ describe("uploadResume", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    fetchMock = vi.fn();
+    fetchMock = createFetchMock();
     globalThis.fetch = fetchMock as unknown as typeof fetch;
   });
 
@@ -230,7 +231,7 @@ describe("pollForResults", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    fetchMock = vi.fn();
+    fetchMock = createFetchMock();
     globalThis.fetch = fetchMock as unknown as typeof fetch;
   });
 
@@ -244,7 +245,10 @@ describe("pollForResults", () => {
     vi.useFakeTimers();
     fetchMock.mockResolvedValueOnce(createJsonResponse(200, { foo: "bar" }));
 
-    const pollPromise = pollForResults("job-123", vi.fn());
+    const pollPromise = pollForResults(
+      "job-123",
+      vi.fn<(message: string) => void>(),
+    );
     await Promise.all([
       vi.advanceTimersByTimeAsync(2000),
       expect(pollPromise).rejects.toThrow(
@@ -258,7 +262,9 @@ describe("pollForResults", () => {
     abortController.abort();
 
     await expect(
-      pollForResults("job-123", vi.fn(), { signal: abortController.signal }),
+      pollForResults("job-123", vi.fn<(message: string) => void>(), {
+        signal: abortController.signal,
+      }),
     ).rejects.toMatchObject({
       name: "AbortError",
     });

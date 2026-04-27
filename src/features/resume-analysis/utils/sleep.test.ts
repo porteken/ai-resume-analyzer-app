@@ -10,7 +10,7 @@ describe("sleep", () => {
   it("resolves after the requested delay", async () => {
     vi.useFakeTimers();
 
-    const onResolved = vi.fn();
+    const onResolved = vi.fn<() => void>();
     const promise = sleep(100).then(onResolved);
 
     await vi.advanceTimersByTimeAsync(99);
