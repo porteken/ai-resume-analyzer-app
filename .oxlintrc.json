@@ -156,11 +156,7 @@
       }
     },
     {
-      "files": [
-        "**/__tests__/**/*.{ts,tsx}",
-        "**/*.test.{ts,tsx}",
-        "**/*.spec.{ts,tsx}"
-      ],
+      "files": ["**/__tests__/**/*.{ts,tsx}", "**/*.test.{ts,tsx}"],
       "rules": {
         "vitest/expect-expect": "error",
         "vitest/no-conditional-expect": "error",
@@ -188,7 +184,7 @@
       }
     },
     {
-      "files": ["tests/**"],
+      "files": ["e2e/**"],
       "rules": {
         "no-empty-pattern": "off",
         "playwright/consistent-spacing-between-blocks": "error",

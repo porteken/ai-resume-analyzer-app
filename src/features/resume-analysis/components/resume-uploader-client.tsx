@@ -3,7 +3,7 @@
 import { AnalysisResult } from "@/features/resume-analysis/components/analysis-result";
 import { ResumeUploader } from "@/features/resume-analysis/components/resume-uploader";
 import { useResumeAnalysis } from "@/features/resume-analysis/hooks/use-resume-analysis";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export const ResumeUploaderClient = () => {
   const [isMounted, setIsMounted] = useState(process.env.NODE_ENV === "test");
@@ -23,6 +23,10 @@ export const ResumeUploaderClient = () => {
     setIsMounted(true);
   }, []);
 
+  const handleFileSelectionSuccess = useCallback(() => {
+    setSelectedFileError(null);
+  }, []);
+
   if (!isMounted) {
     return null;
   }
@@ -36,9 +40,7 @@ export const ResumeUploaderClient = () => {
         isLoading={isLoading}
         onCancel={cancelAnalysis}
         onFileSelectionError={setSelectedFileError}
-        onFileSelectionSuccess={() => {
-          setSelectedFileError(null);
-        }}
+        onFileSelectionSuccess={handleFileSelectionSuccess}
         onSubmit={submitAnalysis}
         statusMessage={statusMessage}
       />
