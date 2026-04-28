@@ -1,5 +1,3 @@
-/* eslint-disable import/consistent-type-specifier-style */
-
 import { MOCK_RESPONSES } from "@/testing/mocks/api";
 import {
   createExactSizePDF as createExactSizePDFBuffer,

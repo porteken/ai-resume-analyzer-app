@@ -1,5 +1,3 @@
-/* eslint-disable sort-imports */
-
 import Home from "@/app/page";
 import { MAX_JOB_DESCRIPTION_CHARS } from "@/features/resume-analysis/utils/job-description";
 import { MOCK_RESPONSES } from "@/testing/mocks/api";

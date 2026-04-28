@@ -1,5 +1,3 @@
-/* eslint-disable vitest/prefer-called-times */
-
 import { sleep } from "@/features/resume-analysis/utils/sleep";
 import { afterEach, describe, expect, it, vi } from "vitest";
 

@@ -1,5 +1,3 @@
-/* eslint-disable vitest/prefer-strict-boolean-matchers */
-
 import {
   sanitizeFilename,
   truncateJobDescription,

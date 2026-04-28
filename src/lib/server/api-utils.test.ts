@@ -1,5 +1,3 @@
-/* eslint-disable vitest/prefer-strict-boolean-matchers */
-
 import { createErrorResponse, isTimeoutError } from "@/lib/server/api-utils";
 import { describe, expect, it } from "vitest";
 

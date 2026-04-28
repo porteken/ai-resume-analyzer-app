@@ -1,5 +1,3 @@
-/* eslint-disable vitest/prefer-strict-boolean-matchers */
-
 import { getApiConfig, getApiConfigDiagnostics } from "@/config/env";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 

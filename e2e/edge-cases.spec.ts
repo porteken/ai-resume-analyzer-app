@@ -1,5 +1,3 @@
-/* eslint-disable vitest/no-conditional-in-test */
-
 import { expect } from "@playwright/test";
 
 import {

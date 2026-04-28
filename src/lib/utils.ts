@@ -1,5 +1,3 @@
-/* eslint-disable import/consistent-type-specifier-style */
-
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 

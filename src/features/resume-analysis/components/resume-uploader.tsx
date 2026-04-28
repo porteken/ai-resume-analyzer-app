@@ -1,5 +1,3 @@
-/* eslint-disable import/consistent-type-specifier-style */
-
 "use client";
 
 import { Button } from "@/components/ui/button";

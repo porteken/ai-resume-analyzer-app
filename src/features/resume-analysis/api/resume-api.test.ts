@@ -1,5 +1,3 @@
-/* eslint-disable vitest/prefer-called-once */
-
 import {
   pollForResults,
   uploadResume,

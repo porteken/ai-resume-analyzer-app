@@ -284,7 +284,48 @@ const getStatusResponse = async (
   }
 };
 
-/* eslint-disable sonarjs/function-return-type */
+const pollUntilComplete = async (
+  statusUrl: string,
+  onProgress: (message: string) => void,
+  signal: AbortSignal | undefined,
+  attempt: number,
+  maxAttempts: number,
+): Promise<AnalysisResultData> => {
+  if (attempt > maxAttempts) {
+    throw new Error("Request timed out.");
+  }
+
+  await sleep(getPollDelayMs(attempt), signal);
+  throwIfAborted(signal);
+
+  const statusResponse = await getStatusResponse(statusUrl, signal);
+  const statusJson = await statusResponse.json().catch(() => null);
+  const statusData = parseStatusResponse(statusJson);
+
+  if (!statusData) {
+    throw new Error("Unexpected response from status endpoint.");
+  }
+
+  const completedResult = getCompletedPollResult(statusData);
+  if (completedResult !== null) {
+    return completedResult;
+  }
+
+  if (statusData.status === "failed") {
+    throw new Error(statusData.error || "Analysis failed on server.");
+  }
+
+  onProgress("Analyzing Resume...");
+
+  return pollUntilComplete(
+    statusUrl,
+    onProgress,
+    signal,
+    attempt + 1,
+    maxAttempts,
+  );
+};
+
 const getCompletedPollResult = (
   statusData: StatusResponseData,
 ): AnalysisResultData | null => {
@@ -301,7 +342,6 @@ const getCompletedPollResult = (
   assertCompletedPollResult(analysisResult);
   return analysisResult;
 };
-/* eslint-enable sonarjs/function-return-type */
 
 /**
  * Uploads a PDF directly to S3 using a presigned URL.
@@ -501,35 +541,14 @@ export const pollForResults = async (
 ): Promise<AnalysisResultData> => {
   const statusUrl = `/api/status/${jobId}`;
   const maxAttempts = 150;
-  let attempts = 0;
 
-  /* eslint-disable no-await-in-loop */
-  while (attempts < maxAttempts) {
-    attempts++;
-
-    await sleep(getPollDelayMs(attempts), options?.signal);
-    throwIfAborted(options?.signal);
-
-    const statusResponse = await getStatusResponse(statusUrl, options?.signal);
-    const statusJson = await statusResponse.json().catch(() => null);
-    const statusData = parseStatusResponse(statusJson);
-
-    if (!statusData) {
-      throw new Error("Unexpected response from status endpoint.");
-    }
-
-    const completedResult = getCompletedPollResult(statusData);
-    if (completedResult !== null) return completedResult;
-
-    if (statusData.status === "failed") {
-      throw new Error(statusData.error || "Analysis failed on server.");
-    }
-
-    onProgress("Analyzing Resume...");
-  }
-  /* eslint-enable no-await-in-loop */
-
-  throw new Error("Request timed out.");
+  return pollUntilComplete(
+    statusUrl,
+    onProgress,
+    options?.signal,
+    1,
+    maxAttempts,
+  );
 };
 
 function assertCompletedPollResult(
