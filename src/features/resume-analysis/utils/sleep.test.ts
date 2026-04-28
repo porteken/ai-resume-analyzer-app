@@ -1,4 +1,4 @@
-/* eslint-disable jest/no-hooks, jest/prefer-expect-assertions, vitest/prefer-called-times, vitest/prefer-describe-function-title, vitest/prefer-expect-assertions */
+/* eslint-disable vitest/prefer-called-times */
 
 import { sleep } from "@/features/resume-analysis/utils/sleep";
 import { afterEach, describe, expect, it, vi } from "vitest";

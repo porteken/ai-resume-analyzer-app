@@ -1,5 +1,3 @@
-/* eslint-disable jest/max-expects, jest/prefer-expect-assertions, sort-imports, vitest/max-expects, vitest/prefer-expect-assertions */
-
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 

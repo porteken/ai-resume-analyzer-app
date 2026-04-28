@@ -1,5 +1,3 @@
-/* eslint-disable jest/no-hooks, jest/prefer-expect-assertions, vitest/prefer-expect-assertions */
-
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 

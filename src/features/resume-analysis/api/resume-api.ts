@@ -1,5 +1,3 @@
-/* eslint-disable jsdoc/require-param, sort-imports */
-
 import { convertFileToBase64 } from "@/features/resume-analysis/utils/file-conversion";
 import {
   sanitizeFilename,
@@ -96,10 +94,17 @@ const parseUploadResumeResponse = (
     return null;
   }
 
-  return {
-    analysis_result: analysisResult ?? undefined,
-    job_id: jobId,
-  };
+  const response: UploadResumeResponse = {};
+
+  if (analysisResult !== null) {
+    response.analysis_result = analysisResult;
+  }
+
+  if (jobId) {
+    response.job_id = jobId;
+  }
+
+  return response;
 };
 
 const parsePresignedUploadResponse = (
@@ -299,8 +304,15 @@ const getCompletedPollResult = (
 /* eslint-enable sonarjs/function-return-type */
 
 /**
- * Uploads a PDF directly to S3 using a presigned URL
- * This avoids metadata size issues by using the presigned POST flow
+ * Uploads a PDF directly to S3 using a presigned URL.
+ *
+ * This avoids metadata size issues by using the presigned POST flow.
+ *
+ * @param {File} file - The resume PDF to upload.
+ * @param {string} presignedUrl - The S3 presigned POST endpoint.
+ * @param {PresignedUrlFields} fields - The S3 form fields required for the upload.
+ * @param {AbortSignal | undefined} signal - Optional abort signal for cancelling the upload.
+ * @returns {Promise<void>} A promise that resolves when the upload completes successfully.
  */
 const uploadToS3 = async (
   file: File,

@@ -1,5 +1,3 @@
-/* eslint-disable jest/no-hooks, jest/prefer-expect-assertions, vitest/prefer-expect-assertions */
-
 import { ApiClientError, getJson, postJson } from "@/lib/api-client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -98,11 +96,7 @@ describe("api-client", () => {
     });
   });
 
-  it("surfaces structured JSON error payloads and logs them in development", async () => {
-    const consoleErrorSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
-
+  it("surfaces structured JSON error payloads in development", async () => {
     vi.stubEnv("NODE_ENV", "development");
     fetchMock.mockResolvedValue(
       createResponse({
@@ -132,15 +126,6 @@ describe("api-client", () => {
     expect((error as ApiClientError).message).toBe(
       "Upload failed. Try again later.",
     );
-    expect(consoleErrorSpy).toHaveBeenCalledWith("API client request failed", {
-      data: {
-        details: "Try again later.",
-        error: "Upload failed.",
-      },
-      method: "POST",
-      status: 503,
-      url: "/api/upload",
-    });
   });
 
   it("uses plain-text error responses as the error message", async () => {

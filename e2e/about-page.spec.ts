@@ -19,7 +19,9 @@ test("should display the about page with title and description", async ({
 test("should display GitHub links", async ({ page }) => {
   await page.goto("/about");
 
-  const frontendLink = page.getByText("Frontend App on GitHub");
+  const frontendLink = page.getByRole("link", {
+    name: /frontend app on github/i,
+  });
   await expect(frontendLink).toBeVisible();
   await expect(frontendLink).toHaveAttribute(
     "href",
@@ -27,7 +29,9 @@ test("should display GitHub links", async ({ page }) => {
   );
   await expect(frontendLink).toHaveAttribute("target", "_blank");
 
-  const backendLink = page.getByText("Backend API on GitHub");
+  const backendLink = page.getByRole("link", {
+    name: /backend api on github/i,
+  });
   await expect(backendLink).toBeVisible();
   await expect(backendLink).toHaveAttribute(
     "href",
@@ -39,7 +43,7 @@ test("should display GitHub links", async ({ page }) => {
 test("should display contact email link", async ({ page }) => {
   await page.goto("/about");
 
-  const emailLink = page.getByText("porteken@gmail.com");
+  const emailLink = page.getByRole("link", { name: "porteken@gmail.com" });
   await expect(emailLink).toBeVisible();
   await expect(emailLink).toHaveAttribute("href", "mailto:porteken@gmail.com");
 });

@@ -1,5 +1,3 @@
-/* eslint-disable jest/no-hooks, jest/prefer-expect-assertions, jest/require-hook, vitest/prefer-describe-function-title, vitest/prefer-expect-assertions */
-
 import { convertFileToBase64 } from "@/features/resume-analysis/utils/file-conversion";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 

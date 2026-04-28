@@ -1,4 +1,4 @@
-/* eslint-disable import/consistent-type-specifier-style, react-hooks/rules-of-hooks, sort-imports */
+/* eslint-disable import/consistent-type-specifier-style */
 
 import { MOCK_RESPONSES } from "@/testing/mocks/api";
 import {

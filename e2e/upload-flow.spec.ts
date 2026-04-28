@@ -1,5 +1,3 @@
-/* eslint-disable sort-imports */
-
 import { expect } from "@playwright/test";
 
 import {

@@ -1,10 +1,8 @@
-/* eslint-disable jest/prefer-expect-assertions, require-await, vitest/prefer-expect-assertions */
-
 import {
   handleNonJsonResponse,
   parseRequestBody,
 } from "@/lib/server/request-utils";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 const createRequest = (json: () => Promise<unknown>) =>
   ({
@@ -14,7 +12,7 @@ const createRequest = (json: () => Promise<unknown>) =>
 describe("request-utils", () => {
   it("parses object request bodies", async () => {
     const result = await parseRequestBody(
-      createRequest(async () => ({ job_description: "Engineer" })),
+      createRequest(() => Promise.resolve({ job_description: "Engineer" })),
     );
 
     expect(result).toStrictEqual({
@@ -25,9 +23,7 @@ describe("request-utils", () => {
 
   it("returns a 400 response for invalid JSON", async () => {
     const result = await parseRequestBody(
-      createRequest(async () => {
-        throw new SyntaxError("Unexpected token");
-      }),
+      createRequest(() => Promise.reject(new SyntaxError("Unexpected token"))),
     );
 
     expect(result.body).toBeNull();
@@ -39,7 +35,9 @@ describe("request-utils", () => {
   });
 
   it("returns a 400 response when the parsed body is not an object", async () => {
-    const result = await parseRequestBody(createRequest(async () => ["oops"]));
+    const result = await parseRequestBody(
+      createRequest(() => Promise.resolve(["oops"])),
+    );
 
     expect(result.body).toBeNull();
     expect(result.error?.status).toBe(400);
@@ -52,36 +50,22 @@ describe("request-utils", () => {
   it("rethrows unexpected request parsing errors", async () => {
     await expect(
       parseRequestBody(
-        createRequest(async () => {
-          throw new TypeError("Body stream failed");
-        }),
+        createRequest(() =>
+          Promise.reject(new TypeError("Body stream failed")),
+        ),
       ),
     ).rejects.toThrow("Body stream failed");
   });
 
-  it("logs and wraps non-JSON upstream responses", async () => {
-    const consoleErrorSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+  it("wraps non-JSON upstream responses", async () => {
     const response = new Response("x".repeat(250), {
       headers: { "content-type": "text/html" },
       status: 502,
     });
 
-    const result = await handleNonJsonResponse(
-      response,
-      "Non-JSON response from analyze",
-    );
+    const result = await handleNonJsonResponse(response);
 
     expect(result.status).toBe(502);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Non-JSON response from analyze",
-      {
-        contentType: "text/html",
-        preview: "x".repeat(200),
-        status: 502,
-      },
-    );
     await expect(result.json()).resolves.toStrictEqual({
       details: "x".repeat(200),
       error:

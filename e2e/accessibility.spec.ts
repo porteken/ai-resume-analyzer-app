@@ -32,10 +32,13 @@ test.describe("Accessibility", () => {
     const aboutLink = page.getByRole("link", { name: /about/i });
     await expect(aboutLink).toBeFocused();
 
-    // Tab to file input
+    // Tab to the visible resume upload control
     await page.keyboard.press("Tab");
+    const uploadButton = page.getByRole("button", {
+      name: /drag your pdf here/i,
+    });
     const fileInput = page.locator('input[type="file"]');
-    await expect(fileInput).toBeFocused();
+    await expect(uploadButton).toBeFocused();
 
     await page.keyboard.press("Tab");
     const textarea = page.getByLabel(/job description/i);

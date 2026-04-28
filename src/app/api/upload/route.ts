@@ -1,5 +1,3 @@
-/* eslint-disable sort-imports */
-
 import { getApiConfig } from "@/config/env";
 import { validateJobDescription } from "@/features/resume-analysis/utils/job-description";
 import {

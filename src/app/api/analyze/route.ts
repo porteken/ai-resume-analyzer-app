@@ -1,5 +1,3 @@
-/* eslint-disable sort-imports */
-
 import { getApiConfig } from "@/config/env";
 import {
   ANALYZE_TIMEOUT_MS,

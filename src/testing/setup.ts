@@ -1,5 +1,3 @@
-/* eslint-disable jest/no-hooks, jest/require-top-level-describe */
-
 import "@testing-library/jest-dom/vitest";
 
 import { server } from "@/testing/mocks/server";
@@ -21,14 +19,21 @@ afterAll(() => {
   server.close();
 });
 
-vi.mock<typeof NextNavigation>(import("next/navigation"), () => ({
-  usePathname: () => "",
-  useRouter: () => ({
-    prefetch: vi.fn<() => Promise<void>>(),
-    push: vi.fn<(href: string) => void>(),
-    replace: vi.fn<(href: string) => void>(),
-  }),
-  useSearchParams: () => ({
-    get: vi.fn<(key: string) => null | string>().mockReturnValue(null),
-  }),
-}));
+vi.mock<typeof NextNavigation>(import("next/navigation"), () => {
+  const searchParams = new URLSearchParams() as unknown as ReturnType<
+    typeof NextNavigation.useSearchParams
+  >;
+
+  return {
+    usePathname: () => "",
+    useRouter: () => ({
+      back: vi.fn<() => void>(),
+      forward: vi.fn<() => void>(),
+      prefetch: vi.fn<() => Promise<void>>(),
+      push: vi.fn<(href: string) => void>(),
+      refresh: vi.fn<() => void>(),
+      replace: vi.fn<(href: string) => void>(),
+    }),
+    useSearchParams: () => searchParams,
+  };
+});

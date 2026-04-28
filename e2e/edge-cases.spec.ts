@@ -1,4 +1,4 @@
-/* eslint-disable jest/no-conditional-in-test, sort-imports, vitest/no-conditional-in-test */
+/* eslint-disable vitest/no-conditional-in-test */
 
 import { expect } from "@playwright/test";
 
@@ -202,7 +202,7 @@ test.describe("Analysis and Processing Edge Cases", () => {
     await page.route(`**/api/status/${jobId}`, async (route) => {
       pollCount++;
 
-      await (pollCount >= 10
+      await (pollCount >= 6
         ? route.fulfill({
             body: JSON.stringify({
               analysis_result: "## Match Score\n80% match",

@@ -1,5 +1,6 @@
+/* eslint-disable vitest/prefer-strict-boolean-matchers */
+
 import { createErrorResponse, isTimeoutError } from "@/lib/server/api-utils";
-/* eslint-disable jest/prefer-expect-assertions, vitest/prefer-expect-assertions, vitest/prefer-strict-boolean-matchers */
 import { describe, expect, it } from "vitest";
 
 describe("api-utils", () => {

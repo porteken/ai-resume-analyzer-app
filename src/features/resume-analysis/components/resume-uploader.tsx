@@ -1,4 +1,4 @@
-/* eslint-disable import/consistent-type-specifier-style, sort-imports */
+/* eslint-disable import/consistent-type-specifier-style */
 
 "use client";
 
@@ -88,6 +88,7 @@ const ResumeFileField = ({
       id="resume"
       onChange={handleFileChange}
       ref={fileInputReference}
+      tabIndex={-1}
       type="file"
     />
 

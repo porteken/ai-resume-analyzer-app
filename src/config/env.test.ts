@@ -1,4 +1,4 @@
-/* eslint-disable jest/no-hooks, jest/prefer-expect-assertions, vitest/prefer-describe-function-title, vitest/prefer-expect-assertions, vitest/prefer-to-be-truthy */
+/* eslint-disable vitest/prefer-strict-boolean-matchers */
 
 import { getApiConfig, getApiConfigDiagnostics } from "@/config/env";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -144,7 +144,7 @@ describe("aPI environment config", () => {
 
     expect(diagnostics.endpointSource).toBe("API_ENDPOINT");
     expect(diagnostics.apiKeySource).toBe("API_KEY");
-    expect(diagnostics.hasEndpointConflict).toBe(true);
+    expect(diagnostics.hasEndpointConflict).toBeTruthy();
     expect(diagnostics.endpointForLog).toBe(
       "https://api.example.com/dev/analyze",
     );

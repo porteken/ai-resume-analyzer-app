@@ -1,4 +1,4 @@
-/* eslint-disable jest/max-expects, jest/no-hooks, jest/prefer-ending-with-an-expect, jest/prefer-expect-assertions, vitest/prefer-called-once, vitest/prefer-describe-function-title, vitest/prefer-expect-assertions */
+/* eslint-disable vitest/prefer-called-once */
 
 import {
   pollForResults,
@@ -128,7 +128,7 @@ describe("resume upload API", () => {
     const secondPayload = parseRequestJsonBody<{
       pdf_base64?: string;
     }>(fetchMock.mock.calls[1]?.[1] as RequestInit);
-    expectTypeOf(secondPayload.pdf_base64).toBeString();
+    expectTypeOf(secondPayload.pdf_base64).toEqualTypeOf<string | undefined>();
     expect(secondPayload.pdf_base64?.length).toBeGreaterThan(0);
   });
 

@@ -1,5 +1,3 @@
-/* eslint-disable jest/prefer-expect-assertions, vitest/prefer-expect-assertions */
-
 import { describe, expect, it } from "vitest";
 
 import { cn } from "./utils";

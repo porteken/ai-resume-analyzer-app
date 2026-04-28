@@ -1,5 +1,3 @@
-/* eslint-disable jest/prefer-expect-assertions, vitest/prefer-describe-function-title, vitest/prefer-expect-assertions */
-
 import {
   MAX_JOB_DESCRIPTION_CHARS,
   validateJobDescription,

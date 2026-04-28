@@ -1,4 +1,4 @@
-/* eslint-disable jest/prefer-expect-assertions, vitest/prefer-expect-assertions, vitest/prefer-to-be-truthy */
+/* eslint-disable vitest/prefer-strict-boolean-matchers */
 
 import {
   sanitizeFilename,
@@ -16,7 +16,7 @@ describe("file-validation utilities", () => {
     const sanitized = sanitizeFilename(`${"a".repeat(250)}.txt`);
 
     expect(sanitized).toHaveLength(200);
-    expect(sanitized.endsWith(".pdf")).toBe(true);
+    expect(sanitized.endsWith(".pdf")).toBeTruthy();
   });
 
   it("truncates long job descriptions for legacy fallback payloads", () => {
@@ -24,7 +24,7 @@ describe("file-validation utilities", () => {
     const truncated = truncateJobDescription(description);
 
     expect(truncated).toHaveLength(10_015);
-    expect(truncated.endsWith("... [truncated]")).toBe(true);
+    expect(truncated.endsWith("... [truncated]")).toBeTruthy();
   });
 
   it("allows pdf files without a declared mime type", () => {

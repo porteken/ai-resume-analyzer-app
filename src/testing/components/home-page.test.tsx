@@ -1,4 +1,4 @@
-/* eslint-disable jest/max-expects, jest/no-hooks, jest/prefer-ending-with-an-expect, jest/prefer-expect-assertions, sort-imports, vitest/max-expects, vitest/no-hooks, vitest/prefer-expect-assertions */
+/* eslint-disable sort-imports */
 
 import Home from "@/app/page";
 import { MAX_JOB_DESCRIPTION_CHARS } from "@/features/resume-analysis/utils/job-description";

@@ -1,5 +1,3 @@
-/* eslint-disable sort-imports */
-
 import "./globals.css";
 
 import { SITE_DESCRIPTION, SITE_NAME, getSiteUrl } from "@/lib/site-url";

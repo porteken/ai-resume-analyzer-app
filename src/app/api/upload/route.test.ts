@@ -1,5 +1,3 @@
-/* eslint-disable jest/no-hooks, jest/prefer-expect-assertions, sort-imports, vitest/prefer-expect-assertions */
-
 import { MAX_JOB_DESCRIPTION_CHARS } from "@/features/resume-analysis/utils/job-description";
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";

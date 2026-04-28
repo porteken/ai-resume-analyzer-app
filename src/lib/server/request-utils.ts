@@ -1,13 +1,20 @@
 import { createErrorResponse } from "@/lib/server/api-utils";
 
-import type { NextRequest, NextResponse } from "next/server";
+import type { NextResponse } from "next/server";
+
+type ParseRequestBodyResult =
+  | {
+      body: Record<string, unknown>;
+      error: null;
+    }
+  | {
+      body: null;
+      error: NextResponse;
+    };
 
 export const parseRequestBody = async (
-  request: NextRequest,
-): Promise<{
-  body: null | Record<string, unknown>;
-  error: NextResponse | null;
-}> => {
+  request: Pick<Request, "json">,
+): Promise<ParseRequestBodyResult> => {
   let body: unknown;
 
   try {
