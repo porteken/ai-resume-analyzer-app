@@ -3,14 +3,25 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { validateFile } from "@/features/resume-analysis/utils/file-validation";
 import { MAX_JOB_DESCRIPTION_CHARS } from "@/features/resume-analysis/utils/job-description";
 import { toAscii } from "@/features/resume-analysis/utils/text";
 import { cn } from "@/lib/utils";
-import { FileText, Loader2, Sparkles, Upload, X } from "lucide-react";
-import { type RefObject, useCallback, useMemo, useRef, useState } from "react";
+import {
+  CheckCircle2,
+  FileText,
+  Loader2,
+  Sparkles,
+  Upload,
+  X,
+} from "lucide-react";
+import { type RefObject, useCallback, useRef, useState } from "react";
 
 type ResumeUploaderProperties = {
   isLoading: boolean;
+  onCancel: () => void;
+  onFileSelectionError: (message: string) => void;
+  onFileSelectionSuccess: () => void;
   onSubmit: (file: File | null, jobDescription: string) => Promise<void>;
   statusMessage: string;
 };
@@ -23,18 +34,20 @@ const formatFileSize = (fileSizeInBytes: number): string => {
   return `${(fileSizeInBytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-const getStatusProgress = (statusMessage: string): number => {
+const getProcessingStep = (
+  statusMessage: string,
+): "analyzing" | "idle" | "uploading" => {
   const normalizedStatusMessage = statusMessage.trim().toLowerCase();
 
   if (normalizedStatusMessage.includes("upload")) {
-    return 45;
+    return "uploading";
   }
 
   if (normalizedStatusMessage.includes("analy")) {
-    return 82;
+    return "analyzing";
   }
 
-  return normalizedStatusMessage ? 20 : 12;
+  return "idle";
 };
 
 type ResumeFileFieldProperties = {
@@ -171,56 +184,73 @@ const ResumeFileField = ({
 );
 
 type ResumeUploadProgressProperties = {
-  progressBarStyle: { width: string };
-  progressValue: number;
   statusMessage: string;
 };
 
 const ResumeUploadProgress = ({
-  progressBarStyle,
-  progressValue,
   statusMessage,
-}: Readonly<ResumeUploadProgressProperties>) => (
-  <div className="animate-in fade-in zoom-in-95 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 shadow-sm duration-500">
-    <div className="mb-3 flex items-center justify-between gap-3 text-sm text-indigo-700">
-      <div className="flex items-center gap-2 font-medium">
+}: Readonly<ResumeUploadProgressProperties>) => {
+  const processingStep = getProcessingStep(statusMessage);
+
+  const getStepIcon = (step: "analyzing" | "uploading") => {
+    if (processingStep === step) {
+      return <Loader2 className="h-4 w-4 animate-spin" />;
+    }
+
+    if (processingStep === "analyzing" && step === "uploading") {
+      return <CheckCircle2 className="h-4 w-4" />;
+    }
+
+    return <Sparkles className="h-4 w-4" />;
+  };
+
+  const getStepClassName = (step: "analyzing" | "uploading") => {
+    if (processingStep === step) {
+      return "border-indigo-200 bg-white text-indigo-700 shadow-sm";
+    }
+
+    if (processingStep === "analyzing" && step === "uploading") {
+      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    }
+
+    return "border-slate-200 bg-slate-50/80 text-slate-500";
+  };
+
+  return (
+    <div className="animate-in fade-in zoom-in-95 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 shadow-sm duration-500">
+      <div className="mb-3 flex items-center gap-2 text-sm font-medium text-indigo-700">
         <Sparkles className="h-4 w-4" />
         <span>{statusMessage || "Processing Resume..."}</span>
       </div>
-      <span>{progressValue}%</span>
-    </div>
-    <div className="h-2 overflow-hidden rounded-full bg-indigo-100">
-      <div
-        className="h-full rounded-full bg-linear-to-r from-indigo-600 via-sky-500 to-cyan-500 transition-all duration-500 ease-out"
-        style={progressBarStyle}
-      />
-    </div>
-  </div>
-);
 
-type ResumeSubmitButtonContentProperties = {
-  buttonLabel: string;
-  isLoading: boolean;
-};
-
-const ResumeSubmitButtonContent = ({
-  buttonLabel,
-  isLoading,
-}: Readonly<ResumeSubmitButtonContentProperties>) =>
-  isLoading ? (
-    <>
-      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-      {buttonLabel}
-    </>
-  ) : (
-    <>
-      <Upload className="mr-2 h-4 w-4" />
-      {buttonLabel}
-    </>
+      <div className="grid gap-3">
+        {[
+          { key: "uploading", label: "Uploading resume" },
+          { key: "analyzing", label: "Analyzing resume" },
+        ].map(({ key, label }) => (
+          <div
+            className={cn(
+              "flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition-colors duration-200",
+              getStepClassName(key as "analyzing" | "uploading"),
+            )}
+            key={key}
+          >
+            <div className="flex size-8 items-center justify-center rounded-full bg-current/10">
+              {getStepIcon(key as "analyzing" | "uploading")}
+            </div>
+            <span className="font-medium">{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
+};
 
 export const ResumeUploader = ({
   isLoading,
+  onCancel,
+  onFileSelectionError,
+  onFileSelectionSuccess,
   onSubmit,
   statusMessage,
 }: ResumeUploaderProperties) => {
@@ -230,25 +260,43 @@ export const ResumeUploader = ({
   const fileInputReference = useRef<HTMLElementTagNameMap["input"] | null>(
     null,
   );
-  const buttonLabel = isLoading
-    ? statusMessage || "Processing Resume..."
-    : "Analyze Resume";
   const descriptionLength = jobDescription.length;
-  const progressValue = useMemo(
-    () => getStatusProgress(statusMessage),
-    [statusMessage],
-  );
-  const progressBarStyle = useMemo(
-    () => ({ width: `${progressValue}%` }),
-    [progressValue],
+
+  const clearFileInput = useCallback(() => {
+    if (fileInputReference.current) {
+      fileInputReference.current.value = "";
+    }
+  }, []);
+
+  const handleSelectedFile = useCallback(
+    (nextFile: File | null) => {
+      if (!nextFile) {
+        setFile(null);
+        onFileSelectionSuccess();
+        return;
+      }
+
+      const validationError = validateFile(nextFile);
+
+      if (validationError) {
+        setFile(null);
+        clearFileInput();
+        onFileSelectionError(validationError);
+        return;
+      }
+
+      setFile(nextFile);
+      onFileSelectionSuccess();
+    },
+    [clearFileInput, onFileSelectionError, onFileSelectionSuccess],
   );
 
   const handleFileChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setFile(event.target.files ? event.target.files[0] : null);
+      handleSelectedFile(event.target.files ? event.target.files[0] : null);
       setIsDragging(false);
     },
-    [],
+    [handleSelectedFile],
   );
 
   const handleBrowseClick = useCallback(() => {
@@ -293,19 +341,17 @@ export const ResumeUploader = ({
     (event: React.DragEvent<HTMLButtonElement>) => {
       event.preventDefault();
 
-      setFile(event.dataTransfer.files?.[0] ?? null);
+      handleSelectedFile(event.dataTransfer.files?.[0] ?? null);
       setIsDragging(false);
     },
-    [],
+    [handleSelectedFile],
   );
 
   const clearSelectedFile = useCallback(() => {
     setFile(null);
-
-    if (fileInputReference.current) {
-      fileInputReference.current.value = "";
-    }
-  }, []);
+    clearFileInput();
+    onFileSelectionSuccess();
+  }, [clearFileInput, onFileSelectionSuccess]);
 
   const handleJobDescChange = useCallback(
     (event: React.ChangeEvent<HTMLTextAreaElement>) =>
@@ -366,25 +412,30 @@ export const ResumeUploader = ({
         />
       </div>
 
-      {isLoading && (
-        <ResumeUploadProgress
-          progressBarStyle={progressBarStyle}
-          progressValue={progressValue}
-          statusMessage={statusMessage}
-        />
-      )}
+      {isLoading && <ResumeUploadProgress statusMessage={statusMessage} />}
 
-      <Button
-        aria-label={buttonLabel}
-        className="w-full transform bg-linear-to-r from-indigo-600 to-cyan-600 text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:from-indigo-700 hover:to-cyan-700 hover:shadow-xl active:scale-[0.98]"
-        disabled={isLoading || !file || !jobDescription.trim()}
-        onClick={handleSubmit}
-      >
-        <ResumeSubmitButtonContent
-          buttonLabel={buttonLabel}
-          isLoading={isLoading}
-        />
-      </Button>
+      {isLoading ? (
+        <Button
+          aria-label="Cancel Analysis"
+          className="w-full border border-red-200 bg-white text-red-700 shadow-sm transition-all duration-300 hover:border-red-300 hover:bg-red-50 hover:text-red-800"
+          onClick={onCancel}
+          type="button"
+          variant="outline"
+        >
+          <X className="mr-2 h-4 w-4" />
+          Cancel Analysis
+        </Button>
+      ) : (
+        <Button
+          aria-label="Analyze Resume"
+          className="w-full transform bg-linear-to-r from-indigo-600 to-cyan-600 text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:from-indigo-700 hover:to-cyan-700 hover:shadow-xl active:scale-[0.98]"
+          disabled={!file || !jobDescription.trim()}
+          onClick={handleSubmit}
+        >
+          <Upload className="mr-2 h-4 w-4" />
+          Analyze Resume
+        </Button>
+      )}
     </div>
   );
 };

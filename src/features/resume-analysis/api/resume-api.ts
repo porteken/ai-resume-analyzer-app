@@ -163,10 +163,18 @@ const sendUploadRequest = (
   signal?: AbortSignal,
 ): Promise<Response> => postJson("/api/upload", requestBody, { signal });
 
-const getUploadErrorMessage = (errorData: ApiErrorResponse) =>
-  errorData.error || errorData.details
-    ? `${errorData.error ?? ""} ${errorData.details ?? ""}`.trim()
-    : null;
+const getUploadErrorMessage = (errorData: ApiErrorResponse) => {
+  if (!errorData.error && !errorData.details) {
+    return null;
+  }
+
+  if (errorData.error && errorData.details) {
+    const separator = /[.!?]$/.test(errorData.error) ? " " : ": ";
+    return `${errorData.error}${separator}${errorData.details}`.trim();
+  }
+
+  return errorData.error ?? errorData.details ?? null;
+};
 
 const isMetadataTooLargeError = (message: string): boolean =>
   /metadata(?:too| )large|metadata headers exceed/i.test(message);
@@ -370,11 +378,23 @@ const uploadToS3 = async (
 
   formData.append("file", file);
 
+  const uploadUrl = new URL(
+    presignedUrl,
+    globalThis.location?.href ?? "http://localhost",
+  );
+  const requestMode: RequestMode =
+    uploadUrl.origin === globalThis.location?.origin ? "cors" : "no-cors";
+
   const response = await fetch(presignedUrl, {
     body: formData,
     method: "POST",
+    mode: requestMode,
     signal,
   });
+
+  if (response.type === "opaque") {
+    return;
+  }
 
   if (!response.ok) {
     const errorText = await response.text();

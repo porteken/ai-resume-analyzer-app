@@ -23,12 +23,11 @@ const LazyAnalysisMarkdown = lazy(() => import("./analysis-markdown"));
 
 const structuredSections = [
   {
-    accentClassName: "border-sky-200/80 bg-sky-50/80 text-sky-900 delay-75",
+    accentClassName: "border-sky-300/80 bg-sky-100/90 text-sky-950 delay-75",
     emptyMessage: "No strengths provided.",
     icon: CheckCircle2,
     iconClassName: "bg-sky-100 text-sky-700",
     key: "strengths",
-    subtitle: "What already stands out",
     title: "Strengths",
   },
   {
@@ -38,17 +37,15 @@ const structuredSections = [
     icon: TriangleAlert,
     iconClassName: "bg-amber-100 text-amber-700",
     key: "gaps",
-    subtitle: "Where the resume can get sharper",
     title: "Gaps",
   },
   {
     accentClassName:
-      "border-emerald-200/80 bg-emerald-50/80 text-emerald-950 delay-200",
+      "border-emerald-300/80 bg-emerald-100/90 text-emerald-950 delay-200",
     emptyMessage: "No recommendations provided.",
     icon: Lightbulb,
     iconClassName: "bg-emerald-100 text-emerald-700",
     key: "recommendations",
-    subtitle: "High-impact next steps",
     title: "Recommendations",
   },
 ] as const;
@@ -121,7 +118,7 @@ const extractAnalysisSectionsMarkdown = (markdown: string): string => {
 
 const renderStructuredResult = (result: StructuredAnalysisResult) => {
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4">
       {structuredSections.map(
         ({
           accentClassName,
@@ -129,7 +126,6 @@ const renderStructuredResult = (result: StructuredAnalysisResult) => {
           icon: Icon,
           iconClassName,
           key,
-          subtitle,
           title,
         }) => {
           const items = toStringList(result[key]);
@@ -151,9 +147,8 @@ const renderStructuredResult = (result: StructuredAnalysisResult) => {
                 >
                   <Icon className="h-5 w-5" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <h3 className="text-lg font-semibold">{title}</h3>
-                  <p className="text-sm text-slate-500">{subtitle}</p>
                 </div>
               </div>
 
@@ -165,7 +160,7 @@ const renderStructuredResult = (result: StructuredAnalysisResult) => {
                       key={item}
                     >
                       <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-current/70" />
-                      <span>{item}</span>
+                      <span className="min-w-0 wrap-break-word">{item}</span>
                     </li>
                   ))}
                 </ul>

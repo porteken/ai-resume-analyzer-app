@@ -221,17 +221,17 @@ describe("home Page Component", () => {
 
     const textFile = createMockFile("plain text", "resume.pdf", "text/plain");
     const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
 
     await user.upload(fileInput, textFile);
-    await user.type(textarea, "Software Engineer");
-
-    const button = screen.getByRole("button", { name: /analyze resume/i });
-    await user.click(button);
 
     await waitFor(() => {
       expect(screen.getByText(/please upload a pdf file/i)).toBeInTheDocument();
     });
+
+    expect(screen.queryByText(/resume.pdf/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /analyze resume/i }),
+    ).toBeDisabled();
   });
 
   it("should show error when job description is missing", async () => {
@@ -434,6 +434,45 @@ describe("home Page Component", () => {
     });
   });
 
+  it("should preserve server-side upstream network errors", async () => {
+    const user = userEvent.setup();
+
+    server.use(
+      http.post("*/api/upload", () =>
+        HttpResponse.json(
+          {
+            details: "Network error",
+            error: "Failed to upload resume",
+          },
+          { status: 500 },
+        ),
+      ),
+    );
+
+    render(<Home />);
+
+    const file = createMockPDFFile();
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
+    const textarea = screen.getByLabelText(/job description/i);
+
+    await user.upload(fileInput, file);
+    await user.type(textarea, "Software Engineer");
+
+    const button = screen.getByRole("button", { name: /analyze resume/i });
+    await user.click(button);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/failed to upload resume: network error/i),
+      ).toBeInTheDocument();
+    });
+    expect(
+      screen.queryByText(
+        /failed to upload resume\. please check your connection and try again\./i,
+      ),
+    ).not.toBeInTheDocument();
+  });
+
   it("should disable inputs during loading", async () => {
     const user = userEvent.setup();
 
@@ -459,9 +498,49 @@ describe("home Page Component", () => {
     await waitFor(() => {
       expect(fileInput).toBeDisabled();
       expect(textarea).toBeDisabled();
-      expect(button).toBeDisabled();
-      expect(button).toHaveTextContent(/uploading resume|analyzing resume/i);
+      expect(
+        screen.getByRole("button", { name: /cancel analysis/i }),
+      ).toBeEnabled();
+      expect(screen.getByText("Uploading Resume...")).toBeInTheDocument();
     });
+  });
+
+  it("should cancel an in-flight analysis request", async () => {
+    const user = userEvent.setup();
+
+    server.use(
+      http.post("*/api/upload", async () => {
+        await delay(5000);
+        return HttpResponse.json(MOCK_RESPONSES.immediateSuccess);
+      }),
+    );
+
+    render(<Home />);
+
+    const file = createMockPDFFile();
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
+    const textarea = screen.getByLabelText(/job description/i);
+
+    await user.upload(fileInput, file);
+    await user.type(textarea, "Software Engineer");
+    await user.click(screen.getByRole("button", { name: /analyze resume/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /cancel analysis/i }),
+      ).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /cancel analysis/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /analyze resume/i }),
+      ).toBeInTheDocument();
+      expect(screen.queryByText("Uploading Resume...")).not.toBeInTheDocument();
+    });
+
+    expect(screen.queryByText(/analysis complete/i)).not.toBeInTheDocument();
   });
 
   it("should handle failed job status", async () => {

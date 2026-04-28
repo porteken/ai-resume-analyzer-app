@@ -6,16 +6,42 @@ import {
 } from "@/features/resume-analysis/api/resume-api";
 import { validateFile } from "@/features/resume-analysis/utils/file-validation";
 import { validateJobDescription } from "@/features/resume-analysis/utils/job-description";
+import { ApiClientError } from "@/lib/api-client";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { AnalysisResultData } from "@/types";
 
 type UseResumeAnalysisReturn = {
+  cancelAnalysis: () => void;
   error: null | string;
   isLoading: boolean;
   result: AnalysisResultData | null;
   statusMessage: string;
   submitAnalysis: (file: File | null, jobDescription: string) => Promise<void>;
+};
+
+const isApiResponseError = (error_: Error): boolean => {
+  if (error_ instanceof ApiClientError) {
+    return true;
+  }
+
+  return (
+    (error_ as Error & { cause?: unknown }).cause instanceof ApiClientError
+  );
+};
+
+const isBrowserNetworkError = (error_: Error): boolean => {
+  if (isApiResponseError(error_)) {
+    return false;
+  }
+
+  const message = error_.message.trim().toLowerCase();
+
+  return (
+    message === "failed to fetch" ||
+    message.includes("networkerror when attempting to fetch resource") ||
+    message.includes("load failed")
+  );
 };
 
 const getSubmitErrorMessage = (error_: unknown): string => {
@@ -24,14 +50,7 @@ const getSubmitErrorMessage = (error_: unknown): string => {
   }
 
   const message = error_.message.toLowerCase();
-  if (
-    message.includes("failed to fetch") ||
-    message.includes("networkerror") ||
-    message.includes("abort") ||
-    message.includes("load failed") ||
-    message.includes("network") ||
-    message.includes("cancelled")
-  ) {
+  if (isBrowserNetworkError(error_)) {
     return "Failed to upload resume. Please check your connection and try again.";
   }
 
@@ -65,6 +84,20 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
     setStatusMessage("");
     setError(validationError);
   };
+
+  const cancelAnalysis = useCallback(() => {
+    const abortController = abortControllerReference.current;
+
+    if (!abortController) {
+      return;
+    }
+
+    abortControllerReference.current = null;
+    abortController.abort();
+    setIsLoading(false);
+    setStatusMessage("");
+    setError(null);
+  }, []);
 
   const startRequest = (): AbortController => {
     abortControllerReference.current?.abort();
@@ -152,6 +185,7 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
   );
 
   return {
+    cancelAnalysis,
     error,
     isLoading,
     result,

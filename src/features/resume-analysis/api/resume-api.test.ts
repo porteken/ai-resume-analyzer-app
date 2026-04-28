@@ -27,6 +27,17 @@ const createJsonResponse = (status: number, data: unknown): Response =>
     ),
   }) as unknown as Response;
 
+const createOpaqueResponse = (): Response =>
+  ({
+    headers: new Headers(),
+    json: vi.fn<() => Promise<unknown>>(() => Promise.resolve(null)),
+    ok: false,
+    status: 0,
+    statusText: "",
+    text: vi.fn<() => Promise<string>>(() => Promise.resolve("")),
+    type: "opaque",
+  }) as unknown as Response;
+
 const parseRequestJsonBody = <T>(request: RequestInit | undefined): T => {
   const body = request?.body;
 
@@ -97,6 +108,40 @@ describe("resume upload API", () => {
     expect(thirdPayload.job_id).toBe("job-123");
     expect(thirdPayload.s3_url).toContain("s3://bucket/");
     expect(thirdPayload.job_description).toBe("Senior software engineer");
+  });
+
+  it("treats opaque S3 upload responses as success for cross-origin presigned uploads", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        createJsonResponse(200, {
+          job_id: "job-opaque",
+          s3_url: "s3://bucket/uploads/job-opaque/resume.pdf",
+          upload: {
+            fields: {
+              "Content-Type": "application/pdf",
+              key: "uploads/job-opaque/resume.pdf",
+              policy: "policy",
+              signature: "signature",
+              "x-amz-meta-filename": "resume.pdf",
+              "x-amz-meta-job_id": "job-opaque",
+            },
+            url: "https://bucket.s3.amazonaws.com",
+          },
+        }),
+      )
+      .mockResolvedValueOnce(createOpaqueResponse())
+      .mockResolvedValueOnce(createJsonResponse(200, { status: "ok" }));
+
+    const file = new File(["pdf-content"], "resume.pdf", {
+      type: "application/pdf",
+    });
+    const result = await uploadResume(file, "Senior software engineer");
+
+    expect(result).toStrictEqual({ job_id: "job-opaque" });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+
+    const secondRequest = fetchMock.mock.calls[1]?.[1] as RequestInit;
+    expect(secondRequest.mode).toBe("no-cors");
   });
 
   it("falls back to legacy pdf_base64 payload when required by backend", async () => {

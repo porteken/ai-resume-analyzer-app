@@ -31,7 +31,8 @@ const getErrorMessageFromPayload = (payload: unknown): null | string => {
       : null;
 
   if (error && details) {
-    return `${error} ${details}`.trim();
+    const separator = /[.!?]$/.test(error) ? " " : ": ";
+    return `${error}${separator}${details}`.trim();
   }
 
   return error ?? details ?? message;
