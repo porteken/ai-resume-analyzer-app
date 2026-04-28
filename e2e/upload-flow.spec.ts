@@ -145,13 +145,12 @@ test.describe("Resume Analysis Flow", () => {
 
     const fileInput = page.locator('input[type="file"]');
     const textarea = page.getByLabel(/job description/i);
-    const button = page.getByRole("button", {
-      name: /analyze resume|uploading resume|analyzing resume|processing resume/i,
-    });
+    const cancelButton = page.getByRole("button", { name: /cancel analysis/i });
 
     await expect(fileInput).toBeDisabled();
     await expect(textarea).toBeDisabled();
-    await expect(button).toBeDisabled();
+    await expect(cancelButton).toBeVisible();
+    await expect(cancelButton).toBeEnabled();
   });
 
   test("should show progress messages during analysis", async ({ page }) => {

@@ -73,9 +73,6 @@ test.describe("Accessibility", () => {
     const textarea = page.getByLabel(/job description/i);
     await textarea.fill("Test job");
 
-    const button = page.getByRole("button", { name: /analyze resume/i });
-    await button.click();
-
     const errorMessage = page.locator('[role="alert"], .bg-red-50').first();
     await expect(errorMessage).toBeVisible();
   });

@@ -21,7 +21,6 @@ test.describe("Error Handling", () => {
 
     await uploadFile(page, largePDF);
     await fillJobDescription(page, "Test job description");
-    await submitForm(page);
 
     await expect(page.getByTestId("analysis-error")).toContainText(
       /file too large/i,

@@ -99,7 +99,6 @@ test.describe("File Upload Edge Cases", () => {
 
     await uploadFile(page, overLimitPDF);
     await fillJobDescription(page, "Test job");
-    await submitForm(page);
 
     await expect(page.getByText(/file too large/i)).toBeVisible();
   });
