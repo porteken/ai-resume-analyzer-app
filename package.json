@@ -51,6 +51,7 @@
     "msw": "^2.13.6",
     "oxfmt": "^0.47.0",
     "oxlint": "^1.62.0",
+    "oxlint-tsgolint": "^0.22.1",
     "playwright": "^1.59.1",
     "postcss": "^8.5.12",
     "tailwindcss": "^4",
