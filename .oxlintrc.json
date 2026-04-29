@@ -134,6 +134,8 @@
       "error",
       {
         "ignore": [-1, 0, 1, 2, 100],
+        "oxc/no-async-await": "off",
+        "jest/no-hooks": "off",
         "ignoreArrayIndexes": true,
         "ignoreDefaultValues": true,
         "ignoreClassFieldInitialValues": true,
@@ -144,6 +146,7 @@
     /*
       Keep your entire sonarjs/* block here exactly as-is.
 
+        "oxc/no-async-await": "off",
       Do not rename, remove, reorder, or change the severity/options of any:
 
       "sonarjs/..." rules.
@@ -220,6 +223,9 @@
     {
       "files": ["e2e/**"],
       "rules": {
+        "vitest/consistent-test-filename": "off",
+        "vitest/no-importing-vitest-globals": "off",
+        "vitest/prefer-importing-vitest-globals": "off",
         "playwright/consistent-spacing-between-blocks": "error",
         "playwright/expect-expect": "error",
         "playwright/max-nested-describe": "error",
