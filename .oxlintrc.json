@@ -14,8 +14,10 @@
   "jsPlugins": ["eslint-plugin-sonarjs"],
   "categories": {
     "correctness": "error",
-    "suspicious": "warn",
-    "perf": "warn"
+    "suspicious": "error",
+    "perf": "error"
+    //"restriction": "error",
+    //"style": "error",
   },
   "options": {
     "typeAware": true,
