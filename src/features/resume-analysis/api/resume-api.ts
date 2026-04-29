@@ -10,8 +10,21 @@ import { isObjectRecord } from "@/lib/type-guards";
 
 import type { AnalysisResultData } from "@/types";
 
+const MS_PER_SECOND = 1000;
+const HTTP_STATUS_SERVICE_UNAVAILABLE = 503;
 const LEGACY_SAFE_JOB_DESCRIPTION_LENGTH = 500;
-const POLL_DELAY_BY_ATTEMPT_MS = [1000, 2000, 3000, 5000] as const;
+
+const DELAY_MULTIPLIER_1 = 1;
+const DELAY_MULTIPLIER_2 = 2;
+const DELAY_MULTIPLIER_3 = 3;
+const DELAY_MULTIPLIER_5 = 5;
+
+const POLL_DELAY_BY_ATTEMPT_MS = [
+  DELAY_MULTIPLIER_1 * MS_PER_SECOND,
+  DELAY_MULTIPLIER_2 * MS_PER_SECOND,
+  DELAY_MULTIPLIER_3 * MS_PER_SECOND,
+  DELAY_MULTIPLIER_5 * MS_PER_SECOND,
+] as const;
 
 type ApiErrorResponse = {
   details?: string;
@@ -156,7 +169,7 @@ const parseStatusResponse = (value: unknown): null | StatusResponseData => {
 const getPollDelayMs = (attempt: number): number =>
   POLL_DELAY_BY_ATTEMPT_MS[
     Math.min(attempt - 1, POLL_DELAY_BY_ATTEMPT_MS.length - 1)
-  ] ?? 5000;
+  ] ?? DELAY_MULTIPLIER_5 * MS_PER_SECOND;
 
 const sendUploadRequest = (
   requestBody: object,
@@ -194,7 +207,10 @@ const getErrorMessageFromError = (
       return message;
     }
 
-    if (error.status === 503 && errorData.type === "ServiceUnavailable") {
+    if (
+      error.status === HTTP_STATUS_SERVICE_UNAVAILABLE &&
+      errorData.type === "ServiceUnavailable"
+    ) {
       return SERVICE_UNAVAILABLE_MESSAGE;
     }
 

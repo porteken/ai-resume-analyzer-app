@@ -1,5 +1,7 @@
 import { getApiConfig } from "@/config/env";
 import {
+  HTTP_STATUS,
+  MS_PER_SECOND,
   UPSTREAM_TIMEOUT_MS,
   createErrorResponse,
   isTimeoutError,
@@ -16,7 +18,7 @@ export async function GET(
     if (!apiConfig) {
       return createErrorResponse(
         "Server configuration error: Missing API_ENDPOINT (or NEXT_PUBLIC_API_ENDPOINT) or API_KEY",
-        500,
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
       );
     }
 
@@ -44,14 +46,14 @@ export async function GET(
     if (isTimeoutError(error)) {
       return createErrorResponse(
         "Upstream API request timed out",
-        504,
-        `External API did not respond within ${UPSTREAM_TIMEOUT_MS / 1000} seconds`,
+        HTTP_STATUS.GATEWAY_TIMEOUT,
+        `External API did not respond within ${UPSTREAM_TIMEOUT_MS / MS_PER_SECOND} seconds`,
       );
     }
 
     return createErrorResponse(
       "Failed to check status",
-      500,
+      HTTP_STATUS.INTERNAL_SERVER_ERROR,
       error instanceof Error ? error.message : "Unknown error",
     );
   }

@@ -1,6 +1,8 @@
 import { getApiConfig } from "@/config/env";
 import {
   ANALYZE_TIMEOUT_MS,
+  HTTP_STATUS,
+  MS_PER_SECOND,
   createErrorResponse,
   isTimeoutError,
 } from "@/lib/server/api-utils";
@@ -18,7 +20,7 @@ export async function POST(request: Request) {
     if (!apiConfig) {
       return createErrorResponse(
         "Server configuration error: Missing API_ENDPOINT (or NEXT_PUBLIC_API_ENDPOINT) or API_KEY",
-        500,
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
       );
     }
 
@@ -47,14 +49,14 @@ export async function POST(request: Request) {
     if (isTimeoutError(error)) {
       return createErrorResponse(
         "Upstream API request timed out",
-        504,
-        `External API did not respond within ${ANALYZE_TIMEOUT_MS / 1000} seconds`,
+        HTTP_STATUS.GATEWAY_TIMEOUT,
+        `External API did not respond within ${ANALYZE_TIMEOUT_MS / MS_PER_SECOND} seconds`,
       );
     }
 
     return createErrorResponse(
       "Failed to analyze resume",
-      500,
+      HTTP_STATUS.INTERNAL_SERVER_ERROR,
       error instanceof Error ? error.message : "Unknown error",
     );
   }

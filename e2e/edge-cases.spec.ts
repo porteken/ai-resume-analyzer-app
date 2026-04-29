@@ -30,7 +30,8 @@ test.describe("Job Description Edge Cases", () => {
     await mockAPIResponses.mockImmediateSuccess(page);
 
     const pdfFile = createTestPDF();
-    const longDescription = "A".repeat(10_000);
+    const LONG_DESCRIPTION_LENGTH = 10_000;
+    const longDescription = "A".repeat(LONG_DESCRIPTION_LENGTH);
 
     await uploadFile(page, pdfFile);
     await fillJobDescription(page, longDescription);
@@ -73,6 +74,7 @@ test.describe("File Upload Edge Cases", () => {
 
     const fileInput = page.locator('input[type="file"]');
     const fileName = await fileInput.evaluate((el: HTMLInputElement) => {
+      // eslint-disable-next-line vitest/no-conditional-in-test
       return el.files?.[0]?.name || "";
     });
 
@@ -82,7 +84,8 @@ test.describe("File Upload Edge Cases", () => {
   test("should handle file at boundary (4.99 MB)", async ({ page }) => {
     await mockAPIResponses.mockImmediateSuccess(page);
 
-    const boundaryPDF = createExactSizePDF(4.99);
+    const BOUNDARY_SIZE_MB = 4.99;
+    const boundaryPDF = createExactSizePDF(BOUNDARY_SIZE_MB);
 
     await uploadFile(page, boundaryPDF);
     await fillJobDescription(page, "Test job");
@@ -95,7 +98,8 @@ test.describe("File Upload Edge Cases", () => {
   });
 
   test("should handle file just over limit (5.01 MB)", async ({ page }) => {
-    const overLimitPDF = createExactSizePDF(5.01);
+    const OVER_LIMIT_SIZE_MB = 5.01;
+    const overLimitPDF = createExactSizePDF(OVER_LIMIT_SIZE_MB);
 
     await uploadFile(page, overLimitPDF);
     await fillJobDescription(page, "Test job");
@@ -199,7 +203,9 @@ test.describe("Analysis and Processing Edge Cases", () => {
     await page.route(`**/api/status/${jobId}`, async (route) => {
       pollCount++;
 
-      await (pollCount >= 6
+      const REQUIRED_POLL_COUNT = 6;
+      // eslint-disable-next-line vitest/no-conditional-in-test
+      await (pollCount >= REQUIRED_POLL_COUNT
         ? route.fulfill({
             body: JSON.stringify({
               analysis_result: "## Match Score\n80% match",

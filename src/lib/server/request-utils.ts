@@ -1,4 +1,5 @@
-import { createErrorResponse } from "@/lib/server/api-utils";
+import { HTTP_STATUS, createErrorResponse } from "@/lib/server/api-utils";
+import { isObjectRecord } from "@/lib/type-guards";
 
 import type { NextResponse } from "next/server";
 
@@ -25,7 +26,7 @@ export const parseRequestBody = async (
         body: null,
         error: createErrorResponse(
           "Invalid request body",
-          400,
+          HTTP_STATUS.BAD_REQUEST,
           "Request body must be valid JSON.",
         ),
       };
@@ -34,18 +35,18 @@ export const parseRequestBody = async (
     throw error;
   }
 
-  if (typeof body !== "object" || body === null || Array.isArray(body)) {
+  if (!isObjectRecord(body)) {
     return {
       body: null,
       error: createErrorResponse(
         "Invalid request body",
-        400,
+        HTTP_STATUS.BAD_REQUEST,
         "Request body must be a JSON object.",
       ),
     };
   }
 
-  return { body: body as Record<string, unknown>, error: null };
+  return { body, error: null };
 };
 
 export const handleNonJsonResponse = async (
@@ -53,9 +54,10 @@ export const handleNonJsonResponse = async (
 ): Promise<NextResponse> => {
   const text = await response.text();
 
+  const MAX_LOG_LENGTH = 200;
   return createErrorResponse(
     `External API returned non-JSON response (${response.status}). Check API_ENDPOINT / API_KEY server env vars`,
-    502,
-    text.slice(0, 200),
+    HTTP_STATUS.BAD_GATEWAY,
+    text.slice(0, MAX_LOG_LENGTH),
   );
 };

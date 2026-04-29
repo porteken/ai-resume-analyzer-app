@@ -58,7 +58,7 @@ export default defineConfig({
   webServer: {
     command: "NEXT_PUBLIC_E2E_TEST=1 env NODE_ENV=test pnpm dev",
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
+    timeout: 120_000,
     url: "http://localhost:3000",
   },
 

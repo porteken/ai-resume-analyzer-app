@@ -79,8 +79,9 @@ const deriveBaseEndpoint = (apiEndpoint: string): null | string => {
 
     if (pathSegments.length > 0) {
       const lastSegment = pathSegments.at(-1);
+      const SECOND_LAST_INDEX = -2;
       const secondLastSegment =
-        pathSegments.length > 1 ? pathSegments.at(-2) : null;
+        pathSegments.length > 1 ? pathSegments.at(SECOND_LAST_INDEX) : null;
 
       if (lastSegment === "upload" || lastSegment === "analyze") {
         pathSegments.pop();
@@ -104,7 +105,8 @@ const deriveBaseEndpoint = (apiEndpoint: string): null | string => {
 };
 
 const getSecretFingerprint = (value: string): string => {
-  const suffix = value.slice(-4);
+  const SUFFIX_LENGTH = -4;
+  const suffix = value.slice(SUFFIX_LENGTH);
   return `len:${value.length}..${suffix}`;
 };
 

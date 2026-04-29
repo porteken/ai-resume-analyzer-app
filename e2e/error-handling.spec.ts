@@ -160,7 +160,8 @@ test.describe("Error Handling", () => {
   });
 
   test("should accept file at exactly 5MB limit", async ({ page }) => {
-    const exactSizePDF = createExactSizePDF(5);
+    const EXACT_SIZE_LIMIT_MB = 5;
+    const exactSizePDF = createExactSizePDF(EXACT_SIZE_LIMIT_MB);
 
     await mockAPIResponses.mockImmediateSuccess(page);
 

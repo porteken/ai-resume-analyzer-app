@@ -64,8 +64,9 @@ export const mockAPIResponses = {
 
     await page.route(`**/api/status/${jobId}`, async (route) => {
       pollCount++;
+      const REQUIRED_POLLS_FOR_SUCCESS = 3;
 
-      await (pollCount >= 3
+      await (pollCount >= REQUIRED_POLLS_FOR_SUCCESS
         ? route.fulfill({
             body: JSON.stringify(MOCK_RESPONSES.asyncJobComplete),
             contentType: "application/json",

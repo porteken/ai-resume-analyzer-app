@@ -5,6 +5,7 @@ const mockApiEndpoint = "https://api.example.com/upload";
 const mockApiKey = "test-api-key";
 const createFetchMock = () => vi.fn<typeof fetch>();
 const createMockResponse = (response: object): Response =>
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   response as unknown as Response;
 
 const loadGetHandler = async () => {

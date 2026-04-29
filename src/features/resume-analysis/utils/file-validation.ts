@@ -1,5 +1,9 @@
 const MAX_FILENAME_LENGTH = 200;
 const MAX_JOB_DESCRIPTION_LENGTH = 10_000;
+const MAX_FILE_SIZE_MB = 5;
+const BYTES_PER_KB = 1024;
+const KB_PER_MB = 1024;
+const BYTES_PER_MB = BYTES_PER_KB * KB_PER_MB;
 
 export const sanitizeFilename = (filename: string): string => {
   const base =
@@ -39,9 +43,9 @@ export const validateFile = (file: File | null): null | string => {
     return "Please upload a PDF file.";
   }
 
-  const maxSizeBytes = 5 * 1024 * 1024;
+  const maxSizeBytes = MAX_FILE_SIZE_MB * BYTES_PER_MB;
   if (file.size > maxSizeBytes) {
-    return `File too large (${(file.size / 1024 / 1024).toFixed(2)}MB). Please use a PDF smaller than 5MB.`;
+    return `File too large (${(file.size / BYTES_PER_MB).toFixed(2)}MB). Please use a PDF smaller than ${MAX_FILE_SIZE_MB}MB.`;
   }
 
   return null;

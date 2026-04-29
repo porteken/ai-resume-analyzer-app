@@ -84,11 +84,12 @@ const extractAnalysisSectionsMarkdown = (markdown: string): string => {
   };
 
   for (const line of lines) {
-    if (line.startsWith("## ")) {
+    const headingPrefix = "## ";
+    if (line.startsWith(headingPrefix)) {
       flushSection();
       activeLines = [];
 
-      const headingName = line.slice(3).trim().toLowerCase();
+      const headingName = line.slice(headingPrefix.length).trim().toLowerCase();
       activeHeading = targetHeadings.has(headingName) ? headingName : null;
 
       if (activeHeading) {

@@ -1,3 +1,5 @@
+/* eslint-disable vitest/require-top-level-describe */
+// eslint-disable-next-line import/no-unassigned-import
 import "@testing-library/jest-dom/vitest";
 
 import { server } from "@/testing/mocks/server";
@@ -20,6 +22,7 @@ afterAll(() => {
 });
 
 vi.mock<typeof NextNavigation>(import("next/navigation"), () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
   const searchParams = new URLSearchParams() as unknown as ReturnType<
     typeof NextNavigation.useSearchParams
   >;

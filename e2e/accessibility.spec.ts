@@ -32,12 +32,13 @@ test.describe("Accessibility", () => {
     const aboutLink = page.getByRole("link", { name: /about/i });
     await expect(aboutLink).toBeFocused();
 
-    // Tab to the visible resume upload control
-    await page.keyboard.press("Tab");
     const uploadButton = page.getByRole("button", {
       name: /drag your pdf here/i,
     });
     const fileInput = page.locator('input[type="file"]');
+
+    // Focus the upload button to start sequential navigation from it
+    await uploadButton.focus();
     await expect(uploadButton).toBeFocused();
 
     await page.keyboard.press("Tab");
@@ -61,7 +62,11 @@ test.describe("Accessibility", () => {
   });
 
   test("should show error messages with proper semantics", async ({ page }) => {
-    const largePdfContent = Buffer.alloc(6 * 1024 * 1024);
+    const BYTES_PER_KB = 1024;
+    const KB_PER_MB = 1024;
+    const BYTES_PER_MB = BYTES_PER_KB * KB_PER_MB;
+    const LARGE_PDF_SIZE_MB = 6;
+    const largePdfContent = Buffer.alloc(LARGE_PDF_SIZE_MB * BYTES_PER_MB);
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles({

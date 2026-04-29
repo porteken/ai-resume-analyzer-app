@@ -26,12 +26,16 @@ type ResumeUploaderProperties = {
   statusMessage: string;
 };
 
+const BYTES_PER_KB = 1024;
+const KB_PER_MB = 1024;
+const BYTES_PER_MB = BYTES_PER_KB * KB_PER_MB;
+
 const formatFileSize = (fileSizeInBytes: number): string => {
-  if (fileSizeInBytes < 1024 * 1024) {
-    return `${Math.max(1, Math.round(fileSizeInBytes / 1024))} KB`;
+  if (fileSizeInBytes < BYTES_PER_MB) {
+    return `${Math.max(1, Math.round(fileSizeInBytes / BYTES_PER_KB))} KB`;
   }
 
-  return `${(fileSizeInBytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(fileSizeInBytes / BYTES_PER_MB).toFixed(1)} MB`;
 };
 
 const getProcessingStep = (
@@ -224,19 +228,21 @@ const ResumeUploadProgress = ({
       </div>
 
       <div className="grid gap-3">
-        {[
-          { key: "uploading", label: "Uploading resume" },
-          { key: "analyzing", label: "Analyzing resume" },
-        ].map(({ key, label }) => (
+        {(
+          [
+            { key: "uploading", label: "Uploading resume" },
+            { key: "analyzing", label: "Analyzing resume" },
+          ] as const
+        ).map(({ key, label }) => (
           <div
             className={cn(
               "flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition-colors duration-200",
-              getStepClassName(key as "analyzing" | "uploading"),
+              getStepClassName(key),
             )}
             key={key}
           >
             <div className="flex size-8 items-center justify-center rounded-full bg-current/10">
-              {getStepIcon(key as "analyzing" | "uploading")}
+              {getStepIcon(key)}
             </div>
             <span className="font-medium">{label}</span>
           </div>
