@@ -382,7 +382,7 @@
         "src/app/**/actions.{ts,tsx}",
         "src/server/**/*.{ts,tsx}",
         "server/**/*.{ts,tsx}",
-        "middleware.{ts,js}",
+        "src/middleware.{ts,js}",
         "src/middleware.{ts,js}"
       ],
       "rules": {
@@ -403,7 +403,7 @@
         "src/app/**/not-found.{ts,tsx}",
         "src/app/**/robots.{ts,tsx}",
         "src/app/**/sitemap.{ts,tsx}",
-        "pages/**/*.{ts,tsx}",
+        "src/pages/**/*.{ts,tsx}",
         "src/pages/**/*.{ts,tsx}"
       ],
       "rules": {
