@@ -99,7 +99,12 @@
         "allowAsStatement": true
       }
     ],
+    "react/only-export-components": "off",
+    "oxc/no-async-await": "off",
+    "oxc/no-optional-chaining": "off",
+    "oxc/no-rest-spread-properties": "off",
     "react/react-in-jsx-scope": "off",
+    "eslint/sort-imports": "off",
     "unicorn/no-null": "off",
     "eslint/no-undefined": "off",
     "vitest/no-importing-vitest-globals": "off",
@@ -109,6 +114,7 @@
     "vitest/max-expects": "off",
     "vitest/prefer-describe-function-title": "off",
     "vitest/prefer-to-be-truthy": "off",
+    "eslint/init-declarations": "off",
     "vitest/prefer-to-be-falsy": "off",
     "import/no-named-export": "off",
     "import/prefer-default-export": "off",
