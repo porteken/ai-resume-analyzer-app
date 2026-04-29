@@ -15,9 +15,9 @@
   "categories": {
     "correctness": "error",
     "suspicious": "error",
-    "perf": "error"
-    //"restriction": "error",
-    //"style": "error",
+    "perf": "error",
+    "restriction": "error",
+    "style": "error"
   },
   "options": {
     "typeAware": true,
@@ -57,6 +57,56 @@
       }
     ],
     "complexity": ["error", 15],
+    // Direct conflicts
+    "vitest/prefer-called-times": "off",
+    // Type import style: keep one source of truth
+    "typescript/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports",
+        "fixStyle": "separate-type-imports"
+      }
+    ],
+    "import/consistent-type-specifier-style": "off",
+    // React/TypeScript ergonomics
+    "typescript/explicit-function-return-type": "off",
+    "typescript/explicit-module-boundary-types": "error",
+    // Next.js full-stack practicality
+    "import/no-nodejs-modules": "off",
+    // Too stylistic / counterproductive
+    "promise/prefer-await-to-then": "off",
+    "promise/avoid-new": "off",
+    // Configure instead of disabling
+    "react/jsx-filename-extension": [
+      "error",
+      {
+        "extensions": [".jsx", ".tsx"]
+      }
+    ],
+    "react/jsx-max-depth": [
+      "error",
+      {
+        "max": 6
+      }
+    ],
+    "eslint/max-statements": [
+      "error",
+      {
+        "max": 40
+      }
+    ],
+    "eslint/max-params": [
+      "error",
+      {
+        "max": 4
+      }
+    ],
+    "eslint/no-void": [
+      "error",
+      {
+        "allowAsStatement": true
+      }
+    ],
     // Obsolete / impossible / bad fit for Next.js + React + TS
     "react/react-in-jsx-scope": "off",
     "unicorn/no-null": "off",
@@ -119,14 +169,13 @@
     "react/jsx-props-no-spreading": "off",
     "react/forbid-component-props": "off",
     "react/no-multi-comp": "off",
-    // Keep as warning/configured if supported
-    "vitest/no-conditional-in-test": "warn",
-    "vitest/consistent-test-it": "warn",
-    "vitest/require-top-level-describe": "warn",
-    "vitest/max-nested-describe": "warn",
+    "vitest/no-conditional-in-test": "error",
+    "vitest/consistent-test-it": "error",
+    "vitest/require-top-level-describe": "error",
+    "vitest/max-nested-describe": "error",
     // Do not disable globally unless options are unsupported or noise remains unacceptable
     "eslint/no-magic-numbers": [
-      "warn",
+      "error",
       {
         "ignore": [-1, 0, 1, 2, 100],
         "ignoreArrayIndexes": true,
@@ -343,7 +392,11 @@
       "files": ["**/__tests__/**/*.{ts,tsx}", "**/*.test.{ts,tsx}"],
       "plugins": ["vitest"],
       "rules": {
-        "eslint/no-magic-numbers": "off"
+        "eslint/no-magic-numbers": "off",
+        "import/no-namespace": "off",
+        "eslint/max-statements": "off",
+        "eslint/max-params": "off",
+        "typescript/no-explicit-any": "off"
       }
     },
     {
@@ -357,7 +410,9 @@
         "middleware.{ts,js}"
       ],
       "rules": {
-        "import/no-nodejs-modules": "off"
+        "import/no-commonjs": "off",
+        "typescript/no-require-imports": "off",
+        "eslint/no-console": "off"
       }
     },
     {
