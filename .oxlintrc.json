@@ -57,7 +57,6 @@
     "complexity": ["error", 15],
     // Obsolete / impossible / bad fit for Next.js + React + TS
     "react/react-in-jsx-scope": "off",
-    "typescript-eslint/prefer-readonly-parameter-types": "off",
     "unicorn/no-null": "off",
     "eslint/no-undefined": "off",
     // Jest duplicates — off if using Vitest
@@ -104,7 +103,6 @@
     "eslint/no-shadow": "off",
     "eslint/no-use-before-define": "off",
     "eslint/no-empty-function": "off",
-    "eslint/consistent-return": "off",
     "eslint/no-duplicate-imports": "off",
     // Bad blanket style policies for React/Next.js
     "eslint/func-style": "off",
