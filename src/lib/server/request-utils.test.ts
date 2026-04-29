@@ -12,7 +12,9 @@ const createRequest = (json: () => Promise<unknown>) =>
 describe("request-utils", () => {
   it("parses object request bodies", async () => {
     const result = await parseRequestBody(
-      createRequest(() => Promise.resolve({ job_description: "Engineer" })),
+      createRequest(async () =>
+        Promise.resolve({ job_description: "Engineer" }),
+      ),
     );
 
     expect(result).toStrictEqual({
@@ -23,7 +25,9 @@ describe("request-utils", () => {
 
   it("returns a 400 response for invalid JSON", async () => {
     const result = await parseRequestBody(
-      createRequest(() => Promise.reject(new SyntaxError("Unexpected token"))),
+      createRequest(async () =>
+        Promise.reject(new SyntaxError("Unexpected token")),
+      ),
     );
 
     expect(result.body).toBeNull();
@@ -36,7 +40,7 @@ describe("request-utils", () => {
 
   it("returns a 400 response when the parsed body is not an object", async () => {
     const result = await parseRequestBody(
-      createRequest(() => Promise.resolve(["oops"])),
+      createRequest(async () => Promise.resolve(["oops"])),
     );
 
     expect(result.body).toBeNull();
@@ -50,7 +54,7 @@ describe("request-utils", () => {
   it("rethrows unexpected request parsing errors", async () => {
     await expect(
       parseRequestBody(
-        createRequest(() =>
+        createRequest(async () =>
           Promise.reject(new TypeError("Body stream failed")),
         ),
       ),

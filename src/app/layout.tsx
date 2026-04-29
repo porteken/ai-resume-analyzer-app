@@ -3,16 +3,20 @@ import "./globals.css";
 
 import { SITE_DESCRIPTION, SITE_NAME, getSiteUrl } from "@/lib/site-url";
 import { Analytics } from "@vercel/analytics/next";
-import { Geist, Geist_Mono } from "next/font/google";
+import {
+  Geist as geistFont,
+  Geist_Mono as geistMonoFont,
+} from "next/font/google";
 
 import type { Metadata } from "next";
+import type { JSX, ReactNode } from "react";
 
-const geistSans = Geist({
+const geistSans = geistFont({
   subsets: ["latin"],
   variable: "--font-geist-sans",
 });
 
-const geistMono = Geist_Mono({
+const geistMono = geistMonoFont({
   subsets: ["latin"],
   variable: "--font-geist-mono",
 });
@@ -47,8 +51,8 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
-}>) {
+  children: ReactNode;
+}>): JSX.Element {
   return (
     <html lang="en">
       <body

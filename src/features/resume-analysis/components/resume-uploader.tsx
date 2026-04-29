@@ -15,7 +15,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { type RefObject, useCallback, useRef, useState } from "react";
+import { type JSX, type RefObject, useCallback, useRef, useState } from "react";
 
 type ResumeUploaderProperties = {
   isLoading: boolean;
@@ -80,7 +80,7 @@ const ResumeFileField = ({
   handleFileChange,
   isDragging,
   isLoading,
-}: Readonly<ResumeFileFieldProperties>) => (
+}: Readonly<ResumeFileFieldProperties>): JSX.Element => (
   <div className="animate-in fade-in slide-in-from-left-4 grid gap-3 duration-500">
     <div className="flex items-center justify-between gap-3">
       <Label className="font-medium text-slate-700" htmlFor="resume">
@@ -193,10 +193,10 @@ type ResumeUploadProgressProperties = {
 
 const ResumeUploadProgress = ({
   statusMessage,
-}: Readonly<ResumeUploadProgressProperties>) => {
+}: Readonly<ResumeUploadProgressProperties>): JSX.Element => {
   const processingStep = getProcessingStep(statusMessage);
 
-  const getStepIcon = (step: "analyzing" | "uploading") => {
+  const getStepIcon = (step: "analyzing" | "uploading"): JSX.Element => {
     if (processingStep === step) {
       return <Loader2 className="h-4 w-4 animate-spin" />;
     }
@@ -259,7 +259,7 @@ export const ResumeUploader = ({
   onFileSelectionSuccess,
   onSubmit,
   statusMessage,
-}: ResumeUploaderProperties) => {
+}: ResumeUploaderProperties): JSX.Element => {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [jobDescription, setJobDescription] = useState("");

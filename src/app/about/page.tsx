@@ -1,7 +1,9 @@
 import { ArrowLeft, ExternalLink, Mail, Server } from "lucide-react";
 import Link from "next/link";
 
+import type { LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
+import type { JSX } from "react";
 
 export const metadata: Metadata = {
   description:
@@ -22,7 +24,53 @@ const projectLinks = [
   },
 ] as const;
 
-export default function About() {
+type AboutSectionHeaderProperties = {
+  icon: LucideIcon;
+  iconClassName: string;
+  title: string;
+};
+
+const AboutSectionHeader = ({
+  icon: Icon,
+  iconClassName,
+  title,
+}: AboutSectionHeaderProperties): JSX.Element => (
+  <div className="mb-4 flex items-center gap-3">
+    <div
+      className={`flex size-10 items-center justify-center rounded-2xl ${iconClassName}`}
+    >
+      <Icon className="h-5 w-5" />
+    </div>
+    <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+  </div>
+);
+
+type ProjectLinkCardProperties = (typeof projectLinks)[number];
+
+const ProjectLinkCard = ({
+  href,
+  icon: Icon,
+  label,
+}: ProjectLinkCardProperties): JSX.Element => (
+  <a
+    className="group flex items-center gap-3 rounded-2xl border border-slate-100 bg-white/80 px-4 py-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50/70"
+    href={href}
+    rel="noopener noreferrer"
+    target="_blank"
+  >
+    <div className="flex size-10 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm">
+      <Icon className="h-4 w-4" />
+    </div>
+    <div>
+      <p className="font-medium text-slate-900">{label}</p>
+      <p className="text-sm text-slate-500 group-hover:text-indigo-700">
+        Open repository
+      </p>
+    </div>
+  </a>
+);
+
+export default function About(): JSX.Element {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-6">
       <div className="animate-gradient-shift absolute inset-0 bg-linear-to-br from-indigo-100 via-white to-cyan-100 bg-size-[200%_200%]" />
@@ -53,47 +101,25 @@ export default function About() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <section className="animate-in fade-in slide-in-from-left-4 rounded-2xl border border-white/60 bg-white/70 p-6 shadow-lg duration-500">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700">
-                  <ExternalLink className="h-5 w-5" />
-                </div>
-                <h2 className="text-lg font-semibold text-slate-900">
-                  Project Links
-                </h2>
-              </div>
+              <AboutSectionHeader
+                icon={ExternalLink}
+                iconClassName="bg-indigo-100 text-indigo-700"
+                title="Project Links"
+              />
 
               <div className="space-y-3">
-                {projectLinks.map(({ href, icon: Icon, label }) => (
-                  <a
-                    className="group flex items-center gap-3 rounded-2xl border border-slate-100 bg-white/80 px-4 py-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50/70"
-                    href={href}
-                    key={href}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    <div className="flex size-10 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm">
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-900">{label}</p>
-                      <p className="text-sm text-slate-500 group-hover:text-indigo-700">
-                        Open repository
-                      </p>
-                    </div>
-                  </a>
+                {projectLinks.map((link) => (
+                  <ProjectLinkCard key={link.href} {...link} />
                 ))}
               </div>
             </section>
 
             <section className="animate-in fade-in slide-in-from-right-4 rounded-2xl border border-white/60 bg-white/70 p-6 shadow-lg delay-100 duration-500">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-700">
-                  <Mail className="h-5 w-5" />
-                </div>
-                <h2 className="text-lg font-semibold text-slate-900">
-                  Contact
-                </h2>
-              </div>
+              <AboutSectionHeader
+                icon={Mail}
+                iconClassName="bg-cyan-100 text-cyan-700"
+                title="Contact"
+              />
 
               <p className="mb-4 text-sm leading-6 text-slate-600">
                 Questions, ideas, or collaboration notes? Reach out directly.

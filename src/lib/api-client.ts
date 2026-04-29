@@ -38,7 +38,7 @@ const getErrorMessageFromPayload = (payload: unknown): null | string => {
   return error ?? details ?? message;
 };
 
-const parseErrorPayload = (response: Response): Promise<unknown> => {
+const parseErrorPayload = async (response: Response): Promise<unknown> => {
   const contentType = response.headers.get("content-type");
 
   if (contentType?.includes("application/json")) {
@@ -49,13 +49,13 @@ const parseErrorPayload = (response: Response): Promise<unknown> => {
 };
 
 export class ApiClientError extends Error {
-  readonly data: unknown;
-  readonly method: string;
-  readonly response: Response;
-  readonly status: number;
-  readonly url: string;
+  public readonly data: unknown;
+  public readonly method: string;
+  public readonly response: Response;
+  public readonly status: number;
+  public readonly url: string;
 
-  constructor(options: {
+  public constructor(options: {
     data: unknown;
     method: string;
     response: Response;
@@ -94,7 +94,7 @@ const request = async (url: string, init: RequestInit): Promise<Response> => {
   throw error;
 };
 
-export const postJson = (
+export const postJson = async (
   url: string,
   payload: unknown,
   options?: RequestOptions,
@@ -106,7 +106,7 @@ export const postJson = (
     signal: options?.signal,
   });
 
-export const getJson = (
+export const getJson = async (
   url: string,
   options?: RequestOptions,
 ): Promise<Response> =>

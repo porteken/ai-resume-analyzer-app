@@ -14,7 +14,7 @@ import { NextResponse } from "next/server";
 
 export const maxDuration = 300;
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   try {
     const apiConfig = getApiConfig();
     if (!apiConfig) {
@@ -25,7 +25,9 @@ export async function POST(request: Request) {
     }
 
     const { body, error: parseError } = await parseRequestBody(request);
-    if (parseError) return parseError;
+    if (parseError) {
+      return parseError;
+    }
 
     const response = await fetch(apiConfig.analyzeEndpoint, {
       body: JSON.stringify(body),

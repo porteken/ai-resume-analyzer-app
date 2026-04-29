@@ -142,7 +142,7 @@ describe("aPI environment config", () => {
 
     expect(diagnostics.endpointSource).toBe("API_ENDPOINT");
     expect(diagnostics.apiKeySource).toBe("API_KEY");
-    expect(diagnostics.hasEndpointConflict).toBeTruthy();
+    expect(diagnostics.hasEndpointConflict).toBe(true);
     expect(diagnostics.endpointForLog).toBe(
       "https://api.example.com/dev/analyze",
     );

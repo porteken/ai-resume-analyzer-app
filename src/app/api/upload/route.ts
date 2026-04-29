@@ -19,7 +19,9 @@ const validateBodyJobDescription = (
   body: Record<string, unknown>,
 ): NextResponse | null => {
   const jobDescription = body.job_description;
-  if (typeof jobDescription !== "string") return null;
+  if (typeof jobDescription !== "string") {
+    return null;
+  }
 
   const jobDescriptionError = validateJobDescription(jobDescription);
   if (jobDescriptionError) {
@@ -32,7 +34,7 @@ const validateBodyJobDescription = (
   return null;
 };
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   try {
     const apiConfig = getApiConfig();
     if (!apiConfig) {
@@ -43,10 +45,14 @@ export async function POST(request: Request) {
     }
 
     const { body, error: parseError } = await parseRequestBody(request);
-    if (parseError) return parseError;
+    if (parseError) {
+      return parseError;
+    }
 
     const jobDescriptionError = validateBodyJobDescription(body);
-    if (jobDescriptionError) return jobDescriptionError;
+    if (jobDescriptionError) {
+      return jobDescriptionError;
+    }
 
     const headers = {
       "Content-Type": "application/json",

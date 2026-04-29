@@ -46,20 +46,20 @@ describe("analyze API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: () => Promise.resolve(mockResponseData),
+        json: async () => mockResponseData,
         status: 200,
       }),
     );
     globalThis.fetch = mockedFetch as typeof fetch;
 
-    const POST = await loadPostHandler();
+    const postHandler = await loadPostHandler();
     const requestBody = {
       job_description: "Software Engineer",
       job_id: "job-123",
       s3_url: "s3://bucket/resume.pdf",
     };
 
-    const response = await POST(createRequest(requestBody));
+    const response = await postHandler(createRequest(requestBody));
     const data = await response.json();
 
     expect(mockedFetch).toHaveBeenCalledWith(
@@ -83,9 +83,9 @@ describe("analyze API Route", () => {
 
     const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch as typeof fetch;
-    const POST = await loadPostHandler();
+    const postHandler = await loadPostHandler();
 
-    const response = await POST(
+    const response = await postHandler(
       createRequest({ job_description: "test", job_id: "job-123" }),
     );
     const data = await response.json();
@@ -99,8 +99,8 @@ describe("analyze API Route", () => {
     const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch as typeof fetch;
 
-    const POST = await loadPostHandler();
-    const response = await POST(createRawRequest("{"));
+    const postHandler = await loadPostHandler();
+    const response = await postHandler(createRawRequest("{"));
     const data = await response.json();
 
     expect(response.status).toBe(400);
@@ -112,8 +112,10 @@ describe("analyze API Route", () => {
     const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch as typeof fetch;
 
-    const POST = await loadPostHandler();
-    const response = await POST(createRawRequest(JSON.stringify("invalid")));
+    const postHandler = await loadPostHandler();
+    const response = await postHandler(
+      createRawRequest(JSON.stringify("invalid")),
+    );
     const data = await response.json();
 
     expect(response.status).toBe(400);
@@ -126,13 +128,13 @@ describe("analyze API Route", () => {
       createMockResponse({
         headers: new Headers({ "content-type": "text/plain" }),
         status: 502,
-        text: () => Promise.resolve("gateway error"),
+        text: async () => "gateway error",
       }),
     );
     globalThis.fetch = mockedFetch as typeof fetch;
 
-    const POST = await loadPostHandler();
-    const response = await POST(createRequest({ job_id: "job-123" }));
+    const postHandler = await loadPostHandler();
+    const response = await postHandler(createRequest({ job_id: "job-123" }));
     const data = await response.json();
 
     expect(response.status).toBe(502);
@@ -146,8 +148,8 @@ describe("analyze API Route", () => {
     const mockedFetch = createFetchMock().mockRejectedValue(timeoutError);
     globalThis.fetch = mockedFetch as typeof fetch;
 
-    const POST = await loadPostHandler();
-    const response = await POST(createRequest({ job_id: "job-123" }));
+    const postHandler = await loadPostHandler();
+    const response = await postHandler(createRequest({ job_id: "job-123" }));
     const data = await response.json();
 
     expect(response.status).toBe(504);
@@ -160,8 +162,8 @@ describe("analyze API Route", () => {
     );
     globalThis.fetch = mockedFetch as typeof fetch;
 
-    const POST = await loadPostHandler();
-    const response = await POST(createRequest({ job_id: "job-123" }));
+    const postHandler = await loadPostHandler();
+    const response = await postHandler(createRequest({ job_id: "job-123" }));
     const data = await response.json();
 
     expect(response.status).toBe(500);
@@ -173,14 +175,14 @@ describe("analyze API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: () => Promise.resolve({ error: "Bad request" }),
+        json: async () => Promise.resolve({ error: "Bad request" }),
         status: 400,
       }),
     );
     globalThis.fetch = mockedFetch as typeof fetch;
 
-    const POST = await loadPostHandler();
-    const response = await POST(createRequest({ job_id: "job-123" }));
+    const postHandler = await loadPostHandler();
+    const response = await postHandler(createRequest({ job_id: "job-123" }));
     const data = await response.json();
 
     expect(response.status).toBe(400);

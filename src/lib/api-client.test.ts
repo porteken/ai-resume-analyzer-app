@@ -26,7 +26,7 @@ const createResponse = ({
     headers: new Headers(
       contentType ? { "content-type": contentType } : undefined,
     ),
-    json: vi.fn<() => Promise<unknown>>(() => {
+    json: vi.fn<() => Promise<unknown>>(async () => {
       if (jsonReject) {
         return Promise.reject(new Error("Invalid JSON"));
       }
@@ -35,7 +35,7 @@ const createResponse = ({
     }),
     ok,
     status,
-    text: vi.fn<() => Promise<string>>(() => {
+    text: vi.fn<() => Promise<string>>(async () => {
       if (textReject) {
         return Promise.reject(new Error("Unable to read text"));
       }
@@ -112,7 +112,7 @@ describe("api-client", () => {
 
     const error = await postJson("/api/upload", {
       filename: "resume.pdf",
-    }).catch((caughtError) => caughtError);
+    }).catch((caughtError: unknown) => caughtError);
 
     expect(error).toBeInstanceOf(ApiClientError);
     expect(error).toMatchObject({

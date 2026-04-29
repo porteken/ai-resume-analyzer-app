@@ -5,7 +5,9 @@ import { ResumeUploader } from "@/features/resume-analysis/components/resume-upl
 import { useResumeAnalysis } from "@/features/resume-analysis/hooks/use-resume-analysis";
 import { useCallback, useEffect, useState } from "react";
 
-export const ResumeUploaderClient = () => {
+import type { JSX } from "react";
+
+export const ResumeUploaderClient = (): JSX.Element | null => {
   const [isMounted, setIsMounted] = useState(process.env.NODE_ENV === "test");
   const [selectedFileError, setSelectedFileError] = useState<null | string>(
     null,

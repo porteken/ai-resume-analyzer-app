@@ -47,20 +47,20 @@ describe("upload API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: () => Promise.resolve(mockResponseData),
+        json: async () => Promise.resolve(mockResponseData),
         status: 200,
       }),
     );
     globalThis.fetch = mockedFetch as typeof fetch;
 
-    const POST = await loadPostHandler();
+    const postHandler = await loadPostHandler();
     const requestBody = {
       filename: "resume.pdf",
       job_description: "Software Engineer",
       pdf_base64: "base64encodedpdf",
     };
 
-    const response = await POST(createRequest(requestBody));
+    const response = await postHandler(createRequest(requestBody));
     const data = await response.json();
 
     expect(mockedFetch).toHaveBeenCalledWith(
@@ -84,9 +84,9 @@ describe("upload API Route", () => {
 
     const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch as typeof fetch;
-    const POST = await loadPostHandler();
+    const postHandler = await loadPostHandler();
 
-    const response = await POST(
+    const response = await postHandler(
       createRequest({ job_description: "test", pdf_base64: "test" }),
     );
     const data = await response.json();
@@ -101,13 +101,13 @@ describe("upload API Route", () => {
       createMockResponse({
         headers: new Headers({ "content-type": "text/html" }),
         status: 502,
-        text: () => Promise.resolve("<html>Error page</html>"),
+        text: async () => Promise.resolve("<html>Error page</html>"),
       }),
     );
     globalThis.fetch = mockedFetch as typeof fetch;
 
-    const POST = await loadPostHandler();
-    const response = await POST(
+    const postHandler = await loadPostHandler();
+    const response = await postHandler(
       createRequest({ job_description: "test", pdf_base64: "test" }),
     );
     const data = await response.json();
@@ -123,8 +123,8 @@ describe("upload API Route", () => {
     const mockedFetch = createFetchMock().mockRejectedValue(timeoutError);
     globalThis.fetch = mockedFetch as typeof fetch;
 
-    const POST = await loadPostHandler();
-    const response = await POST(
+    const postHandler = await loadPostHandler();
+    const response = await postHandler(
       createRequest({ job_description: "test", pdf_base64: "test" }),
     );
     const data = await response.json();
@@ -139,8 +139,8 @@ describe("upload API Route", () => {
     );
     globalThis.fetch = mockedFetch as typeof fetch;
 
-    const POST = await loadPostHandler();
-    const response = await POST(
+    const postHandler = await loadPostHandler();
+    const response = await postHandler(
       createRequest({ job_description: "test", pdf_base64: "test" }),
     );
     const data = await response.json();
@@ -154,8 +154,8 @@ describe("upload API Route", () => {
     const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch as typeof fetch;
 
-    const POST = await loadPostHandler();
-    const response = await POST(createRawRequest("{"));
+    const postHandler = await loadPostHandler();
+    const response = await postHandler(createRawRequest("{"));
     const data = await response.json();
 
     expect(response.status).toBe(400);
@@ -167,8 +167,10 @@ describe("upload API Route", () => {
     const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch as typeof fetch;
 
-    const POST = await loadPostHandler();
-    const response = await POST(createRawRequest(JSON.stringify("invalid")));
+    const postHandler = await loadPostHandler();
+    const response = await postHandler(
+      createRawRequest(JSON.stringify("invalid")),
+    );
     const data = await response.json();
 
     expect(response.status).toBe(400);
@@ -180,9 +182,9 @@ describe("upload API Route", () => {
     const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch as typeof fetch;
 
-    const POST = await loadPostHandler();
+    const postHandler = await loadPostHandler();
     const longDescription = "a".repeat(MAX_JOB_DESCRIPTION_CHARS + 1);
-    const response = await POST(
+    const response = await postHandler(
       createRequest({ job_description: longDescription, pdf_base64: "test" }),
     );
     const data = await response.json();
@@ -197,14 +199,14 @@ describe("upload API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: () => Promise.resolve({ error: "Invalid input" }),
+        json: async () => Promise.resolve({ error: "Invalid input" }),
         status: 400,
       }),
     );
     globalThis.fetch = mockedFetch as typeof fetch;
 
-    const POST = await loadPostHandler();
-    const response = await POST(
+    const postHandler = await loadPostHandler();
+    const response = await postHandler(
       createRequest({ job_description: "test", pdf_base64: "test" }),
     );
     const data = await response.json();

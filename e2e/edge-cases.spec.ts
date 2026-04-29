@@ -73,10 +73,9 @@ test.describe("File Upload Edge Cases", () => {
     await uploadFile(page, pdfFile2);
 
     const fileInput = page.locator('input[type="file"]');
-    const fileName = await fileInput.evaluate((el: HTMLInputElement) => {
-      // eslint-disable-next-line vitest/no-conditional-in-test
-      return el.files?.[0]?.name || "";
-    });
+    const fileName = await fileInput.evaluate(
+      (el: HTMLInputElement) => el.files?.[0]?.name || "",
+    );
 
     expect(fileName).toBe("resume.pdf");
   });

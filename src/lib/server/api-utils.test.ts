@@ -31,9 +31,9 @@ describe("api-utils", () => {
     const timeoutError = new Error("Timed out");
     timeoutError.name = "TimeoutError";
 
-    expect(isTimeoutError(abortError)).toBeTruthy();
-    expect(isTimeoutError(timeoutError)).toBeTruthy();
-    expect(isTimeoutError(new Error("Different failure"))).toBeFalsy();
-    expect(isTimeoutError("TimeoutError")).toBeFalsy();
+    expect(isTimeoutError(abortError)).toBe(true);
+    expect(isTimeoutError(timeoutError)).toBe(true);
+    expect(isTimeoutError(new Error("Different failure"))).toBe(false);
+    expect(isTimeoutError("TimeoutError")).toBe(false);
   });
 });

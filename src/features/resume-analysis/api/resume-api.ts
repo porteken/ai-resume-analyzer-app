@@ -64,6 +64,14 @@ type UploadResumeResponse = {
   job_id?: string;
 };
 
+type PollUntilCompleteOptions = {
+  attempt: number;
+  maxAttempts: number;
+  onProgress: (message: string) => void;
+  signal?: AbortSignal;
+  statusUrl: string;
+};
+
 const isAbortError = (error: unknown): boolean =>
   error instanceof Error && error.name === "AbortError";
 
@@ -171,7 +179,7 @@ const getPollDelayMs = (attempt: number): number =>
     Math.min(attempt - 1, POLL_DELAY_BY_ATTEMPT_MS.length - 1)
   ] ?? DELAY_MULTIPLIER_5 * MS_PER_SECOND;
 
-const sendUploadRequest = (
+const sendUploadRequest = async (
   requestBody: object,
   signal?: AbortSignal,
 ): Promise<Response> => postJson("/api/upload", requestBody, { signal });
@@ -308,13 +316,13 @@ const getStatusResponse = async (
   }
 };
 
-const pollUntilComplete = async (
-  statusUrl: string,
-  onProgress: (message: string) => void,
-  signal: AbortSignal | undefined,
-  attempt: number,
-  maxAttempts: number,
-): Promise<AnalysisResultData> => {
+const pollUntilComplete = async ({
+  attempt,
+  maxAttempts,
+  onProgress,
+  signal,
+  statusUrl,
+}: PollUntilCompleteOptions): Promise<AnalysisResultData> => {
   if (attempt > maxAttempts) {
     throw new Error("Request timed out.");
   }
@@ -341,13 +349,13 @@ const pollUntilComplete = async (
 
   onProgress("Analyzing Resume...");
 
-  return pollUntilComplete(
+  return pollUntilComplete({
     statusUrl,
     onProgress,
     signal,
-    attempt + 1,
+    attempt: attempt + 1,
     maxAttempts,
-  );
+  });
 };
 
 const getCompletedPollResult = (
@@ -578,13 +586,13 @@ export const pollForResults = async (
   const statusUrl = `/api/status/${jobId}`;
   const maxAttempts = 150;
 
-  return pollUntilComplete(
-    statusUrl,
-    onProgress,
-    options?.signal,
-    1,
+  return pollUntilComplete({
+    attempt: 1,
     maxAttempts,
-  );
+    onProgress,
+    signal: options?.signal,
+    statusUrl,
+  });
 };
 
 function assertCompletedPollResult(

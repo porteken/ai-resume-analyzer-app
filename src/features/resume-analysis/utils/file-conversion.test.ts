@@ -13,17 +13,17 @@ const originalFileReader = globalThis.FileReader;
 let fileReaderMode: FileReaderMode = "success";
 
 class MockFileReader {
-  result: ArrayBuffer | null | string = null;
+  public result: ArrayBuffer | null | string = null;
 
   private readonly listeners = new Map<string, Set<() => void>>();
 
-  addEventListener(type: string, listener: () => void) {
+  public addEventListener(type: string, listener: () => void): void {
     const listeners = this.listeners.get(type) ?? new Set<() => void>();
     listeners.add(listener);
     this.listeners.set(type, listeners);
   }
 
-  readAsDataURL() {
+  public readAsDataURL(): void {
     queueMicrotask(() => {
       if (fileReaderMode === "error") {
         this.emit("error");
@@ -44,7 +44,7 @@ class MockFileReader {
     });
   }
 
-  private emit(type: string) {
+  private emit(type: string): void {
     for (const listener of this.listeners.get(type) ?? []) {
       listener();
     }

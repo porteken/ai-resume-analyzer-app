@@ -12,7 +12,7 @@ import { NextResponse } from "next/server";
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ jobId: string }> },
-) {
+): Promise<Response> {
   try {
     const apiConfig = getApiConfig();
     if (!apiConfig) {

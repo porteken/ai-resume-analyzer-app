@@ -1,4 +1,6 @@
-export default function Loading() {
+import type { JSX } from "react";
+
+export default function Loading(): JSX.Element {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-6">
       <div className="animate-gradient-shift absolute inset-0 bg-linear-to-br from-indigo-100 via-white to-cyan-100 bg-size-[200%_200%]" />

@@ -1,6 +1,6 @@
 import { createAbortError } from "@/lib/abort-utils";
 
-export const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>
+export const sleep = async (ms: number, signal?: AbortSignal): Promise<void> =>
   new Promise((resolve, reject) => {
     if (signal?.aborted) {
       reject(createAbortError());

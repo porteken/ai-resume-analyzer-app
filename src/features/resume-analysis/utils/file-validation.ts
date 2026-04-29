@@ -31,7 +31,9 @@ export const truncateJobDescription = (description: string): string => {
 };
 
 export const validateFile = (file: File | null): null | string => {
-  if (!file) return "Please provide both a PDF resume and a Job Description.";
+  if (!file) {
+    return "Please provide both a PDF resume and a Job Description.";
+  }
 
   const hasPdfExtension = file.name.toLowerCase().endsWith(".pdf");
   if (!hasPdfExtension) {

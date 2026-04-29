@@ -20,11 +20,11 @@ const createFetchMock = () => vi.fn<typeof fetch>();
 const createJsonResponse = (status: number, data: unknown): Response =>
   ({
     headers: new Headers({ "content-type": "application/json" }),
-    json: vi.fn<() => Promise<unknown>>(() => Promise.resolve(data)),
+    json: vi.fn<() => Promise<unknown>>(async () => Promise.resolve(data)),
     ok: status >= 200 && status < 300,
     status,
     statusText: "OK",
-    text: vi.fn<() => Promise<string>>(() =>
+    text: vi.fn<() => Promise<string>>(async () =>
       Promise.resolve(JSON.stringify(data)),
     ),
   }) as unknown as Response;
@@ -32,11 +32,11 @@ const createJsonResponse = (status: number, data: unknown): Response =>
 const createOpaqueResponse = (): Response =>
   ({
     headers: new Headers(),
-    json: vi.fn<() => Promise<unknown>>(() => Promise.resolve(null)),
+    json: vi.fn<() => Promise<unknown>>(async () => Promise.resolve(null)),
     ok: false,
     status: 0,
     statusText: "",
-    text: vi.fn<() => Promise<string>>(() => Promise.resolve("")),
+    text: vi.fn<() => Promise<string>>(async () => Promise.resolve("")),
     type: "opaque",
   }) as unknown as Response;
 
@@ -328,11 +328,11 @@ describe("resume polling API", () => {
     const pollPromise = pollForResults("job-123", onProgress);
 
     await vi.advanceTimersByTimeAsync(1000);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledOnce();
     expect(onProgress).toHaveBeenCalledWith("Analyzing Resume...");
 
     await vi.advanceTimersByTimeAsync(1999);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledOnce();
 
     await vi.advanceTimersByTimeAsync(1);
     await expect(pollPromise).resolves.toBe("completed-analysis");

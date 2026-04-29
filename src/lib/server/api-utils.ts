@@ -16,11 +16,10 @@ export const createErrorResponse = (
   error: string,
   status: number,
   details?: string,
-) => {
-  return NextResponse.json(details ? { details, error } : { error }, {
+): NextResponse =>
+  NextResponse.json(details ? { details, error } : { error }, {
     status,
   });
-};
 
 export const isTimeoutError = (error: unknown): boolean => {
   if (!(error instanceof Error)) {

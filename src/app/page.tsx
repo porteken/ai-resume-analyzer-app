@@ -1,7 +1,9 @@
 import { ResumeUploaderClient } from "@/features/resume-analysis/components/resume-uploader-client";
 import Link from "next/link";
 
-export default function Home() {
+import type { JSX } from "react";
+
+export default function Home(): JSX.Element {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-6">
       <div className="animate-gradient-shift absolute inset-0 bg-linear-to-br from-indigo-100 via-white to-cyan-100 bg-size-[200%_200%]" />

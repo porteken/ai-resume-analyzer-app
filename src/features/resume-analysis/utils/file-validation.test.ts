@@ -14,7 +14,7 @@ describe("file-validation utilities", () => {
     const sanitized = sanitizeFilename(`${"a".repeat(250)}.txt`);
 
     expect(sanitized).toHaveLength(200);
-    expect(sanitized.endsWith(".pdf")).toBeTruthy();
+    expect(sanitized.endsWith(".pdf")).toBe(true);
   });
 
   it("truncates long job descriptions for legacy fallback payloads", () => {
@@ -22,7 +22,7 @@ describe("file-validation utilities", () => {
     const truncated = truncateJobDescription(description);
 
     expect(truncated).toHaveLength(10_015);
-    expect(truncated.endsWith("... [truncated]")).toBeTruthy();
+    expect(truncated.endsWith("... [truncated]")).toBe(true);
   });
 
   it("allows pdf files without a declared mime type", () => {

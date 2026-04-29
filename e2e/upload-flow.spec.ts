@@ -129,7 +129,7 @@ test.describe("Resume Analysis Flow", () => {
     ];
 
     await Promise.all(
-      sections.map((section) =>
+      sections.map(async (section) =>
         expect(page.getByText(section.heading)).toBeVisible(),
       ),
     );

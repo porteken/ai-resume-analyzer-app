@@ -24,12 +24,15 @@ export function createTestPDF(): Buffer {
   return createTestPDFBuffer();
 }
 
-export async function fillJobDescription(page: Page, description: string) {
+export async function fillJobDescription(
+  page: Page,
+  description: string,
+): Promise<void> {
   const textarea = page.getByLabel(/job description/i);
   await textarea.fill(description);
 }
 
-export async function submitForm(page: Page) {
+export async function submitForm(page: Page): Promise<void> {
   const button = page.getByRole("button", { name: /analyze resume/i });
   await button.click();
 }
@@ -38,7 +41,7 @@ export async function uploadFile(
   page: Page,
   fileContent: Buffer,
   fileName = "resume.pdf",
-) {
+): Promise<void> {
   const fileInput = page.locator('input[type="file"]');
   await fileInput.setInputFiles({
     buffer: fileContent,
@@ -51,7 +54,7 @@ export const mockAPIResponses = {
   async mockAsyncJob(
     page: Page,
     jobId: string = MOCK_RESPONSES.asyncJobInitial.job_id,
-  ) {
+  ): Promise<void> {
     let pollCount = 0;
 
     await page.route("**/api/upload", async (route) => {
@@ -83,7 +86,7 @@ export const mockAPIResponses = {
   async mockFailedJob(
     page: Page,
     jobId: string = MOCK_RESPONSES.failedJobInitial.job_id,
-  ) {
+  ): Promise<void> {
     await page.route("**/api/upload", async (route) => {
       await route.fulfill({
         body: JSON.stringify(MOCK_RESPONSES.failedJobInitial),
@@ -101,7 +104,7 @@ export const mockAPIResponses = {
     });
   },
 
-  async mockImmediateSuccess(page: Page) {
+  async mockImmediateSuccess(page: Page): Promise<void> {
     await page.route("**/api/upload", async (route) => {
       await route.fulfill({
         body: JSON.stringify(MOCK_RESPONSES.immediateSuccess),
@@ -111,13 +114,13 @@ export const mockAPIResponses = {
     });
   },
 
-  async mockNetworkError(page: Page) {
+  async mockNetworkError(page: Page): Promise<void> {
     await page.route("**/api/upload", async (route) => {
       await route.abort("failed");
     });
   },
 
-  async mockServerError(page: Page) {
+  async mockServerError(page: Page): Promise<void> {
     await page.route("**/api/upload", async (route) => {
       await route.fulfill({
         body: JSON.stringify(MOCK_RESPONSES.serverError),
