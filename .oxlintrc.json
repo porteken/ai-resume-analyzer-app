@@ -25,7 +25,6 @@
   },
   "env": {
     "builtin": true,
-    "es2026": true,
     "browser": true,
     "node": true
   },
@@ -33,11 +32,8 @@
     "react": {
       "version": "19.2.4"
     },
-    "import/resolver": {
-      "typescript": {
-        "alwaysTryTypes": true,
-        "project": "tsconfig.json"
-      }
+    "next": {
+      "rootDir": "."
     }
   },
   "ignorePatterns": [
@@ -48,7 +44,7 @@
     "src/components/ui/*"
   ],
   "rules": {
-    "no-unused-vars": [
+    "eslint/no-unused-vars": [
       "error",
       {
         "argsIgnorePattern": "^_",
@@ -169,10 +165,6 @@
     "react/jsx-props-no-spreading": "off",
     "react/forbid-component-props": "off",
     "react/no-multi-comp": "off",
-    "vitest/no-conditional-in-test": "error",
-    "vitest/consistent-test-it": "error",
-    "vitest/require-top-level-describe": "error",
-    "vitest/max-nested-describe": "error",
     // Do not disable globally unless options are unsupported or noise remains unacceptable
     "eslint/no-magic-numbers": [
       "error",
@@ -390,13 +382,16 @@
   "overrides": [
     {
       "files": ["**/__tests__/**/*.{ts,tsx}", "**/*.test.{ts,tsx}"],
-      "plugins": ["vitest"],
       "rules": {
         "eslint/no-magic-numbers": "off",
         "import/no-namespace": "off",
         "eslint/max-statements": "off",
         "eslint/max-params": "off",
-        "typescript/no-explicit-any": "off"
+        "typescript/no-explicit-any": "off",
+        "vitest/no-conditional-in-test": "error",
+        "vitest/consistent-test-it": "error",
+        "vitest/require-top-level-describe": "error",
+        "vitest/max-nested-describe": "error"
       }
     },
     {
@@ -410,6 +405,7 @@
         "middleware.{ts,js}"
       ],
       "rules": {
+        "import/no-default-export": "off",
         "import/no-commonjs": "off",
         "typescript/no-require-imports": "off",
         "eslint/no-console": "off"
@@ -417,12 +413,12 @@
     },
     {
       "files": [
-        "app/**/page.{ts,tsx}",
-        "app/**/layout.{ts,tsx}",
-        "app/**/template.{ts,tsx}",
-        "app/**/loading.{ts,tsx}",
-        "app/**/error.{ts,tsx}",
-        "app/**/not-found.{ts,tsx}",
+        "src/app/**/page.{ts,tsx}",
+        "src/app/**/layout.{ts,tsx}",
+        "src/app/**/template.{ts,tsx}",
+        "src/app/**/loading.{ts,tsx}",
+        "src/app/**/error.{ts,tsx}",
+        "src/app/**/not-found.{ts,tsx}",
         "pages/**/*.{ts,tsx}"
       ],
       "rules": {
