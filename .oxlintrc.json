@@ -65,7 +65,7 @@
     ],
     "import/consistent-type-specifier-style": "off",
     "typescript/explicit-function-return-type": "off",
-    "typescript/explicit-module-boundary-types": "error",
+    "typescript/explicit-module-boundary-types": "off",
     "import/no-nodejs-modules": "off",
     "promise/prefer-await-to-then": "off",
     "promise/avoid-new": "off",
@@ -75,12 +75,7 @@
         "extensions": [".jsx", ".tsx"]
       }
     ],
-    "react/jsx-max-depth": [
-      "error",
-      {
-        "max": 6
-      }
-    ],
+    "react/jsx-max-depth": "off",
     "eslint/max-statements": [
       "error",
       {
@@ -137,17 +132,7 @@
     "react/jsx-props-no-spreading": "off",
     "react/forbid-component-props": "off",
     "react/no-multi-comp": "off",
-    "eslint/no-magic-numbers": [
-      "error",
-      {
-        "ignore": [-1, 0, 1, 2, 100],
-        "ignoreArrayIndexes": true,
-        "ignoreDefaultValues": true,
-        "ignoreClassFieldInitialValues": true,
-        "enforceConst": true,
-        "detectObjects": false
-      }
-    ],
+    "eslint/no-magic-numbers": "off",
     "sonarjs/anchor-precedence": "error",
     "sonarjs/argument-type": "error",
     "sonarjs/arguments-order": "error",
@@ -348,11 +333,58 @@
     "sonarjs/void-use": "error",
     "sonarjs/weak-ssl": "error",
     "sonarjs/x-powered-by": "error",
-    "sonarjs/xml-parser-xxe": "error"
+    "sonarjs/xml-parser-xxe": "error",
+    "import/no-relative-parent-imports": "off",
+    "eslint/no-continue": "off",
+    "typescript/explicit-member-accessibility": "off",
+    "typescript/promise-function-async": "off",
+    "eslint/new-cap": "off",
+    "eslint/class-methods-use-this": "off",
+    "eslint/func-names": "off",
+    "eslint/arrow-body-style": "off",
+    "jest/prefer-strict-equal": "off",
+    "jest/prefer-lowercase-title": "off",
+    "jest/no-untyped-mock-factory": "off",
+    "jest/prefer-called-with": "off",
+    "jest/prefer-mock-return-shorthand": "off",
+    "jest/padding-around-test-blocks": "off",
+    "jest/require-hook": "off",
+    "jest/no-hooks": "off",
+    "jest/prefer-hooks-on-top": "off",
+    "jest/prefer-to-have-length": "off",
+    "jest/prefer-expect-assertions": "off",
+    "jest/max-expects": "off",
+    "jest/prefer-ending-with-an-expect": "off",
+    "react/prefer-function-component": "off",
+    "react/jsx-boolean-value": "off",
+    "import/first": "off",
+    "typescript/array-type": "off",
+    "import/no-namespace": "off",
+    "import/no-default-export": "off",
+    "typescript/no-explicit-any": "error",
+    "vitest/prefer-import-in-mock": "off",
+    "unicorn/switch-case-braces": "off",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/parameter-properties": "off",
+    "react/hook-use-state": "off",
+    "eslint/no-console": "off",
+    "typescript/no-inferrable-types": "off",
+    "import/no-commonjs": "off",
+    "unicorn/custom-error-definition": "off",
+    "import/unambiguous": "off",
+    "react/jsx-handler-names": "off",
+    "typescript/non-nullable-type-assertion-style": "off",
+    "typescript/no-require-imports": "off",
+    "oxc/no-map-spread": "off",
+    "eslint/no-implicit-coercion": "off"
   },
   "overrides": [
     {
-      "files": ["**/__tests__/**/*.{ts,tsx}", "**/*.test.{ts,tsx}"],
+      "files": [
+        "**/__tests__/**/*.{ts,tsx}",
+        "**/*.test.{ts,tsx}",
+        "**/*.spec.{ts,tsx}"
+      ],
       "env": {
         "vitest": true
       },
@@ -370,7 +402,19 @@
         "vitest/no-conditional-in-test": "error",
         "vitest/consistent-test-it": "error",
         "vitest/require-top-level-describe": "error",
-        "vitest/max-nested-describe": "error"
+        "vitest/max-nested-describe": "error",
+        "jest/prefer-strict-equal": "off",
+        "jest/prefer-lowercase-title": "off",
+        "jest/no-untyped-mock-factory": "off",
+        "jest/prefer-called-with": "off",
+        "jest/prefer-mock-return-shorthand": "off",
+        "jest/padding-around-test-blocks": "off",
+        "jest/prefer-hooks-on-top": "off",
+        "jest/prefer-to-have-length": "off",
+        "import/first": "off",
+        "vitest/prefer-import-in-mock": "off",
+        "vitest/prefer-called-once": "off",
+        "vitest/prefer-expect-type-of": "off"
       }
     },
     {

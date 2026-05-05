@@ -73,11 +73,7 @@ test.describe("File Upload Edge Cases", () => {
     await uploadFile(page, pdfFile2);
 
     const fileInput = page.locator('input[type="file"]');
-    const fileName = await fileInput.evaluate(
-      (el: HTMLInputElement) => el.files?.[0]?.name || "",
-    );
-
-    expect(fileName).toBe("resume.pdf");
+    await expect(fileInput).toHaveValue(/resume\.pdf$/);
   });
 
   test("should handle file at boundary (4.99 MB)", async ({ page }) => {
