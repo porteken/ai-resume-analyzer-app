@@ -13,7 +13,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "target": "ES2025",
+    "target": "esnext",
     /* Enhanced type safety (beyond strict) */
     "noUncheckedIndexedAccess": true,
     "noFallthroughCasesInSwitch": true,
