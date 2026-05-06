@@ -362,6 +362,7 @@
     "jest/prefer-mock-return-shorthand": "off",
     "jest/padding-around-test-blocks": "off",
     "jest/require-hook": "off",
+    "vitest/require-hook": "off",
     "jest/no-hooks": "off",
     "jest/prefer-hooks-on-top": "off",
     "jest/prefer-to-have-length": "off",
