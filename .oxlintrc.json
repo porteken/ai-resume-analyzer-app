@@ -140,7 +140,6 @@
     "react/forbid-component-props": "off",
     "react/no-multi-comp": "off",
     "eslint/no-magic-numbers": "off",
-    "better-tailwindcss/enforce-consistent-class-order": "error",
     "better-tailwindcss/enforce-canonical-classes": "error",
     "better-tailwindcss/no-duplicate-classes": "error",
     "better-tailwindcss/no-deprecated-classes": "error",
