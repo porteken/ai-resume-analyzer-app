@@ -17,14 +17,14 @@ import {
 } from "lucide-react";
 import { type JSX, type RefObject, useCallback, useRef, useState } from "react";
 
-type ResumeUploaderProperties = {
+interface ResumeUploaderProperties {
   isLoading: boolean;
   onCancel: () => void;
   onFileSelectionError: (message: string) => void;
   onFileSelectionSuccess: () => void;
   onSubmit: (file: File | null, jobDescription: string) => Promise<void>;
   statusMessage: string;
-};
+}
 
 const BYTES_PER_KB = 1024;
 const KB_PER_MB = 1024;
@@ -54,7 +54,7 @@ const getProcessingStep = (
   return "idle";
 };
 
-type ResumeFileFieldProperties = {
+interface ResumeFileFieldProperties {
   clearSelectedFile: () => void;
   file: File | null;
   fileInputReference: RefObject<HTMLInputElement | null>;
@@ -66,7 +66,7 @@ type ResumeFileFieldProperties = {
   handleFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   isDragging: boolean;
   isLoading: boolean;
-};
+}
 
 const ResumeFileField = ({
   clearSelectedFile,
@@ -187,9 +187,9 @@ const ResumeFileField = ({
   </div>
 );
 
-type ResumeUploadProgressProperties = {
+interface ResumeUploadProgressProperties {
   statusMessage: string;
-};
+}
 
 const ResumeUploadProgress = ({
   statusMessage,

@@ -4,9 +4,9 @@ const JSON_HEADERS = {
   "Content-Type": "application/json",
 } as const;
 
-type RequestOptions = {
+interface RequestOptions {
   signal?: AbortSignal;
-};
+}
 
 const getErrorMessageFromPayload = (payload: unknown): null | string => {
   if (typeof payload === "string" && payload.trim() !== "") {

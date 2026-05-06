@@ -7,9 +7,9 @@ import type { JSX } from "react";
 
 const MARKDOWN_REMARK_PLUGINS = [remarkGfm];
 
-type AnalysisMarkdownProperties = {
+interface AnalysisMarkdownProperties {
   content: string;
-};
+}
 
 export function AnalysisMarkdown({
   content,

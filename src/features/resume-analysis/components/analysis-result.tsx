@@ -13,18 +13,17 @@ import { Suspense, lazy, useMemo } from "react";
 import type { AnalysisResultData } from "@/types";
 import type { JSX } from "react";
 
-type AnalysisResultProperties = {
+interface AnalysisResultProperties {
   error: null | string;
   result: AnalysisResultData | null;
-};
+}
 
 type StructuredAnalysisResult = Exclude<AnalysisResultData, string>;
 
-const LazyAnalysisMarkdown = lazy(async () =>
-  import("./analysis-markdown").then((module) => ({
-    default: module.AnalysisMarkdown,
-  })),
-);
+const LazyAnalysisMarkdown = lazy(async () => {
+  const mod = await import("./analysis-markdown");
+  return { default: mod.AnalysisMarkdown };
+});
 
 const structuredSections = [
   {

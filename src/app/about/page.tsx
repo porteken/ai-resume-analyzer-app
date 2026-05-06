@@ -24,11 +24,11 @@ const projectLinks = [
   },
 ] as const;
 
-type AboutSectionHeaderProperties = {
+interface AboutSectionHeaderProperties {
   icon: LucideIcon;
   iconClassName: string;
   title: string;
-};
+}
 
 const AboutSectionHeader = ({
   icon: Icon,

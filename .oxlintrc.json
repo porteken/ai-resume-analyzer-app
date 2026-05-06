@@ -74,7 +74,7 @@
     "typescript/explicit-function-return-type": "off",
     "typescript/explicit-module-boundary-types": "off",
     "import/no-nodejs-modules": "off",
-    "promise/prefer-await-to-then": "off",
+    "promise/prefer-await-to-then": "error",
     "promise/avoid-new": "off",
     "react/jsx-filename-extension": [
       "error",
@@ -114,7 +114,7 @@
     "vitest/prefer-expect-assertions": "off",
     "vitest/no-hooks": "off",
     "vitest/max-expects": "off",
-    "typescript/consistent-type-definitions": "off",
+    "typescript/consistent-type-definitions": ["error", "interface"],
     "vitest/prefer-describe-function-title": "off",
     "vitest/prefer-to-be-truthy": "off",
     "eslint/init-declarations": "off",
@@ -124,7 +124,7 @@
     "import/group-exports": "off",
     "import/exports-last": "off",
     "eslint/require-await": "off",
-    "eslint/no-shadow": "off",
+    "eslint/no-shadow": "error",
     "eslint/no-use-before-define": "off",
     "eslint/no-empty-function": "off",
     "eslint/no-duplicate-imports": "off",
@@ -355,7 +355,7 @@
     "eslint/new-cap": "off",
     "eslint/class-methods-use-this": "off",
     "eslint/func-names": "off",
-    "eslint/arrow-body-style": "off",
+    "eslint/arrow-body-style": ["error", "as-needed"],
     "jest/prefer-strict-equal": "off",
     "jest/prefer-lowercase-title": "off",
     "jest/no-untyped-mock-factory": "off",
@@ -377,11 +377,16 @@
     "import/no-default-export": "off",
     "typescript/no-explicit-any": "error",
     "vitest/prefer-import-in-mock": "off",
-    "unicorn/switch-case-braces": "off",
+    "unicorn/switch-case-braces": "error",
     "typescript/no-non-null-assertion": "error",
     "typescript/parameter-properties": "off",
-    "react/hook-use-state": "off",
-    "eslint/no-console": "off",
+    "react/hook-use-state": "error",
+    "eslint/no-console": [
+      "error",
+      {
+        "allow": ["warn", "error"]
+      }
+    ],
     "typescript/no-inferrable-types": "off",
     "import/no-commonjs": "off",
     "unicorn/custom-error-definition": "off",
@@ -389,8 +394,8 @@
     "react/jsx-handler-names": "off",
     "typescript/non-nullable-type-assertion-style": "off",
     "typescript/no-require-imports": "off",
-    "oxc/no-map-spread": "off",
-    "eslint/no-implicit-coercion": "off"
+    "oxc/no-map-spread": "error",
+    "eslint/no-implicit-coercion": "error"
   },
   "overrides": [
     {

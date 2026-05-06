@@ -1,20 +1,20 @@
 export type AnalysisResultData = string | StructuredAnalysisResult;
 
-type StructuredAnalysisContactInfo = {
+interface StructuredAnalysisContactInfo {
   email?: string;
   linkedin?: string;
   location?: string;
   phone?: string;
-};
+}
 
-type StructuredAnalysisExperience = {
+interface StructuredAnalysisExperience {
   company?: string;
   duration?: string;
   highlights?: string[];
   role?: string;
-};
+}
 
-type StructuredAnalysisResult = {
+interface StructuredAnalysisResult {
   contact_info?: StructuredAnalysisContactInfo;
   experience?: StructuredAnalysisExperience[];
   gaps?: string[];
@@ -23,4 +23,4 @@ type StructuredAnalysisResult = {
   skills?: string[];
   strengths?: string[];
   summary?: string;
-};
+}

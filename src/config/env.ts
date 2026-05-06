@@ -1,17 +1,17 @@
-type ApiConfig = {
+interface ApiConfig {
   analyzeEndpoint: string;
   apiKey: string;
   statusEndpoint: string;
   uploadEndpoint: string;
-};
+}
 
-type ApiConfigDiagnostics = {
+interface ApiConfigDiagnostics {
   apiKeyFingerprint: null | string;
   apiKeySource: ApiKeySource;
   endpointForLog: null | string;
   endpointSource: EndpointSource;
   hasEndpointConflict: boolean;
-};
+}
 
 type ApiKeySource = "API_KEY" | "missing";
 type EndpointSource = "API_ENDPOINT" | "missing" | "NEXT_PUBLIC_API_ENDPOINT";

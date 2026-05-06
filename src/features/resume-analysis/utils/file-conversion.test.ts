@@ -10,7 +10,7 @@ type FileReaderMode =
 
 const originalFileReader = globalThis.FileReader;
 
-let fileReaderMode: FileReaderMode = "success";
+let fileReaderMode: FileReaderMode;
 
 class MockFileReader {
   public result: ArrayBuffer | null | string = null;

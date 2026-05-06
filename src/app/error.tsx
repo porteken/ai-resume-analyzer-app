@@ -6,10 +6,10 @@ import Link from "next/link";
 
 import type { JSX } from "react";
 
-type ErrorPageProperties = {
+interface ErrorPageProperties {
   error: Error & { digest?: string };
   reset: () => void;
-};
+}
 
 export default function ErrorPage({
   error,

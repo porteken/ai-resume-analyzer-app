@@ -26,51 +26,51 @@ const POLL_DELAY_BY_ATTEMPT_MS = [
   DELAY_MULTIPLIER_5 * MS_PER_SECOND,
 ] as const;
 
-type ApiErrorResponse = {
+interface ApiErrorResponse {
   details?: string;
   error?: string;
   type?: string;
-};
+}
 
-type PresignedUploadResponse = {
+interface PresignedUploadResponse {
   job_id: string;
   s3_url?: string;
   upload: {
     fields: PresignedUrlFields;
     url: string;
   };
-};
+}
 
 type PresignedUrlFields = Record<string, string>;
 
-type StatusResponseData = {
+interface StatusResponseData {
   analysis_result?: AnalysisResultData;
   error?: string;
   status?: string;
-};
+}
 
-type UploadRequestOptions = {
+interface UploadRequestOptions {
   signal?: AbortSignal;
-};
+}
 
-type UploadRequestPayload = {
+interface UploadRequestPayload {
   filename: string;
   job_description?: string;
   pdf_base64?: string;
-};
+}
 
-type UploadResumeResponse = {
+interface UploadResumeResponse {
   analysis_result?: AnalysisResultData;
   job_id?: string;
-};
+}
 
-type PollUntilCompleteOptions = {
+interface PollUntilCompleteOptions {
   attempt: number;
   maxAttempts: number;
   onProgress: (message: string) => void;
   signal?: AbortSignal;
   statusUrl: string;
-};
+}
 
 const isAbortError = (error: unknown): boolean =>
   error instanceof Error && error.name === "AbortError";

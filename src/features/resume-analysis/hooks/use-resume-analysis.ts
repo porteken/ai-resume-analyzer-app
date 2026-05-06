@@ -11,14 +11,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { AnalysisResultData } from "@/types";
 
-type UseResumeAnalysisReturn = {
+interface UseResumeAnalysisReturn {
   cancelAnalysis: () => void;
   error: null | string;
   isLoading: boolean;
   result: AnalysisResultData | null;
   statusMessage: string;
   submitAnalysis: (file: File | null, jobDescription: string) => Promise<void>;
-};
+}
 
 const isApiResponseError = (error_: Error): boolean => {
   if (error_ instanceof ApiClientError) {
