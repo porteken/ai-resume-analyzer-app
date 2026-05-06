@@ -2,6 +2,7 @@
   "ignoreDependencies": [
     "eslint-plugin-playwright",
     "eslint-plugin-sonarjs",
-    "eslint-plugin-better-tailwindcss"
+    "eslint-plugin-better-tailwindcss",
+    "lint-staged"
   ]
 }
