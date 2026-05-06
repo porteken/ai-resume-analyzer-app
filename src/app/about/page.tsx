@@ -7,7 +7,7 @@ import type { JSX } from "react";
 
 export const metadata: Metadata = {
   description:
-    "Learn more about AI Resume Analyzer — a tool that uses Gemini 2.5 Flash AI to evaluate resume-job description fit.",
+    "Learn more about AI Resume Analyzer — a tool that uses Gemini 3 Flash AI to evaluate resume-job description fit.",
   title: "About",
 };
 
@@ -93,7 +93,7 @@ export default function About(): JSX.Element {
             <p className="mx-auto max-w-2xl text-sm/7 text-slate-600 md:text-base">
               AI Resume Analyzer is a web application that helps job seekers
               evaluate how well their resume matches a specific job description.
-              Using Google&apos;s Gemini 2.5 Flash AI model, the app analyzes
+              Using Google&apos;s Gemini 3 Flash AI model, the app analyzes
               uploaded PDF resumes and provides detailed feedback including
               strengths, gaps, and recommendations.
             </p>

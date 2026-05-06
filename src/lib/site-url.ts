@@ -1,6 +1,6 @@
 export const SITE_NAME = "AI Resume Analyzer";
 export const SITE_DESCRIPTION =
-  "Upload your resume to match against any job description using Gemini 2.5 Flash AI.";
+  "Upload your resume to match against any job description using Gemini 3 Flash AI.";
 
 const DEFAULT_SITE_URL = "http://localhost:3000";
 
