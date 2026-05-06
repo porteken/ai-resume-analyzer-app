@@ -1,4 +1,3 @@
-// oxlint-disable-next-line import/no-unassigned-import
 import "./globals.css";
 
 import { SITE_DESCRIPTION, SITE_NAME, getSiteUrl } from "@/lib/site-url";

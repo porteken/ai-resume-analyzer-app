@@ -1,5 +1,3 @@
-/* oxlint-disable @typescript-eslint/no-unsafe-type-assertion */
-/* oxlint-disable @typescript-eslint/no-unnecessary-type-parameters */
 import {
   pollForResults,
   uploadResume,
@@ -14,53 +12,44 @@ import {
   vi,
 } from "vitest";
 
-const originalFetch = globalThis.fetch;
+import type { Mock } from "vitest";
+
 const createFetchMock = () => vi.fn<typeof fetch>();
 
-const createJsonResponse = (status: number, data: unknown): Response =>
-  ({
-    headers: new Headers({ "content-type": "application/json" }),
-    json: vi.fn<() => Promise<unknown>>(async () => Promise.resolve(data)),
-    ok: status >= 200 && status < 300,
-    status,
-    statusText: "OK",
-    text: vi.fn<() => Promise<string>>(async () =>
-      Promise.resolve(JSON.stringify(data)),
-    ),
-  }) as unknown as Response;
+const createJsonResponse = (status: number, data: unknown): Response => {
+  if (status === 204) {
+    return new Response(null, { status });
+  }
+  return Response.json(data, { status });
+};
 
-const createOpaqueResponse = (): Response =>
-  ({
-    headers: new Headers(),
-    json: vi.fn<() => Promise<unknown>>(async () => Promise.resolve(null)),
-    ok: false,
-    status: 0,
-    statusText: "",
-    text: vi.fn<() => Promise<string>>(async () => Promise.resolve("")),
-    type: "opaque",
-  }) as unknown as Response;
+const createOpaqueResponse = (): Response => {
+  const response = new Response(null, { status: 200 });
+  Object.defineProperty(response, "type", { value: "opaque" });
+  return response;
+};
 
-const parseRequestJsonBody = <T>(request: RequestInit | undefined): T => {
+const parseRequestJsonBody = (request: RequestInit | undefined): any => {
   const body = request?.body;
 
   if (typeof body !== "string") {
     throw new TypeError("Expected request body to be a JSON string");
   }
 
-  return JSON.parse(body) as T;
+  return JSON.parse(body);
 };
 
 describe("resume upload API", () => {
-  let fetchMock: ReturnType<typeof vi.fn>;
+  let fetchMock: Mock<typeof fetch>;
 
   beforeEach(() => {
     fetchMock = createFetchMock();
-    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    vi.stubGlobal("fetch", fetchMock);
   });
 
   afterEach(() => {
     vi.clearAllMocks();
-    globalThis.fetch = originalFetch;
+    vi.unstubAllGlobals();
   });
 
   it("uses presigned upload flow and triggers analysis", async () => {
@@ -93,20 +82,28 @@ describe("resume upload API", () => {
     expect(result).toStrictEqual({ job_id: "job-123" });
     expect(fetchMock).toHaveBeenCalledTimes(3);
 
-    const firstRequest = fetchMock.mock.calls[0]?.[1] as RequestInit;
-    const firstPayload = parseRequestJsonBody<{
+    const firstCall = fetchMock.mock.calls[0];
+    if (!firstCall) {
+      throw new Error("Missing first call");
+    }
+    const firstRequest = firstCall[1];
+    const firstPayload: {
       filename: string;
       job_description: string;
-    }>(firstRequest);
+    } = parseRequestJsonBody(firstRequest);
     expect(firstPayload.filename).toBe("resume.pdf");
     expect(firstPayload.job_description).toBe("Senior software engineer");
 
-    const thirdRequest = fetchMock.mock.calls[2]?.[1] as RequestInit;
-    const thirdPayload = parseRequestJsonBody<{
+    const thirdCall = fetchMock.mock.calls[2];
+    if (!thirdCall) {
+      throw new Error("Missing third call");
+    }
+    const thirdRequest = thirdCall[1];
+    const thirdPayload: {
       job_description: string;
       job_id: string;
       s3_url: string;
-    }>(thirdRequest);
+    } = parseRequestJsonBody(thirdRequest);
     expect(thirdPayload.job_id).toBe("job-123");
     expect(thirdPayload.s3_url).toContain("s3://bucket/");
     expect(thirdPayload.job_description).toBe("Senior software engineer");
@@ -142,8 +139,12 @@ describe("resume upload API", () => {
     expect(result).toStrictEqual({ job_id: "job-opaque" });
     expect(fetchMock).toHaveBeenCalledTimes(3);
 
-    const secondRequest = fetchMock.mock.calls[1]?.[1] as RequestInit;
-    expect(secondRequest.mode).toBe("no-cors");
+    const secondCall = fetchMock.mock.calls[1];
+    if (!secondCall) {
+      throw new Error("Missing second call");
+    }
+    const secondRequest = secondCall[1];
+    expect(secondRequest?.mode).toBe("no-cors");
   });
 
   it("falls back to legacy pdf_base64 payload when required by backend", async () => {
@@ -165,14 +166,22 @@ describe("resume upload API", () => {
     expect(result).toStrictEqual({ analysis_result: "legacy-analysis" });
     expect(fetchMock).toHaveBeenCalledTimes(2);
 
-    const firstPayload = parseRequestJsonBody<{
+    const firstCall = fetchMock.mock.calls[0];
+    if (!firstCall) {
+      throw new Error("Missing first call");
+    }
+    const firstPayload: {
       pdf_base64?: string;
-    }>(fetchMock.mock.calls[0]?.[1] as RequestInit);
+    } = parseRequestJsonBody(firstCall[1]);
     expect(firstPayload.pdf_base64).toBeUndefined();
 
-    const secondPayload = parseRequestJsonBody<{
+    const secondCall = fetchMock.mock.calls[1];
+    if (!secondCall) {
+      throw new Error("Missing second call");
+    }
+    const secondPayload: {
       pdf_base64?: string;
-    }>(fetchMock.mock.calls[1]?.[1] as RequestInit);
+    } = parseRequestJsonBody(secondCall[1]);
     expectTypeOf(secondPayload.pdf_base64).toEqualTypeOf<string | undefined>();
     expect(secondPayload.pdf_base64?.length).toBeGreaterThan(0);
   });
@@ -205,18 +214,26 @@ describe("resume upload API", () => {
     expect(result).toStrictEqual({ analysis_result: "legacy-analysis" });
     expect(fetchMock).toHaveBeenCalledTimes(3);
 
-    const secondPayload = parseRequestJsonBody<{
+    const secondCall = fetchMock.mock.calls[1];
+    if (!secondCall) {
+      throw new Error("Missing second call");
+    }
+    const secondPayload: {
       job_description?: string;
       pdf_base64?: string;
-    }>(fetchMock.mock.calls[1]?.[1] as RequestInit);
+    } = parseRequestJsonBody(secondCall[1]);
     expect(secondPayload.pdf_base64).toBeDefined();
     expect(secondPayload.job_description).toBeDefined();
 
-    const thirdPayload = parseRequestJsonBody<{
+    const thirdCall = fetchMock.mock.calls[2];
+    if (!thirdCall) {
+      throw new Error("Missing third call");
+    }
+    const thirdPayload: {
       filename?: string;
       job_description?: string;
       pdf_base64?: string;
-    }>(fetchMock.mock.calls[2]?.[1] as RequestInit);
+    } = parseRequestJsonBody(thirdCall[1]);
     expect(thirdPayload.filename).toBe("resume.pdf");
     expect(thirdPayload.pdf_base64).toBeDefined();
     expect(thirdPayload.job_description).toBeUndefined();
@@ -284,16 +301,16 @@ describe("resume upload API", () => {
 });
 
 describe("resume polling API", () => {
-  let fetchMock: ReturnType<typeof vi.fn>;
+  let fetchMock: Mock<typeof fetch>;
 
   beforeEach(() => {
     fetchMock = createFetchMock();
-    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    vi.stubGlobal("fetch", fetchMock);
   });
 
   afterEach(() => {
     vi.clearAllMocks();
-    globalThis.fetch = originalFetch;
+    vi.unstubAllGlobals();
     vi.useRealTimers();
   });
 

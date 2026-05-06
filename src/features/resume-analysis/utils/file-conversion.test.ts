@@ -1,4 +1,3 @@
-/* oxlint-disable @typescript-eslint/no-unsafe-type-assertion */
 import { convertFileToBase64 } from "@/features/resume-analysis/utils/file-conversion";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
