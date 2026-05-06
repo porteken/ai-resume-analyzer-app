@@ -132,9 +132,9 @@ const ResumeFileField = ({
           )}
         >
           {isLoading ? (
-            <Loader2 className="h-6 w-6 animate-spin" />
+            <Loader2 className="size-6 animate-spin" />
           ) : (
-            <Upload className="h-6 w-6" />
+            <Upload className="size-6" />
           )}
         </div>
 
@@ -142,7 +142,7 @@ const ResumeFileField = ({
           <p className="text-base font-semibold text-slate-800">
             {file ? "Resume ready to go" : "Drag your PDF here"}
           </p>
-          <p className="text-sm leading-6 text-slate-500">
+          <p className="text-sm/6 text-slate-500">
             {file
               ? "Drop another PDF to replace it, or choose a different file from your device."
               : "Drop a PDF into the zone or browse manually for a polished AI analysis."}
@@ -159,7 +159,7 @@ const ResumeFileField = ({
       <div className="flex flex-col gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 shadow-sm backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 text-left">
           <div className="flex size-11 items-center justify-center rounded-2xl bg-white text-indigo-600 shadow-sm">
-            <FileText className="h-5 w-5" />
+            <FileText className="size-5" />
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-slate-800">
@@ -179,7 +179,7 @@ const ResumeFileField = ({
           type="button"
           variant="ghost"
         >
-          <X className="h-4 w-4" />
+          <X className="size-4" />
           Remove
         </Button>
       </div>
@@ -198,14 +198,14 @@ const ResumeUploadProgress = ({
 
   const getStepIcon = (step: "analyzing" | "uploading"): JSX.Element => {
     if (processingStep === step) {
-      return <Loader2 className="h-4 w-4 animate-spin" />;
+      return <Loader2 className="size-4 animate-spin" />;
     }
 
     if (processingStep === "analyzing" && step === "uploading") {
-      return <CheckCircle2 className="h-4 w-4" />;
+      return <CheckCircle2 className="size-4" />;
     }
 
-    return <Sparkles className="h-4 w-4" />;
+    return <Sparkles className="size-4" />;
   };
 
   const getStepClassName = (step: "analyzing" | "uploading") => {
@@ -221,9 +221,9 @@ const ResumeUploadProgress = ({
   };
 
   return (
-    <div className="animate-in fade-in zoom-in-95 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 shadow-sm duration-500">
+    <div className="animate-in zoom-in-95 fade-in rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 shadow-sm duration-500">
       <div className="mb-3 flex items-center gap-2 text-sm font-medium text-indigo-700">
-        <Sparkles className="h-4 w-4" />
+        <Sparkles className="size-4" />
         <span>{statusMessage || "Processing Resume..."}</span>
       </div>
 
@@ -428,7 +428,7 @@ export const ResumeUploader = ({
           type="button"
           variant="outline"
         >
-          <X className="mr-2 h-4 w-4" />
+          <X className="mr-2 size-4" />
           Cancel Analysis
         </Button>
       ) : (
@@ -438,7 +438,7 @@ export const ResumeUploader = ({
           disabled={!file || !jobDescription.trim()}
           onClick={handleSubmit}
         >
-          <Upload className="mr-2 h-4 w-4" />
+          <Upload className="mr-2 size-4" />
           Analyze Resume
         </Button>
       )}

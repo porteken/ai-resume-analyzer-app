@@ -1,7 +1,7 @@
 {
   "ignoreDependencies": [
-    "husky",
     "eslint-plugin-playwright",
-    "eslint-plugin-sonarjs"
+    "eslint-plugin-sonarjs",
+    "eslint-plugin-better-tailwindcss"
   ]
 }

@@ -13,7 +13,11 @@
     "jsx-a11y",
     "react-perf"
   ],
-  "jsPlugins": ["eslint-plugin-sonarjs", "eslint-plugin-playwright"],
+  "jsPlugins": [
+    "eslint-plugin-sonarjs",
+    "eslint-plugin-playwright",
+    "eslint-plugin-better-tailwindcss"
+  ],
   "categories": {
     "correctness": "error",
     "suspicious": "error",
@@ -36,6 +40,9 @@
     },
     "next": {
       "rootDir": "."
+    },
+    "better-tailwindcss": {
+      "entryPoint": "src/app/globals.css"
     }
   },
   "ignorePatterns": [
@@ -133,6 +140,13 @@
     "react/forbid-component-props": "off",
     "react/no-multi-comp": "off",
     "eslint/no-magic-numbers": "off",
+    "better-tailwindcss/enforce-consistent-class-order": "error",
+    "better-tailwindcss/enforce-canonical-classes": "error",
+    "better-tailwindcss/no-duplicate-classes": "error",
+    "better-tailwindcss/no-deprecated-classes": "error",
+    "better-tailwindcss/no-unnecessary-whitespace": "error",
+    "better-tailwindcss/no-unknown-classes": "error",
+    "better-tailwindcss/no-conflicting-classes": "error",
     "sonarjs/anchor-precedence": "error",
     "sonarjs/argument-type": "error",
     "sonarjs/arguments-order": "error",

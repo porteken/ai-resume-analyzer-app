@@ -99,10 +99,6 @@
 }
 
 @layer utilities {
-  .animate-gradient-shift {
-    animation: gradient-shift 8s ease infinite;
-  }
-
   @keyframes gradient-shift {
     0%,
     100% {

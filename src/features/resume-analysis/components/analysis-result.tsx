@@ -136,7 +136,7 @@ const renderStructuredResult = (
         return (
           <section
             className={cn(
-              "animate-in fade-in slide-in-from-bottom-4 rounded-2xl border p-5 shadow-sm backdrop-blur-sm duration-700",
+              "animate-in rounded-2xl border p-5 shadow-sm backdrop-blur-sm duration-700 fade-in slide-in-from-bottom-4",
               accentClassName,
             )}
             key={key}
@@ -148,7 +148,7 @@ const renderStructuredResult = (
                   iconClassName,
                 )}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="size-5" />
               </div>
               <div className="min-w-0">
                 <h3 className="text-lg font-semibold">{title}</h3>
@@ -162,7 +162,7 @@ const renderStructuredResult = (
                     className="flex gap-3 rounded-xl bg-white/70 px-3 py-2 transition-all duration-200 hover:translate-x-1 hover:bg-white"
                     key={item}
                   >
-                    <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-current/70" />
+                    <span className="mt-2 size-2 shrink-0 rounded-full bg-current/70" />
                     <span className="min-w-0 wrap-break-word">{item}</span>
                   </li>
                 ))}
@@ -216,7 +216,7 @@ export const AnalysisResult = ({
           data-testid="analysis-error"
           role="alert"
         >
-          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+          <AlertCircle className="mt-0.5 size-5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -224,7 +224,7 @@ export const AnalysisResult = ({
       {result && (
         <div className="animate-in fade-in slide-in-from-bottom-6 mt-4 space-y-5 rounded-2xl border border-white/30 bg-white/80 p-6 shadow-xl backdrop-blur-md duration-700">
           <div className="flex items-center gap-2 border-b border-slate-200/50 pb-3 font-semibold text-emerald-700">
-            <CheckCircle className="h-5 w-5" />
+            <CheckCircle className="size-5" />
             <span>Analysis Complete</span>
           </div>
           {renderedResultContent}
