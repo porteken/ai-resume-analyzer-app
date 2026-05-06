@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
-/* eslint-disable @typescript-eslint/no-unnecessary-type-parameters */
+/* oxlint-disable @typescript-eslint/no-unsafe-type-assertion */
+/* oxlint-disable @typescript-eslint/no-unnecessary-type-parameters */
 import {
   pollForResults,
   uploadResume,

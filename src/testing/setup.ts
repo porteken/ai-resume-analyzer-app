@@ -1,5 +1,5 @@
-/* eslint-disable vitest/require-top-level-describe, jest/no-hooks */
-// eslint-disable-next-line import/no-unassigned-import
+/* oxlint-disable vitest/require-top-level-describe, jest/no-hooks */
+// oxlint-disable-next-line import/no-unassigned-import
 import "@testing-library/jest-dom/vitest";
 
 import { server } from "@/testing/mocks/server";

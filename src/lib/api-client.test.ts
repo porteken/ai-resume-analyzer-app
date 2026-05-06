@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
+/* oxlint-disable @typescript-eslint/no-unsafe-type-assertion */
 import { ApiClientError, getJson, postJson } from "@/lib/api-client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 

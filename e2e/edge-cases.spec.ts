@@ -199,7 +199,7 @@ test.describe("Analysis and Processing Edge Cases", () => {
       pollCount++;
 
       const REQUIRED_POLL_COUNT = 6;
-      // eslint-disable-next-line vitest/no-conditional-in-test
+      // oxlint-disable-next-line vitest/no-conditional-in-test
       await (pollCount >= REQUIRED_POLL_COUNT
         ? route.fulfill({
             body: JSON.stringify({
