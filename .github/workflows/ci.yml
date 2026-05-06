@@ -100,7 +100,7 @@ jobs:
         run: pnpm exec vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=junit
 
   playwright-e2e:
-    name: Playwright E2E (shard ${{ matrix.shard_index }}/5)
+    name: Playwright E2E (shard ${{ matrix.shard_index }}/20)
     runs-on: ubuntu-latest
 
     env:
