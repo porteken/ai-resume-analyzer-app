@@ -299,7 +299,7 @@ export const ResumeUploader = ({
 
   const handleFileChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      handleSelectedFile(event.target.files ? event.target.files[0] : null);
+      handleSelectedFile(event.target.files?.[0] ?? null);
       setIsDragging(false);
     },
     [handleSelectedFile],

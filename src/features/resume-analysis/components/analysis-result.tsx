@@ -107,8 +107,9 @@ const extractAnalysisSectionsMarkdown = (markdown: string): string => {
   flushSection();
 
   const sections = ["strengths", "gaps", "recommendations"]
-    .filter((heading) => hasText(capturedSections[heading]))
-    .map((heading) => capturedSections[heading].trim());
+    .map((heading) => capturedSections[heading])
+    .filter(hasText)
+    .map((section) => section.trim());
 
   if (sections.length === 0) {
     return markdown;

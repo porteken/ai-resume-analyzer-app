@@ -1,19 +1,26 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "types": ["node", "@testing-library/jest-dom"],
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
+    "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
+    "incremental": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "incremental": false,
-    "composite": false,
-    "types": ["node", "vitest/globals", "@testing-library/jest-dom/vitest"],
+    "target": "ES2025",
+    /* Enhanced type safety (beyond strict) */
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    /* Modern module hygiene */
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
     "plugins": [
       {
         "name": "next"
@@ -21,17 +28,14 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    },
-    "skipLibCheck": true
+    }
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "**/*.mts",
-    ".next/dev/types/**/*.ts",
-    ".next/dev/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }
