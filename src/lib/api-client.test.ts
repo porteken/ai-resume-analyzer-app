@@ -44,7 +44,7 @@ const createResponse = ({
   }) as unknown as Response;
 
 describe("api-client", () => {
-  let fetchMock: ReturnType<typeof vi.fn>;
+  let fetchMock: ReturnType<typeof createFetchMock>;
 
   beforeEach(() => {
     fetchMock = createFetchMock();

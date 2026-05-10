@@ -154,7 +154,7 @@ describe("upload API Route", () => {
     globalThis.fetch = mockedFetch;
 
     const postHandler = await loadPostHandler();
-    const response = await postHandler(createRequest({}));
+    const response = await postHandler(createRawRequest("invalid-json"));
     const data = await response.json();
 
     expect(response.status).toBe(400);
