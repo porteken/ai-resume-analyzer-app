@@ -12,9 +12,7 @@ const createRequest = (json: () => Promise<unknown>) =>
 describe("request-utils", () => {
   it("parses object request bodies", async () => {
     const result = await parseRequestBody(
-      createRequest(async () =>
-        Promise.resolve({ job_description: "Engineer" }),
-      ),
+      createRequest(async () => ({ job_description: "Engineer" })),
     );
 
     expect(result).toStrictEqual({
@@ -25,9 +23,9 @@ describe("request-utils", () => {
 
   it("returns a 400 response for invalid JSON", async () => {
     const result = await parseRequestBody(
-      createRequest(async () =>
-        Promise.reject(new SyntaxError("Unexpected token")),
-      ),
+      createRequest(async () => {
+        throw new SyntaxError("Unexpected token");
+      }),
     );
 
     expect(result.body).toBeNull();
@@ -39,9 +37,7 @@ describe("request-utils", () => {
   });
 
   it("returns a 400 response when the parsed body is not an object", async () => {
-    const result = await parseRequestBody(
-      createRequest(async () => Promise.resolve(["oops"])),
-    );
+    const result = await parseRequestBody(createRequest(async () => ["oops"]));
 
     expect(result.body).toBeNull();
     expect(result.error?.status).toBe(400);
@@ -54,9 +50,9 @@ describe("request-utils", () => {
   it("rethrows unexpected request parsing errors", async () => {
     await expect(
       parseRequestBody(
-        createRequest(async () =>
-          Promise.reject(new TypeError("Body stream failed")),
-        ),
+        createRequest(async () => {
+          throw new TypeError("Body stream failed");
+        }),
       ),
     ).rejects.toThrow("Body stream failed");
   });

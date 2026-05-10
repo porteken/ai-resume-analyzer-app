@@ -39,11 +39,11 @@ describe("status API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => Promise.resolve({ status: "processing" }),
+        json: async () => ({ status: "processing" }),
         status: 200,
       }),
     );
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const getHandler = await loadGetHandler();
     await getHandler(
@@ -68,11 +68,11 @@ describe("status API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => Promise.resolve({ status: "processing" }),
+        json: async () => ({ status: "processing" }),
         status: 200,
       }),
     );
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const getHandler = await loadGetHandler();
     await getHandler(createRequest("job-xyz"), createContext("job-xyz"));
@@ -87,11 +87,11 @@ describe("status API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => Promise.resolve({ status: "processing" }),
+        json: async () => ({ status: "processing" }),
         status: 200,
       }),
     );
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const jobId = "job/123?x=1";
     const getHandler = await loadGetHandler();
@@ -108,7 +108,7 @@ describe("status API Route", () => {
     vi.stubEnv("API_KEY", "");
 
     const mockedFetch = createFetchMock();
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const getHandler = await loadGetHandler();
     const response = await getHandler(
@@ -127,10 +127,10 @@ describe("status API Route", () => {
       createMockResponse({
         headers: new Headers({ "content-type": "text/html" }),
         status: 404,
-        text: async () => Promise.resolve("<html>Not Found</html>"),
+        text: async () => "<html>Not Found</html>",
       }),
     );
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const getHandler = await loadGetHandler();
     const response = await getHandler(
@@ -148,7 +148,7 @@ describe("status API Route", () => {
       name: "TimeoutError",
     });
     const mockedFetch = createFetchMock().mockRejectedValue(timeoutError);
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const getHandler = await loadGetHandler();
     const response = await getHandler(
@@ -165,7 +165,7 @@ describe("status API Route", () => {
     const mockedFetch = createFetchMock().mockRejectedValue(
       new Error("Connection timeout"),
     );
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const getHandler = await loadGetHandler();
     const response = await getHandler(
@@ -183,11 +183,11 @@ describe("status API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => Promise.resolve({ error: "Job not found" }),
+        json: async () => ({ error: "Job not found" }),
         status: 404,
       }),
     );
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const getHandler = await loadGetHandler();
     const response = await getHandler(

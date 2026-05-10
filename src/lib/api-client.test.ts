@@ -27,21 +27,19 @@ const createResponse = ({
     ),
     json: vi.fn<() => Promise<unknown>>(async () => {
       if (jsonReject) {
-        return Promise.reject(new Error("Invalid JSON"));
+        throw new Error("Invalid JSON");
       }
 
-      return Promise.resolve(data);
+      return data;
     }),
     ok,
     status,
     text: vi.fn<() => Promise<string>>(async () => {
       if (textReject) {
-        return Promise.reject(new Error("Unable to read text"));
+        throw new Error("Unable to read text");
       }
 
-      return Promise.resolve(
-        text ?? (typeof data === "string" ? data : JSON.stringify(data)),
-      );
+      return text ?? (typeof data === "string" ? data : JSON.stringify(data));
     }),
   }) as unknown as Response;
 
@@ -50,7 +48,7 @@ describe("api-client", () => {
 
   beforeEach(() => {
     fetchMock = createFetchMock();
-    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    globalThis.fetch = fetchMock;
     vi.stubEnv("NODE_ENV", "test");
   });
 

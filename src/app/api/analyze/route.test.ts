@@ -174,7 +174,7 @@ describe("analyze API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => Promise.resolve({ error: "Bad request" }),
+        json: async () => ({ error: "Bad request" }),
         status: 400,
       }),
     );

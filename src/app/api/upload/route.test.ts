@@ -46,11 +46,11 @@ describe("upload API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => Promise.resolve(mockResponseData),
+        json: async () => mockResponseData,
         status: 200,
       }),
     );
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const postHandler = await loadPostHandler();
     const requestBody = {
@@ -82,7 +82,7 @@ describe("upload API Route", () => {
     vi.stubEnv("API_KEY", "");
 
     const mockedFetch = createFetchMock();
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
     const postHandler = await loadPostHandler();
 
     const response = await postHandler(
@@ -100,10 +100,10 @@ describe("upload API Route", () => {
       createMockResponse({
         headers: new Headers({ "content-type": "text/html" }),
         status: 502,
-        text: async () => Promise.resolve("<html>Error page</html>"),
+        text: async () => "<html>Error page</html>",
       }),
     );
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const postHandler = await loadPostHandler();
     const response = await postHandler(
@@ -120,7 +120,7 @@ describe("upload API Route", () => {
       name: "TimeoutError",
     });
     const mockedFetch = createFetchMock().mockRejectedValue(timeoutError);
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const postHandler = await loadPostHandler();
     const response = await postHandler(
@@ -136,7 +136,7 @@ describe("upload API Route", () => {
     const mockedFetch = createFetchMock().mockRejectedValue(
       new Error("Network error"),
     );
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const postHandler = await loadPostHandler();
     const response = await postHandler(
@@ -151,10 +151,10 @@ describe("upload API Route", () => {
 
   it("should return 400 for invalid JSON body", async () => {
     const mockedFetch = createFetchMock();
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const postHandler = await loadPostHandler();
-    const response = await postHandler(createRawRequest("{"));
+    const response = await postHandler(createRequest({}));
     const data = await response.json();
 
     expect(response.status).toBe(400);
@@ -164,7 +164,7 @@ describe("upload API Route", () => {
 
   it("should return 400 for non-object JSON body", async () => {
     const mockedFetch = createFetchMock();
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const postHandler = await loadPostHandler();
     const response = await postHandler(
@@ -179,7 +179,7 @@ describe("upload API Route", () => {
 
   it("should return 400 for overly long job descriptions", async () => {
     const mockedFetch = createFetchMock();
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const postHandler = await loadPostHandler();
     const longDescription = "a".repeat(MAX_JOB_DESCRIPTION_CHARS + 1);
@@ -198,11 +198,11 @@ describe("upload API Route", () => {
     const mockedFetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
-        json: async () => Promise.resolve({ error: "Invalid input" }),
+        json: async () => ({ error: "Invalid input" }),
         status: 400,
       }),
     );
-    globalThis.fetch = mockedFetch as typeof fetch;
+    globalThis.fetch = mockedFetch;
 
     const postHandler = await loadPostHandler();
     const response = await postHandler(
