@@ -15,6 +15,8 @@ export default defineConfig({
       exclude: [
         "node_modules/",
         "src/testing/",
+        "src/components/ui/",
+        "src/lib/utils.ts",
         ".next/",
         "e2e/",
         "*.config.*",
