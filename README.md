@@ -15,14 +15,6 @@ Frontend:
 
 [Backend](https://github.com/porteken/ai-resume-analyzer-sam)
 
-## Development
-
-```bash
-corepack enable
-pnpm install
-pnpm dev
-```
-
 ## Usage
 
 1. Upload Resume - Click "Choose File" and select a PDF resume (max 5MB)
