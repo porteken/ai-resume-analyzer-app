@@ -190,7 +190,7 @@ const getUploadErrorMessage = (errorData: ApiErrorResponse) => {
   }
 
   if (errorData.error && errorData.details) {
-    const separator = /[.!?]$/.test(errorData.error) ? " " : ": ";
+    const separator = /[.!?]$/u.test(errorData.error) ? " " : ": ";
     return `${errorData.error}${separator}${errorData.details}`.trim();
   }
 
@@ -198,7 +198,7 @@ const getUploadErrorMessage = (errorData: ApiErrorResponse) => {
 };
 
 const isMetadataTooLargeError = (message: string): boolean =>
-  /metadata(?:too| )large|metadata headers exceed/i.test(message);
+  /metadata(?:too| )large|metadata headers exceed/iu.test(message);
 
 const SERVICE_UNAVAILABLE_MESSAGE =
   "Analysis service is temporarily unavailable due to high demand. Please try again in a few minutes.";
@@ -344,7 +344,7 @@ const pollUntilComplete = async ({
   }
 
   if (statusData.status === "failed") {
-    throw new Error(statusData.error || "Analysis failed on server.");
+    throw new Error(statusData.error ?? "Analysis failed on server.");
   }
 
   onProgress("Analyzing Resume...");
@@ -507,7 +507,7 @@ const sendUploadRequestWithFallbacks = async (
 
     const errorMessage = getUploadFailureMessage(error);
 
-    if (!/pdf_base64/i.test(errorMessage)) {
+    if (!/pdf_base64/iu.test(errorMessage)) {
       throw new Error(errorMessage, { cause: error });
     }
 

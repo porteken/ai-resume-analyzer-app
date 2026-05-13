@@ -23,17 +23,17 @@ test.describe("Error Handling", () => {
     await fillJobDescription(page, "Test job description");
 
     await expect(page.getByTestId("analysis-error")).toContainText(
-      /file too large/i,
+      /file too large/iu,
     );
     await expect(page.getByTestId("analysis-error")).toContainText(
-      /please use a pdf smaller than 5mb/i,
+      /please use a pdf smaller than 5mb/iu,
     );
   });
 
   test("should not allow submission without file", async ({ page }) => {
     await fillJobDescription(page, "Test job description");
 
-    const button = page.getByRole("button", { name: /analyze resume/i });
+    const button = page.getByRole("button", { name: /analyze resume/iu });
     await expect(button).toBeDisabled();
   });
 
@@ -46,16 +46,16 @@ test.describe("Error Handling", () => {
     await submitForm(page);
 
     await expect(page.getByTestId("analysis-error")).toContainText(
-      /server error/i,
+      /server error/iu,
       {
         timeout: 10_000,
       },
     );
     await expect(page.getByTestId("analysis-error")).toContainText(
-      /internal server error/i,
+      /internal server error/iu,
     );
 
-    const button = page.getByRole("button", { name: /analyze resume/i });
+    const button = page.getByRole("button", { name: /analyze resume/iu });
     await expect(button).toBeEnabled();
   });
 
@@ -68,7 +68,7 @@ test.describe("Error Handling", () => {
     await submitForm(page);
 
     await expect(page.getByTestId("analysis-error")).toContainText(
-      /failed to upload resume|network error|fetch failed/i,
+      /failed to upload resume|network error|fetch failed/iu,
       {
         timeout: 10_000,
       },
@@ -84,7 +84,7 @@ test.describe("Error Handling", () => {
     await submitForm(page);
 
     await expect(page.getByTestId("analysis-error")).toContainText(
-      /pdf parsing failed|analysis failed/i,
+      /pdf parsing failed|analysis failed/iu,
       {
         timeout: 10_000,
       },
@@ -102,7 +102,7 @@ test.describe("Error Handling", () => {
     await submitForm(page);
 
     await expect(page.getByTestId("analysis-error")).toContainText(
-      /server error/i,
+      /server error/iu,
       {
         timeout: 10_000,
       },
@@ -112,8 +112,8 @@ test.describe("Error Handling", () => {
 
     await submitForm(page);
 
-    await expect(page.getByText(/server error/i)).toBeHidden();
-    await expect(page.getByText(/analysis complete/i)).toBeVisible({
+    await expect(page.getByText(/server error/iu)).toBeHidden();
+    await expect(page.getByText(/analysis complete/iu)).toBeVisible({
       timeout: 10_000,
     });
   });
@@ -133,7 +133,7 @@ test.describe("Error Handling", () => {
     await submitForm(page);
 
     await expect(page.getByTestId("analysis-error")).toContainText(
-      /unexpected response|no job_id or analysis_result found/i,
+      /unexpected response|no job_id or analysis_result found/iu,
       { timeout: 10_000 },
     );
   });
@@ -149,13 +149,13 @@ test.describe("Error Handling", () => {
     await submitForm(page);
 
     await expect(page.getByTestId("analysis-error")).toContainText(
-      /server error/i,
+      /server error/iu,
       {
         timeout: 10_000,
       },
     );
 
-    const textarea = page.getByLabel(/job description/i);
+    const textarea = page.getByLabel(/job description/iu);
     await expect(textarea).toHaveValue(jobDescription);
   });
 
@@ -169,9 +169,9 @@ test.describe("Error Handling", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(page.getByText(/file too large/i)).toBeHidden();
+    await expect(page.getByText(/file too large/iu)).toBeHidden();
 
-    await expect(page.getByText(/analysis complete/i)).toBeVisible({
+    await expect(page.getByText(/analysis complete/iu)).toBeVisible({
       timeout: 10_000,
     });
   });

@@ -7,9 +7,9 @@ const BYTES_PER_MB = BYTES_PER_KB * KB_PER_MB;
 
 export const sanitizeFilename = (filename: string): string => {
   const base =
-    filename.split("/").pop() || filename.split("\\").pop() || filename;
+    filename.split("/").pop() ?? filename.split("\\").pop() ?? filename;
 
-  let safe = base.replaceAll(/[^\w.-]/g, "_");
+  let safe = base.replaceAll(/[^\w.-]/gu, "_");
 
   if (!safe.toLowerCase().endsWith(".pdf")) {
     safe += ".pdf";

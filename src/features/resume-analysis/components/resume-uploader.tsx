@@ -360,14 +360,15 @@ export const ResumeUploader = ({
   }, [clearFileInput, onFileSelectionSuccess]);
 
   const handleJobDescChange = useCallback(
-    (event: React.ChangeEvent<HTMLTextAreaElement>) =>
-      setJobDescription(event.target.value),
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setJobDescription(event.target.value);
+    },
     [],
   );
 
   const handleSubmit = useCallback(() => {
     const cleanedDescription = toAscii(
-      jobDescription.trim().replaceAll(/\s+/g, " "),
+      jobDescription.trim().replaceAll(/\s+/gu, " "),
     );
     setJobDescription(cleanedDescription);
     void onSubmit(file, cleanedDescription);

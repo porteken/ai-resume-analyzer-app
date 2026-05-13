@@ -157,7 +157,7 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
   const submitAnalysis = useCallback(
     async (file: File | null, jobDescription: string) => {
       const validationError =
-        validateFile(file) || validateJobDescription(jobDescription);
+        validateFile(file) ?? validateJobDescription(jobDescription);
       if (validationError) {
         resetForValidationError(validationError);
         return;

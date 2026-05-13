@@ -8,11 +8,11 @@ test("should display the about page with title and description", async ({
   await page.goto("/about");
 
   await expect(
-    page.getByRole("heading", { name: /about ai resume analyzer/i }),
+    page.getByRole("heading", { name: /about ai resume analyzer/iu }),
   ).toBeVisible();
 
   await expect(
-    page.getByText(/ai resume analyzer is a web application/i),
+    page.getByText(/ai resume analyzer is a web application/iu),
   ).toBeVisible();
 });
 
@@ -20,7 +20,7 @@ test("should display GitHub links", async ({ page }) => {
   await page.goto("/about");
 
   const frontendLink = page.getByRole("link", {
-    name: /frontend app on github/i,
+    name: /frontend app on github/iu,
   });
   await expect(frontendLink).toBeVisible();
   await expect(frontendLink).toHaveAttribute(
@@ -30,7 +30,7 @@ test("should display GitHub links", async ({ page }) => {
   await expect(frontendLink).toHaveAttribute("target", "_blank");
 
   const backendLink = page.getByRole("link", {
-    name: /backend api on github/i,
+    name: /backend api on github/iu,
   });
   await expect(backendLink).toBeVisible();
   await expect(backendLink).toHaveAttribute(

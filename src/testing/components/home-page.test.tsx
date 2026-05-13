@@ -91,13 +91,13 @@ describe("home Page Component", () => {
 
   it("should render file input and job description textarea", () => {
     render(<Home />);
-    expect(screen.getByLabelText(/resume \(pdf\)/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/job description/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/resume \(pdf\)/iu)).toBeInTheDocument();
+    expect(screen.getByLabelText(/job description/iu)).toBeInTheDocument();
   });
 
   it("should have analyze button disabled initially", () => {
     render(<Home />);
-    const button = screen.getByRole("button", { name: /analyze resume/i });
+    const button = screen.getByRole("button", { name: /analyze resume/iu });
     expect(button).toBeDisabled();
   });
 
@@ -106,13 +106,13 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const file = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
+    const textarea = screen.getByLabelText(/job description/iu);
 
     await user.upload(fileInput, file);
     await user.type(textarea, "Software Engineer position");
 
-    const button = screen.getByRole("button", { name: /analyze resume/i });
+    const button = screen.getByRole("button", { name: /analyze resume/iu });
     expect(button).toBeEnabled();
   });
 
@@ -121,13 +121,13 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const file = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
+    const textarea = screen.getByLabelText(/job description/iu);
 
     await user.upload(fileInput, file);
     await user.type(textarea, "   ");
 
-    const button = screen.getByRole("button", { name: /analyze resume/i });
+    const button = screen.getByRole("button", { name: /analyze resume/iu });
     expect(button).toBeDisabled();
   });
 
@@ -135,7 +135,7 @@ describe("home Page Component", () => {
     const user = userEvent.setup();
     render(<Home />);
 
-    const textarea = screen.getByLabelText(/job description/i);
+    const textarea = screen.getByLabelText(/job description/iu);
     expect(
       screen.getByText(`0 / ${MAX_JOB_DESCRIPTION_CHARS.toLocaleString()}`),
     ).toBeInTheDocument();
@@ -152,19 +152,19 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const file = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
 
     await user.upload(fileInput, file);
 
     expect(screen.getByText(file.name)).toBeInTheDocument();
 
     await user.click(
-      screen.getByRole("button", { name: /remove selected resume/i }),
+      screen.getByRole("button", { name: /remove selected resume/iu }),
     );
 
     expect(screen.queryByText(file.name)).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /analyze resume/i }),
+      screen.getByRole("button", { name: /analyze resume/iu }),
     ).toBeDisabled();
   });
 
@@ -173,17 +173,17 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const largeFile = createMockLargePDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
+    const textarea = screen.getByLabelText(/job description/iu);
 
     await user.upload(fileInput, largeFile);
     await user.type(textarea, "Software Engineer");
 
-    const button = screen.getByRole("button", { name: /analyze resume/i });
+    const button = screen.getByRole("button", { name: /analyze resume/iu });
     await user.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText(/file too large/i)).toBeInTheDocument();
+      expect(screen.getByText(/file too large/iu)).toBeInTheDocument();
     });
   });
 
@@ -194,25 +194,25 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const validFile = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
+    const textarea = screen.getByLabelText(/job description/iu);
 
     await user.upload(fileInput, validFile);
     await user.type(textarea, "Software Engineer");
-    await user.click(screen.getByRole("button", { name: /analyze resume/i }));
+    await user.click(screen.getByRole("button", { name: /analyze resume/iu }));
 
     await waitFor(() => {
-      expect(screen.getByText(/analysis complete/i)).toBeInTheDocument();
+      expect(screen.getByText(/analysis complete/iu)).toBeInTheDocument();
     });
 
     await user.upload(fileInput, createMockLargePDFFile());
-    await user.click(screen.getByRole("button", { name: /analyze resume/i }));
+    await user.click(screen.getByRole("button", { name: /analyze resume/iu }));
 
     await waitFor(() => {
-      expect(screen.getByText(/file too large/i)).toBeInTheDocument();
+      expect(screen.getByText(/file too large/iu)).toBeInTheDocument();
     });
 
-    expect(screen.queryByText(/analysis complete/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/analysis complete/iu)).not.toBeInTheDocument();
   });
 
   it("should show error when uploaded file is not a PDF", async () => {
@@ -220,17 +220,19 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const textFile = createMockFile("plain text", "resume.pdf", "text/plain");
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
 
     await user.upload(fileInput, textFile);
 
     await waitFor(() => {
-      expect(screen.getByText(/please upload a pdf file/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/please upload a pdf file/iu),
+      ).toBeInTheDocument();
     });
 
-    expect(screen.queryByText(/resume.pdf/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/resume.pdf/iu)).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /analyze resume/i }),
+      screen.getByRole("button", { name: /analyze resume/iu }),
     ).toBeDisabled();
   });
 
@@ -239,11 +241,11 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const file = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
 
     await user.upload(fileInput, file);
 
-    const button = screen.getByRole("button", { name: /analyze resume/i });
+    const button = screen.getByRole("button", { name: /analyze resume/iu });
 
     expect(button).toBeDisabled();
   });
@@ -255,23 +257,23 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const file = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
+    const textarea = screen.getByLabelText(/job description/iu);
 
     await user.upload(fileInput, file);
     await user.type(textarea, "Software Engineer position");
 
-    const button = screen.getByRole("button", { name: /analyze resume/i });
+    const button = screen.getByRole("button", { name: /analyze resume/iu });
     await user.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText(/analysis complete/i)).toBeInTheDocument();
+      expect(screen.getByText(/analysis complete/iu)).toBeInTheDocument();
     });
 
-    expect(screen.queryByText(/match score/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/strengths/i)).toBeInTheDocument();
-    expect(screen.getByText(/^gaps$/i)).toBeInTheDocument();
-    expect(screen.getByText(/recommendations/i)).toBeInTheDocument();
+    expect(screen.queryByText(/match score/iu)).not.toBeInTheDocument();
+    expect(screen.getByText(/strengths/iu)).toBeInTheDocument();
+    expect(screen.getByText(/^gaps$/iu)).toBeInTheDocument();
+    expect(screen.getByText(/recommendations/iu)).toBeInTheDocument();
   });
 
   it("should render structured JSON analysis results", async () => {
@@ -308,30 +310,30 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const file = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
+    const textarea = screen.getByLabelText(/job description/iu);
 
     await user.upload(fileInput, file);
     await user.type(textarea, "Software Engineer position");
 
-    const button = screen.getByRole("button", { name: /analyze resume/i });
+    const button = screen.getByRole("button", { name: /analyze resume/iu });
     await user.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText(/analysis complete/i)).toBeInTheDocument();
+      expect(screen.getByText(/analysis complete/iu)).toBeInTheDocument();
     });
 
     expect(screen.queryByText("Kenneth J. Porter")).not.toBeInTheDocument();
     expect(screen.queryByText("TypeScript")).not.toBeInTheDocument();
     expect(
-      screen.queryByText(/senior systems engineer/i),
+      screen.queryByText(/senior systems engineer/iu),
     ).not.toBeInTheDocument();
-    expect(screen.getByText(/^strengths$/i)).toBeInTheDocument();
-    expect(screen.getByText(/^gaps$/i)).toBeInTheDocument();
-    expect(screen.getByText(/^recommendations$/i)).toBeInTheDocument();
-    expect(screen.getByText(/example strength/i)).toBeInTheDocument();
-    expect(screen.getByText(/example gap/i)).toBeInTheDocument();
-    expect(screen.getByText(/example recommendation/i)).toBeInTheDocument();
+    expect(screen.getByText(/^strengths$/iu)).toBeInTheDocument();
+    expect(screen.getByText(/^gaps$/iu)).toBeInTheDocument();
+    expect(screen.getByText(/^recommendations$/iu)).toBeInTheDocument();
+    expect(screen.getByText(/example strength/iu)).toBeInTheDocument();
+    expect(screen.getByText(/example gap/iu)).toBeInTheDocument();
+    expect(screen.getByText(/example recommendation/iu)).toBeInTheDocument();
   });
 
   it("should handle async job with polling", async () => {
@@ -341,18 +343,18 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const file = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
+    const textarea = screen.getByLabelText(/job description/iu);
 
     await user.upload(fileInput, file);
     await user.type(textarea, "Software Engineer");
 
-    const button = screen.getByRole("button", { name: /analyze resume/i });
+    const button = screen.getByRole("button", { name: /analyze resume/iu });
     await user.click(button);
 
     await waitFor(
       () => {
-        expect(screen.getByText(/analysis complete/i)).toBeInTheDocument();
+        expect(screen.getByText(/analysis complete/iu)).toBeInTheDocument();
       },
       { timeout: 10_000 },
     );
@@ -370,17 +372,17 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const file = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
+    const textarea = screen.getByLabelText(/job description/iu);
 
     await user.upload(fileInput, file);
     await user.type(textarea, "Software Engineer");
 
-    const button = screen.getByRole("button", { name: /analyze resume/i });
+    const button = screen.getByRole("button", { name: /analyze resume/iu });
     await user.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText(/server error/i)).toBeInTheDocument();
+      expect(screen.getByText(/server error/iu)).toBeInTheDocument();
     });
     expect(screen.getByRole("alert")).toBeInTheDocument();
   });
@@ -392,22 +394,22 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const file = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
+    const textarea = screen.getByLabelText(/job description/iu);
 
     await user.upload(fileInput, file);
     await user.type(textarea, "Software Engineer");
 
-    const button = screen.getByRole("button", { name: /analyze resume/i });
+    const button = screen.getByRole("button", { name: /analyze resume/iu });
     await user.click(button);
 
     await waitFor(() => {
       expect(
-        screen.getByText(/analysis service is temporarily unavailable/i),
+        screen.getByText(/analysis service is temporarily unavailable/iu),
       ).toBeInTheDocument();
     });
     expect(
-      screen.getByText(/please try again in a few minutes/i),
+      screen.getByText(/please try again in a few minutes/iu),
     ).toBeInTheDocument();
     expect(screen.getByRole("alert")).toBeInTheDocument();
   });
@@ -420,17 +422,17 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const file = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
+    const textarea = screen.getByLabelText(/job description/iu);
 
     await user.upload(fileInput, file);
     await user.type(textarea, "Software Engineer");
 
-    const button = screen.getByRole("button", { name: /analyze resume/i });
+    const button = screen.getByRole("button", { name: /analyze resume/iu });
     await user.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText(/failed to upload resume/i)).toBeInTheDocument();
+      expect(screen.getByText(/failed to upload resume/iu)).toBeInTheDocument();
     });
   });
 
@@ -452,23 +454,23 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const file = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
+    const textarea = screen.getByLabelText(/job description/iu);
 
     await user.upload(fileInput, file);
     await user.type(textarea, "Software Engineer");
 
-    const button = screen.getByRole("button", { name: /analyze resume/i });
+    const button = screen.getByRole("button", { name: /analyze resume/iu });
     await user.click(button);
 
     await waitFor(() => {
       expect(
-        screen.getByText(/failed to upload resume: network error/i),
+        screen.getByText(/failed to upload resume: network error/iu),
       ).toBeInTheDocument();
     });
     expect(
       screen.queryByText(
-        /failed to upload resume\. please check your connection and try again\./i,
+        /failed to upload resume\. please check your connection and try again\./iu,
       ),
     ).not.toBeInTheDocument();
   });
@@ -486,20 +488,20 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const file = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
+    const textarea = screen.getByLabelText(/job description/iu);
 
     await user.upload(fileInput, file);
     await user.type(textarea, "Software Engineer");
 
-    const button = screen.getByRole("button", { name: /analyze resume/i });
+    const button = screen.getByRole("button", { name: /analyze resume/iu });
     await user.click(button);
 
     await waitFor(() => {
       expect(fileInput).toBeDisabled();
       expect(textarea).toBeDisabled();
       expect(
-        screen.getByRole("button", { name: /cancel analysis/i }),
+        screen.getByRole("button", { name: /cancel analysis/iu }),
       ).toBeEnabled();
       expect(screen.getByText("Uploading Resume...")).toBeInTheDocument();
     });
@@ -518,29 +520,29 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const file = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
+    const textarea = screen.getByLabelText(/job description/iu);
 
     await user.upload(fileInput, file);
     await user.type(textarea, "Software Engineer");
-    await user.click(screen.getByRole("button", { name: /analyze resume/i }));
+    await user.click(screen.getByRole("button", { name: /analyze resume/iu }));
 
     await waitFor(() => {
       expect(
-        screen.getByRole("button", { name: /cancel analysis/i }),
+        screen.getByRole("button", { name: /cancel analysis/iu }),
       ).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole("button", { name: /cancel analysis/i }));
+    await user.click(screen.getByRole("button", { name: /cancel analysis/iu }));
 
     await waitFor(() => {
       expect(
-        screen.getByRole("button", { name: /analyze resume/i }),
+        screen.getByRole("button", { name: /analyze resume/iu }),
       ).toBeInTheDocument();
       expect(screen.queryByText("Uploading Resume...")).not.toBeInTheDocument();
     });
 
-    expect(screen.queryByText(/analysis complete/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/analysis complete/iu)).not.toBeInTheDocument();
   });
 
   it("should handle failed job status", async () => {
@@ -558,18 +560,18 @@ describe("home Page Component", () => {
     render(<Home />);
 
     const file = createMockPDFFile();
-    const fileInput = screen.getByLabelText(/resume \(pdf\)/i);
-    const textarea = screen.getByLabelText(/job description/i);
+    const fileInput = screen.getByLabelText(/resume \(pdf\)/iu);
+    const textarea = screen.getByLabelText(/job description/iu);
 
     await user.upload(fileInput, file);
     await user.type(textarea, "Software Engineer");
 
-    const button = screen.getByRole("button", { name: /analyze resume/i });
+    const button = screen.getByRole("button", { name: /analyze resume/iu });
     await user.click(button);
 
     await waitFor(
       () => {
-        expect(screen.getByText(/pdf parsing failed/i)).toBeInTheDocument();
+        expect(screen.getByText(/pdf parsing failed/iu)).toBeInTheDocument();
       },
       { timeout: 5000 },
     );

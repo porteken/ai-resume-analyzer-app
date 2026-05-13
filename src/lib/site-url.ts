@@ -9,14 +9,14 @@ const normalizeSiteUrl = (value?: null | string): null | string => {
     return null;
   }
 
-  const candidate = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+  const candidate = /^https?:\/\//iu.test(value) ? value : `https://${value}`;
 
   try {
     const url = new URL(candidate);
     url.pathname = "";
     url.search = "";
     url.hash = "";
-    return url.toString().replace(/\/$/, "");
+    return url.toString().replace(/\/$/u, "");
   } catch {
     return null;
   }

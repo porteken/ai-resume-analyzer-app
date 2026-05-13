@@ -22,7 +22,7 @@ test.describe("Job Description Edge Cases", () => {
     await uploadFile(page, pdfFile);
     await fillJobDescription(page, "   ");
 
-    const button = page.getByRole("button", { name: /analyze resume/i });
+    const button = page.getByRole("button", { name: /analyze resume/iu });
     await expect(button).toBeDisabled();
   });
 
@@ -37,7 +37,7 @@ test.describe("Job Description Edge Cases", () => {
     await fillJobDescription(page, longDescription);
     await submitForm(page);
 
-    await expect(page.getByText(/analysis complete/i)).toBeVisible({
+    await expect(page.getByText(/analysis complete/iu)).toBeVisible({
       timeout: 10_000,
     });
   });
@@ -54,7 +54,7 @@ test.describe("Job Description Edge Cases", () => {
     await fillJobDescription(page, specialChars);
     await submitForm(page);
 
-    await expect(page.getByText(/analysis complete/i)).toBeVisible({
+    await expect(page.getByText(/analysis complete/iu)).toBeVisible({
       timeout: 10_000,
     });
   });
@@ -73,7 +73,7 @@ test.describe("File Upload Edge Cases", () => {
     await uploadFile(page, pdfFile2);
 
     const fileInput = page.locator('input[type="file"]');
-    await expect(fileInput).toHaveValue(/resume\.pdf$/);
+    await expect(fileInput).toHaveValue(/resume\.pdf$/u);
   });
 
   test("should handle file at boundary (4.99 MB)", async ({ page }) => {
@@ -86,8 +86,8 @@ test.describe("File Upload Edge Cases", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(page.getByText(/file too large/i)).toBeHidden();
-    await expect(page.getByText(/analysis complete/i)).toBeVisible({
+    await expect(page.getByText(/file too large/iu)).toBeHidden();
+    await expect(page.getByText(/analysis complete/iu)).toBeVisible({
       timeout: 10_000,
     });
   });
@@ -99,7 +99,7 @@ test.describe("File Upload Edge Cases", () => {
     await uploadFile(page, overLimitPDF);
     await fillJobDescription(page, "Test job");
 
-    await expect(page.getByText(/file too large/i)).toBeVisible();
+    await expect(page.getByText(/file too large/iu)).toBeVisible();
   });
 });
 
@@ -127,12 +127,12 @@ test.describe("Analysis and Processing Edge Cases", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(page.getByText(/analysis complete/i)).toBeVisible({
+    await expect(page.getByText(/analysis complete/iu)).toBeVisible({
       timeout: 10_000,
     });
-    await expect(page.getByText(/strengths/i)).toBeVisible();
-    await expect(page.getByText(/gaps/i)).toBeVisible();
-    await expect(page.getByText(/recommendations/i)).toBeVisible();
+    await expect(page.getByText(/strengths/iu)).toBeVisible();
+    await expect(page.getByText(/gaps/iu)).toBeVisible();
+    await expect(page.getByText(/recommendations/iu)).toBeVisible();
   });
 
   test("should handle analysis result with only match score", async ({
@@ -153,10 +153,10 @@ test.describe("Analysis and Processing Edge Cases", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(page.getByText(/analysis complete/i)).toBeVisible({
+    await expect(page.getByText(/analysis complete/iu)).toBeVisible({
       timeout: 10_000,
     });
-    await expect(page.getByText(/75% match/i)).toBeVisible();
+    await expect(page.getByText(/75% match/iu)).toBeVisible();
   });
 
   test("should handle malformed markdown in analysis result", async ({
@@ -178,7 +178,7 @@ test.describe("Analysis and Processing Edge Cases", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(page.getByText(/analysis complete/i)).toBeVisible({
+    await expect(page.getByText(/analysis complete/iu)).toBeVisible({
       timeout: 10_000,
     });
   });
@@ -220,8 +220,8 @@ test.describe("Analysis and Processing Edge Cases", () => {
     await fillJobDescription(page, "Test job");
     await submitForm(page);
 
-    await expect(page.getByText(/analyzing/i).first()).toBeVisible();
-    await expect(page.getByText(/analysis complete/i)).toBeVisible({
+    await expect(page.getByText(/analyzing/iu).first()).toBeVisible();
+    await expect(page.getByText(/analysis complete/iu)).toBeVisible({
       timeout: 30_000,
     });
   });
@@ -253,7 +253,7 @@ test.describe("Analysis and Processing Edge Cases", () => {
     await submitForm(page);
 
     await expect(page.getByTestId("analysis-error")).toContainText(
-      /no result was returned|unexpected|error/i,
+      /no result was returned|unexpected|error/iu,
       { timeout: 10_000 },
     );
   });

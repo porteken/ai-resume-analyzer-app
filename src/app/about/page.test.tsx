@@ -12,14 +12,14 @@ describe("about page component", () => {
   it("should render the app description", () => {
     render(<About />);
     expect(
-      screen.getByText(/ai resume analyzer is a web application/i),
+      screen.getByText(/ai resume analyzer is a web application/iu),
     ).toBeInTheDocument();
   });
 
   it("should render GitHub links", () => {
     render(<About />);
     const frontendLink = screen.getByRole("link", {
-      name: /frontend app on github/i,
+      name: /frontend app on github/iu,
     });
     expect(frontendLink).toBeInTheDocument();
     expect(frontendLink).toHaveAttribute(
@@ -30,7 +30,7 @@ describe("about page component", () => {
     expect(frontendLink).toHaveAttribute("rel", "noopener noreferrer");
 
     const backendLink = screen.getByRole("link", {
-      name: /backend api on github/i,
+      name: /backend api on github/iu,
     });
     expect(backendLink).toBeInTheDocument();
     expect(backendLink).toHaveAttribute(
@@ -51,7 +51,7 @@ describe("about page component", () => {
   it("should render a back to home link", () => {
     render(<About />);
 
-    const backLink = screen.getByRole("link", { name: /back to home/i });
+    const backLink = screen.getByRole("link", { name: /back to home/iu });
     expect(backLink).toBeInTheDocument();
     expect(backLink).toHaveAttribute("href", "/");
   });

@@ -28,12 +28,12 @@ export async function fillJobDescription(
   page: Page,
   description: string,
 ): Promise<void> {
-  const textarea = page.getByLabel(/job description/i);
+  const textarea = page.getByLabel(/job description/iu);
   await textarea.fill(description);
 }
 
 export async function submitForm(page: Page): Promise<void> {
-  const button = page.getByRole("button", { name: /analyze resume/i });
+  const button = page.getByRole("button", { name: /analyze resume/iu });
   await button.click();
 }
 
