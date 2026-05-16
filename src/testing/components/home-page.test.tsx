@@ -95,6 +95,14 @@ describe("home Page Component", () => {
     expect(screen.getByLabelText(/job description/iu)).toBeInTheDocument();
   });
 
+  it("should expose an accessible browse button label for the resume uploader", () => {
+    render(<Home />);
+
+    expect(
+      screen.getByRole("button", { name: /choose file/iu }),
+    ).toBeInTheDocument();
+  });
+
   it("should have analyze button disabled initially", () => {
     render(<Home />);
     const button = screen.getByRole("button", { name: /analyze resume/iu });

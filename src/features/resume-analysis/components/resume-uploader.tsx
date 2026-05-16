@@ -83,7 +83,11 @@ const ResumeFileField = ({
 }: Readonly<ResumeFileFieldProperties>): JSX.Element => (
   <div className="animate-in fade-in slide-in-from-left-4 grid gap-3 duration-500">
     <div className="flex items-center justify-between gap-3">
-      <Label className="font-medium text-slate-700" htmlFor="resume">
+      <Label
+        className="font-medium text-slate-700"
+        htmlFor="resume"
+        id="resume-label"
+      >
         Resume (PDF)
       </Label>
       {file && (
@@ -98,6 +102,7 @@ const ResumeFileField = ({
 
     <input
       accept=".pdf,application/pdf"
+      aria-labelledby="resume-label"
       className="sr-only"
       disabled={isLoading}
       id="resume"
@@ -108,7 +113,8 @@ const ResumeFileField = ({
     />
 
     <button
-      aria-describedby="resume-file-status"
+      aria-describedby={file ? "resume-file-status" : undefined}
+      aria-labelledby="resume-upload-action"
       className={cn(
         "rounded-2xl border-2 border-dashed p-1 transition-all duration-300",
         isDragging
@@ -149,7 +155,10 @@ const ResumeFileField = ({
           </p>
         </div>
 
-        <span className="inline-flex items-center rounded-full border border-indigo-200 bg-white/80 px-4 py-2 text-sm font-medium text-indigo-700 shadow-sm">
+        <span
+          className="inline-flex items-center rounded-full border border-indigo-200 bg-white/80 px-4 py-2 text-sm font-medium text-indigo-700 shadow-sm"
+          id="resume-upload-action"
+        >
           Choose file
         </span>
       </div>
