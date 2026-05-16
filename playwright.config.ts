@@ -1,5 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const E2E_PORT = Number.parseInt(
+  process.env.PLAYWRIGHT_TEST_PORT ?? "3100",
+  10,
+);
+const E2E_BASE_URL =
+  process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${E2E_PORT}`;
 const isLocalLinux = process.platform === "linux" && !process.env.CI;
 
 const projects = [
@@ -49,7 +55,7 @@ export default defineConfig({
   use: {
     actionTimeout: 10_000,
 
-    baseURL: "http://localhost:3000",
+    baseURL: E2E_BASE_URL,
 
     navigationTimeout: 15_000,
 
@@ -61,10 +67,10 @@ export default defineConfig({
   },
 
   webServer: {
-    command: "NEXT_PUBLIC_E2E_TEST=1 env NODE_ENV=test pnpm dev",
+    command: `env NEXT_PUBLIC_E2E_TEST=1 NEXT_PUBLIC_SITE_URL=${E2E_BASE_URL} NODE_ENV=test pnpm exec next dev --turbopack --port ${E2E_PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
-    url: "http://localhost:3000",
+    url: E2E_BASE_URL,
   },
 
   workers: process.env.CI ? 1 : undefined,

@@ -33,7 +33,7 @@ test.describe("Accessibility", () => {
     await expect(aboutLink).toBeFocused();
 
     const uploadButton = page.getByRole("button", {
-      name: /drag your pdf here/iu,
+      name: /choose file/iu,
     });
     const fileInput = page.locator('input[type="file"]');
 
