@@ -65,13 +65,6 @@ const BYTES_PER_KB = 1024;
 const KB_PER_MB = 1024;
 const BYTES_PER_MB = BYTES_PER_KB * KB_PER_MB;
 
-export function createExactSizePDF(sizeMB: number): Buffer {
-  const basePDF = createTestPDF();
-  const targetSize = sizeMB * BYTES_PER_MB;
-  const padding = Buffer.alloc(Math.max(0, targetSize - basePDF.length));
-  return Buffer.concat([basePDF, padding]);
-}
-
 export function createLargePDF(): Buffer {
   const basePDF = createTestPDF();
   const LARGE_PDF_SIZE_MB = 6;
