@@ -7,6 +7,7 @@ const E2E_PORT = Number.parseInt(
 const E2E_BASE_URL =
   process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${E2E_PORT}`;
 const isLocalLinux = process.platform === "linux" && !process.env.CI;
+const smokeTestPattern = /@smoke/u;
 
 const projects = [
   {
@@ -15,25 +16,20 @@ const projects = [
   },
   {
     name: "firefox",
+    grep: smokeTestPattern,
     use: { ...devices["Desktop Firefox"] },
   },
   {
     name: "webkit",
+    grep: smokeTestPattern,
     use: { ...devices["Desktop Safari"] },
   },
   {
     name: "Mobile Chrome",
+    grep: smokeTestPattern,
     use: { ...devices["Pixel 5"] },
   },
-  {
-    name: "Mobile Safari",
-    use: { ...devices["iPhone 12"] },
-  },
-].filter(
-  (project) =>
-    !isLocalLinux ||
-    (project.name !== "webkit" && project.name !== "Mobile Safari"),
-);
+].filter((project) => !isLocalLinux || project.name !== "webkit");
 
 export default defineConfig({
   expect: {

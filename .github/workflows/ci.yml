@@ -14,6 +14,7 @@ concurrency:
 
 env:
   NODE_VERSION: 22
+  PLAYWRIGHT_E2E_SHARDS: 5
 
 jobs:
   quality-checks:
@@ -97,7 +98,7 @@ jobs:
         run: pnpm exec vitest --merge-reports=./all-vitest-unit-blob-reports --reporter=junit
 
   playwright-e2e:
-    name: Playwright E2E (shard ${{ matrix.shard_index }}/20)
+    name: Playwright E2E (shard ${{ matrix.shard_index }}/5)
     runs-on: ubuntu-latest
 
     env:
@@ -107,29 +108,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard_index:
-          [
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            19,
-            20,
-          ]
+        shard_index: [1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
@@ -145,14 +124,14 @@ jobs:
 
       - name: Get Playwright Version
         id: playwright-version
-        run: echo "PLAYWRIGHT_VERSION=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_ENV"
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
 
       - name: Cache Playwright Browsers
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae
         id: cache-playwright
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
 
       - name: Install Playwright Browsers & OS Deps
         if: steps.cache-playwright.outputs.cache-hit != 'true'
@@ -163,7 +142,7 @@ jobs:
         run: pnpm exec playwright install-deps
 
       - name: Run Playwright Shard
-        run: pnpm exec playwright test --shard=${{ matrix.shard_index }}/20 --reporter=list,blob
+        run: pnpm exec playwright test --shard=${{ matrix.shard_index }}/${{ env.PLAYWRIGHT_E2E_SHARDS }} --reporter=list,blob
 
       - name: Upload Playwright Blob
         if: always()

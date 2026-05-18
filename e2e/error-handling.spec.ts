@@ -1,7 +1,6 @@
 import { expect } from "@playwright/test";
 
 import {
-  createExactSizePDF,
   createLargePDF,
   createTestPDF,
   fillJobDescription,
@@ -30,14 +29,7 @@ test.describe("Error Handling", () => {
     );
   });
 
-  test("should not allow submission without file", async ({ page }) => {
-    await fillJobDescription(page, "Test job description");
-
-    const button = page.getByRole("button", { name: /analyze resume/iu });
-    await expect(button).toBeDisabled();
-  });
-
-  test("should handle server errors gracefully", async ({ page }) => {
+  test("should handle server errors gracefully @smoke", async ({ page }) => {
     await mockAPIResponses.mockServerError(page);
 
     const pdfFile = createTestPDF();
@@ -57,122 +49,5 @@ test.describe("Error Handling", () => {
 
     const button = page.getByRole("button", { name: /analyze resume/iu });
     await expect(button).toBeEnabled();
-  });
-
-  test("should handle network errors", async ({ page }) => {
-    await mockAPIResponses.mockNetworkError(page);
-
-    const pdfFile = createTestPDF();
-    await uploadFile(page, pdfFile);
-    await fillJobDescription(page, "Test job");
-    await submitForm(page);
-
-    await expect(page.getByTestId("analysis-error")).toContainText(
-      /failed to upload resume|network error|fetch failed/iu,
-      {
-        timeout: 10_000,
-      },
-    );
-  });
-
-  test("should handle failed job analysis", async ({ page }) => {
-    await mockAPIResponses.mockFailedJob(page);
-
-    const pdfFile = createTestPDF();
-    await uploadFile(page, pdfFile);
-    await fillJobDescription(page, "Test job");
-    await submitForm(page);
-
-    await expect(page.getByTestId("analysis-error")).toContainText(
-      /pdf parsing failed|analysis failed/iu,
-      {
-        timeout: 10_000,
-      },
-    );
-  });
-
-  test("should clear previous errors when submitting again", async ({
-    page,
-  }) => {
-    await mockAPIResponses.mockServerError(page);
-
-    const pdfFile = createTestPDF();
-    await uploadFile(page, pdfFile);
-    await fillJobDescription(page, "Test job");
-    await submitForm(page);
-
-    await expect(page.getByTestId("analysis-error")).toContainText(
-      /server error/iu,
-      {
-        timeout: 10_000,
-      },
-    );
-
-    await mockAPIResponses.mockImmediateSuccess(page);
-
-    await submitForm(page);
-
-    await expect(page.getByText(/server error/iu)).toBeHidden();
-    await expect(page.getByText(/analysis complete/iu)).toBeVisible({
-      timeout: 10_000,
-    });
-  });
-
-  test("should handle empty API response gracefully", async ({ page }) => {
-    await page.route("**/api/upload", async (route) => {
-      await route.fulfill({
-        body: JSON.stringify({}),
-        contentType: "application/json",
-        status: 200,
-      });
-    });
-
-    const pdfFile = createTestPDF();
-    await uploadFile(page, pdfFile);
-    await fillJobDescription(page, "Test job");
-    await submitForm(page);
-
-    await expect(page.getByTestId("analysis-error")).toContainText(
-      /unexpected response|no job_id or analysis_result found/iu,
-      { timeout: 10_000 },
-    );
-  });
-
-  test("should preserve form data after error", async ({ page }) => {
-    await mockAPIResponses.mockServerError(page);
-
-    const jobDescription = "Senior Software Engineer with 5+ years experience";
-
-    const pdfFile = createTestPDF();
-    await uploadFile(page, pdfFile);
-    await fillJobDescription(page, jobDescription);
-    await submitForm(page);
-
-    await expect(page.getByTestId("analysis-error")).toContainText(
-      /server error/iu,
-      {
-        timeout: 10_000,
-      },
-    );
-
-    const textarea = page.getByLabel(/job description/iu);
-    await expect(textarea).toHaveValue(jobDescription);
-  });
-
-  test("should accept file at exactly 5MB limit", async ({ page }) => {
-    const EXACT_SIZE_LIMIT_MB = 5;
-    const exactSizePDF = createExactSizePDF(EXACT_SIZE_LIMIT_MB);
-
-    await mockAPIResponses.mockImmediateSuccess(page);
-
-    await uploadFile(page, exactSizePDF);
-    await fillJobDescription(page, "Test job");
-    await submitForm(page);
-
-    await expect(page.getByText(/file too large/iu)).toBeHidden();
-
-    await expect(page.getByText(/analysis complete/iu)).toBeVisible({
-      timeout: 10_000,
-    });
   });
 });

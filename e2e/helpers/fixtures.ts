@@ -1,6 +1,5 @@
 import { MOCK_RESPONSES } from "@/testing/mocks/api";
 import {
-  createExactSizePDF as createExactSizePDFBuffer,
   createLargePDF as createLargePDFBuffer,
   createTestPDF as createTestPDFBuffer,
 } from "@/testing/mocks/file";
@@ -11,10 +10,6 @@ export const test = base.extend({
     await runPage(page);
   },
 });
-
-export function createExactSizePDF(sizeMB: number): Buffer {
-  return createExactSizePDFBuffer(sizeMB);
-}
 
 export function createLargePDF(): Buffer {
   return createLargePDFBuffer();
