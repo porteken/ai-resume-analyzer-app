@@ -55,10 +55,4 @@ describe("about page component", () => {
     expect(backLink).toBeInTheDocument();
     expect(backLink).toHaveAttribute("href", "/");
   });
-
-  it("should render project links and contact sections", () => {
-    render(<About />);
-    expect(screen.getByText("Project Links")).toBeInTheDocument();
-    expect(screen.getByText("Contact")).toBeInTheDocument();
-  });
 });

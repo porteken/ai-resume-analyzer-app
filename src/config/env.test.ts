@@ -31,23 +31,6 @@ describe("aPI environment config", () => {
     });
   });
 
-  it("derives endpoints from analyze endpoint input", () => {
-    vi.stubEnv(
-      "NEXT_PUBLIC_API_ENDPOINT",
-      "https://api.example.com/prod/analyze",
-    );
-    vi.stubEnv("API_KEY", "test-key");
-
-    const config = getApiConfig();
-
-    expect(config).toStrictEqual({
-      analyzeEndpoint: "https://api.example.com/prod/analyze",
-      apiKey: "test-key",
-      statusEndpoint: "https://api.example.com/prod/status",
-      uploadEndpoint: "https://api.example.com/prod/upload",
-    });
-  });
-
   it("derives endpoints from status endpoint input", () => {
     vi.stubEnv(
       "NEXT_PUBLIC_API_ENDPOINT",

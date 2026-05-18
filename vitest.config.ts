@@ -25,7 +25,7 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json", "html", "lcov"],
     },
-    environment: "jsdom",
+    environment: "happy-dom",
     exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**", "**/.next/**"],
     globals: true,
     setupFiles: ["./src/testing/setup.ts"],

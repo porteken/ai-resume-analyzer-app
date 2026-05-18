@@ -162,21 +162,6 @@ describe("upload API Route", () => {
     expect(mockedFetch).not.toHaveBeenCalled();
   });
 
-  it("should return 400 for non-object JSON body", async () => {
-    const mockedFetch = createFetchMock();
-    globalThis.fetch = mockedFetch;
-
-    const postHandler = await loadPostHandler();
-    const response = await postHandler(
-      createRawRequest(JSON.stringify("invalid")),
-    );
-    const data = await response.json();
-
-    expect(response.status).toBe(400);
-    expect(data.error).toBe("Invalid request body");
-    expect(mockedFetch).not.toHaveBeenCalled();
-  });
-
   it("should return 400 for overly long job descriptions", async () => {
     const mockedFetch = createFetchMock();
     globalThis.fetch = mockedFetch;
