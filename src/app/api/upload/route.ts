@@ -2,16 +2,13 @@ import { getApiConfig } from "@/config/env";
 import { validateJobDescription } from "@/features/resume-analysis/utils/job-description";
 import {
   HTTP_STATUS,
-  MS_PER_SECOND,
   UPSTREAM_TIMEOUT_MS,
   createErrorResponse,
-  isTimeoutError,
 } from "@/lib/server/api-utils";
-import {
-  handleNonJsonResponse,
-  parseRequestBody,
-} from "@/lib/server/request-utils";
-import { NextResponse } from "next/server";
+import { proxyJsonRequest } from "@/lib/server/proxy-utils";
+import { parseRequestBody } from "@/lib/server/request-utils";
+
+import type { NextResponse } from "next/server";
 
 export const maxDuration = 300;
 
@@ -35,58 +32,33 @@ const validateBodyJobDescription = (
 };
 
 export async function POST(request: Request): Promise<Response> {
-  try {
-    const apiConfig = getApiConfig();
-    if (!apiConfig) {
-      return createErrorResponse(
-        "Server configuration error: Missing API_ENDPOINT (or NEXT_PUBLIC_API_ENDPOINT) or API_KEY",
-        HTTP_STATUS.INTERNAL_SERVER_ERROR,
-      );
-    }
-
-    const { body, error: parseError } = await parseRequestBody(request);
-    if (parseError) {
-      return parseError;
-    }
-
-    const jobDescriptionError = validateBodyJobDescription(body);
-    if (jobDescriptionError) {
-      return jobDescriptionError;
-    }
-
-    const headers = {
-      "Content-Type": "application/json",
-      "x-api-key": apiConfig.apiKey,
-    };
-
-    const response = await fetch(apiConfig.uploadEndpoint, {
-      body: JSON.stringify(body),
-      headers,
-      method: "POST",
-      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
-    });
-
-    const contentType = response.headers.get("content-type");
-    if (!contentType?.includes("application/json")) {
-      return handleNonJsonResponse(response);
-    }
-
-    const data = await response.json();
-
-    return NextResponse.json(data, { status: response.status });
-  } catch (error) {
-    if (isTimeoutError(error)) {
-      return createErrorResponse(
-        "Upstream API request timed out",
-        HTTP_STATUS.GATEWAY_TIMEOUT,
-        `External API did not respond within ${UPSTREAM_TIMEOUT_MS / MS_PER_SECOND} seconds`,
-      );
-    }
-
+  const apiConfig = getApiConfig();
+  if (!apiConfig) {
     return createErrorResponse(
-      "Failed to upload resume",
+      "Server configuration error: Missing API_ENDPOINT (or NEXT_PUBLIC_API_ENDPOINT) or API_KEY",
       HTTP_STATUS.INTERNAL_SERVER_ERROR,
-      error instanceof Error ? error.message : "Unknown error",
     );
   }
+
+  const { body, error: parseError } = await parseRequestBody(request);
+  if (parseError) {
+    return parseError;
+  }
+
+  const jobDescriptionError = validateBodyJobDescription(body);
+  if (jobDescriptionError) {
+    return jobDescriptionError;
+  }
+
+  return proxyJsonRequest({
+    body,
+    failureMessage: "Failed to upload resume",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiConfig.apiKey,
+    },
+    method: "POST",
+    timeoutMs: UPSTREAM_TIMEOUT_MS,
+    url: apiConfig.uploadEndpoint,
+  });
 }
