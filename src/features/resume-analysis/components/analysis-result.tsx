@@ -212,7 +212,7 @@ export const AnalysisResult = ({
       {error && (
         <div
           aria-live="assertive"
-          className="animate-in fade-in slide-in-from-bottom-4 flex items-start gap-3 rounded-xl border border-red-200/50 bg-red-50/80 p-4 text-sm text-red-600 backdrop-blur-sm duration-500"
+          className="flex animate-in items-start gap-3 rounded-xl border border-red-200/50 bg-red-50/80 p-4 text-sm text-red-600 backdrop-blur-sm duration-500 fade-in slide-in-from-bottom-4"
           data-testid="analysis-error"
           role="alert"
         >
@@ -222,7 +222,7 @@ export const AnalysisResult = ({
       )}
 
       {result && (
-        <div className="animate-in fade-in slide-in-from-bottom-6 mt-4 space-y-5 rounded-2xl border border-white/30 bg-white/80 p-6 shadow-xl backdrop-blur-md duration-700">
+        <div className="mt-4 animate-in space-y-5 rounded-2xl border border-white/30 bg-white/80 p-6 shadow-xl backdrop-blur-md duration-700 fade-in slide-in-from-bottom-6">
           <div className="flex items-center gap-2 border-b border-slate-200/50 pb-3 font-semibold text-emerald-700">
             <CheckCircle className="size-5" />
             <span>Analysis Complete</span>

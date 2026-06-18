@@ -21,7 +21,7 @@ export default function ErrorPage({
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiM2MzY2ZjEiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
 
       <div className="relative z-10 mx-auto flex w-full max-w-xl flex-col gap-6 rounded-3xl border border-white/50 bg-white/75 p-8 shadow-2xl backdrop-blur-xl md:p-10">
-        <div className="animate-in zoom-in-95 fade-in mx-auto flex size-16 items-center justify-center rounded-3xl bg-linear-to-br from-amber-500 to-rose-500 text-white shadow-lg duration-700">
+        <div className="mx-auto flex size-16 animate-in items-center justify-center rounded-3xl bg-linear-to-br from-amber-500 to-rose-500 text-white shadow-lg duration-700 zoom-in-95 fade-in">
           <AlertTriangle className="size-8" />
         </div>
 

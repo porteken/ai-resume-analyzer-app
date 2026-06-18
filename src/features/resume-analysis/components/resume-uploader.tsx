@@ -81,7 +81,7 @@ const ResumeFileField = ({
   isDragging,
   isLoading,
 }: Readonly<ResumeFileFieldProperties>): JSX.Element => (
-  <div className="animate-in fade-in slide-in-from-left-4 grid gap-3 duration-500">
+  <div className="grid animate-in gap-3 duration-500 fade-in slide-in-from-left-4">
     <div className="flex items-center justify-between gap-3">
       <Label
         className="font-medium text-slate-700"
@@ -230,7 +230,7 @@ const ResumeUploadProgress = ({
   };
 
   return (
-    <div className="animate-in zoom-in-95 fade-in rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 shadow-sm duration-500">
+    <div className="animate-in rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 shadow-sm duration-500 zoom-in-95 fade-in">
       <div className="mb-3 flex items-center gap-2 text-sm font-medium text-indigo-700">
         <Sparkles className="size-4" />
         <span>{statusMessage || "Processing Resume..."}</span>
@@ -399,7 +399,7 @@ export const ResumeUploader = ({
         isLoading={isLoading}
       />
 
-      <div className="animate-in fade-in slide-in-from-right-4 grid gap-2 delay-100 duration-500">
+      <div className="grid animate-in gap-2 delay-100 duration-500 fade-in slide-in-from-right-4">
         <div className="flex items-center justify-between gap-3">
           <Label className="font-medium text-slate-700" htmlFor="job-desc">
             Job Description

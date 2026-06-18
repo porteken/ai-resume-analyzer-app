@@ -5,7 +5,7 @@
   "singleQuote": false,
   "tabWidth": 2,
   "trailingComma": "all",
-  "sortTailwindcss": {},
+  "sortTailwindcss": false,
   "sortPackageJson": true,
   "sortImports": {
     "groups": [

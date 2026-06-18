@@ -15,7 +15,7 @@ export function AnalysisMarkdown({
   content,
 }: Readonly<AnalysisMarkdownProperties>): JSX.Element {
   return (
-    <div className="prose prose-sm prose-slate prose-headings:font-semibold prose-headings:text-slate-800 prose-h3:text-lg prose-p:text-slate-600 prose-strong:text-slate-800 prose-li:text-slate-600 max-w-none">
+    <div className="prose prose-sm max-w-none prose-slate prose-headings:font-semibold prose-headings:text-slate-800 prose-h3:text-lg prose-p:text-slate-600 prose-strong:text-slate-800 prose-li:text-slate-600">
       <ReactMarkdown remarkPlugins={MARKDOWN_REMARK_PLUGINS}>
         {content}
       </ReactMarkdown>
