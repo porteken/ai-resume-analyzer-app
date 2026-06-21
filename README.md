@@ -17,10 +17,10 @@ Frontend:
 
 ## Usage
 
-1. Upload Resume - Click "Choose File" and select a PDF resume (max 5MB)
-2. Add Job Description - Paste the job description in the text area
-3. Analyze - Click "Analyze Resume" to start the analysis
-4. Review Results - View the structured analysis with:
+1. Upload Resume – Click "Choose File" and select a PDF resume (max 5MB)
+2. Add Job Description – Paste the job description in the text area
+3. Analyze – Click "Analyze Resume" to start the analysis
+4. Review Results – View the structured analysis with:
    - Strengths
    - Gaps
    - Recommendations

@@ -96,14 +96,13 @@ describe("upload API Route", () => {
   });
 
   it("should handle non-JSON responses from external API", async () => {
-    const mockedFetch = createFetchMock().mockResolvedValue(
+    globalThis.fetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "text/html" }),
         status: 502,
         text: async () => "<html>Error page</html>",
       }),
     );
-    globalThis.fetch = mockedFetch;
 
     const postHandler = await loadPostHandler();
     const response = await postHandler(
@@ -119,8 +118,7 @@ describe("upload API Route", () => {
     const timeoutError = Object.assign(new Error("Request timeout"), {
       name: "TimeoutError",
     });
-    const mockedFetch = createFetchMock().mockRejectedValue(timeoutError);
-    globalThis.fetch = mockedFetch;
+    globalThis.fetch = createFetchMock().mockRejectedValue(timeoutError);
 
     const postHandler = await loadPostHandler();
     const response = await postHandler(
@@ -133,10 +131,9 @@ describe("upload API Route", () => {
   });
 
   it("should handle non-timeout fetch errors", async () => {
-    const mockedFetch = createFetchMock().mockRejectedValue(
+    globalThis.fetch = createFetchMock().mockRejectedValue(
       new Error("Network error"),
     );
-    globalThis.fetch = mockedFetch;
 
     const postHandler = await loadPostHandler();
     const response = await postHandler(
@@ -180,14 +177,13 @@ describe("upload API Route", () => {
   });
 
   it("should forward API response status codes", async () => {
-    const mockedFetch = createFetchMock().mockResolvedValue(
+    globalThis.fetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
         json: async () => ({ error: "Invalid input" }),
         status: 400,
       }),
     );
-    globalThis.fetch = mockedFetch;
 
     const postHandler = await loadPostHandler();
     const response = await postHandler(

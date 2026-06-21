@@ -78,27 +78,6 @@ export const mockAPIResponses = {
     });
   },
 
-  async mockFailedJob(
-    page: Page,
-    jobId: string = MOCK_RESPONSES.failedJobInitial.job_id,
-  ): Promise<void> {
-    await page.route("**/api/upload", async (route) => {
-      await route.fulfill({
-        body: JSON.stringify(MOCK_RESPONSES.failedJobInitial),
-        contentType: "application/json",
-        status: 200,
-      });
-    });
-
-    await page.route(`**/api/status/${jobId}`, async (route) => {
-      await route.fulfill({
-        body: JSON.stringify(MOCK_RESPONSES.failedJobStatus),
-        contentType: "application/json",
-        status: 200,
-      });
-    });
-  },
-
   async mockImmediateSuccess(page: Page): Promise<void> {
     await page.route("**/api/upload", async (route) => {
       await route.fulfill({
@@ -106,12 +85,6 @@ export const mockAPIResponses = {
         contentType: "application/json",
         status: 200,
       });
-    });
-  },
-
-  async mockNetworkError(page: Page): Promise<void> {
-    await page.route("**/api/upload", async (route) => {
-      await route.abort("failed");
     });
   },
 

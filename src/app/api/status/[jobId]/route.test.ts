@@ -123,14 +123,13 @@ describe("status API Route", () => {
   });
 
   it("should handle non-JSON responses from external API", async () => {
-    const mockedFetch = createFetchMock().mockResolvedValue(
+    globalThis.fetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "text/html" }),
         status: 404,
         text: async () => "<html>Not Found</html>",
       }),
     );
-    globalThis.fetch = mockedFetch;
 
     const getHandler = await loadGetHandler();
     const response = await getHandler(
@@ -147,8 +146,7 @@ describe("status API Route", () => {
     const timeoutError = Object.assign(new Error("Request timeout"), {
       name: "TimeoutError",
     });
-    const mockedFetch = createFetchMock().mockRejectedValue(timeoutError);
-    globalThis.fetch = mockedFetch;
+    globalThis.fetch = createFetchMock().mockRejectedValue(timeoutError);
 
     const getHandler = await loadGetHandler();
     const response = await getHandler(
@@ -162,10 +160,9 @@ describe("status API Route", () => {
   });
 
   it("should handle non-timeout fetch errors", async () => {
-    const mockedFetch = createFetchMock().mockRejectedValue(
+    globalThis.fetch = createFetchMock().mockRejectedValue(
       new Error("Connection timeout"),
     );
-    globalThis.fetch = mockedFetch;
 
     const getHandler = await loadGetHandler();
     const response = await getHandler(
@@ -180,14 +177,13 @@ describe("status API Route", () => {
   });
 
   it("should forward API response status codes", async () => {
-    const mockedFetch = createFetchMock().mockResolvedValue(
+    globalThis.fetch = createFetchMock().mockResolvedValue(
       createMockResponse({
         headers: new Headers({ "content-type": "application/json" }),
         json: async () => ({ error: "Job not found" }),
         status: 404,
       }),
     );
-    globalThis.fetch = mockedFetch;
 
     const getHandler = await loadGetHandler();
     const response = await getHandler(

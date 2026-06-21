@@ -84,14 +84,12 @@ const request = async (url: string, init: RequestInit): Promise<Response> => {
 
   const method = init.method ?? "GET";
   const data = await parseErrorPayload(response);
-  const error = new ApiClientError({
+  throw new ApiClientError({
     data,
     method,
     response,
     url,
   });
-
-  throw error;
 };
 
 export const postJson = async (
