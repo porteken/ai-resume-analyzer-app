@@ -15,7 +15,13 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { type JSX, type RefObject, useCallback, useRef, useState } from "react";
+import React, {
+  type JSX,
+  type RefObject,
+  useCallback,
+  useRef,
+  useState,
+} from "react";
 
 interface ResumeUploaderProperties {
   isLoading: boolean;
