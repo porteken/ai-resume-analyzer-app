@@ -11,49 +11,66 @@ const originalFileReader = globalThis.FileReader;
 
 let fileReaderMode: FileReaderMode;
 
-class MockFileReader {
-  public result: ArrayBuffer | null | string = null;
+type MockFileReaderInstance = {
+  result: ArrayBuffer | null | string;
+} & Record<"addEventListener", (type: string, listener: () => void) => void> &
+  Record<"readAsDataURL", (file: Blob) => void>;
 
-  private readonly listeners = new Map<string, Set<() => void>>();
+const createMockFileReader = (): MockFileReaderInstance => {
+  const listeners = new Map<string, Set<() => void>>();
 
-  public addEventListener(type: string, listener: () => void): void {
-    const listeners = this.listeners.get(type) ?? new Set<() => void>();
-    listeners.add(listener);
-    this.listeners.set(type, listeners);
-  }
-
-  public readAsDataURL(): void {
-    queueMicrotask(() => {
-      if (fileReaderMode === "error") {
-        this.emit("error");
-        return;
-      }
-
-      if (fileReaderMode === "non-string-result") {
-        this.result = new ArrayBuffer(8);
-        this.emit("load");
-        return;
-      }
-
-      this.result =
-        fileReaderMode === "missing-base64"
-          ? "data:application/pdf;base64,"
-          : "data:application/pdf;base64,QUJDREVGRw==";
-      this.emit("load");
-    });
-  }
-
-  private emit(type: string): void {
-    for (const listener of this.listeners.get(type) ?? []) {
+  const emit = (type: string): void => {
+    for (const listener of listeners.get(type) ?? []) {
       listener();
     }
-  }
-}
+  };
+
+  const reader = {
+    result: null,
+    ...Object.fromEntries([
+      [
+        "addEventListener",
+        (type: string, listener: () => void): void => {
+          const eventListeners = listeners.get(type) ?? new Set<() => void>();
+          eventListeners.add(listener);
+          listeners.set(type, eventListeners);
+        },
+      ],
+      [
+        "readAsDataURL",
+        (_file: Blob): void => {
+          queueMicrotask(() => {
+            if (fileReaderMode === "error") {
+              emit("error");
+              return;
+            }
+
+            if (fileReaderMode === "non-string-result") {
+              reader.result = new ArrayBuffer(8);
+              emit("load");
+              return;
+            }
+
+            reader.result =
+              fileReaderMode === "missing-base64"
+                ? "data:application/pdf;base64,"
+                : "data:application/pdf;base64,QUJDREVGRw==";
+            emit("load");
+          });
+        },
+      ],
+    ]),
+  } as MockFileReaderInstance;
+
+  return reader;
+};
 
 describe("file conversion", () => {
   beforeEach(() => {
     fileReaderMode = "success";
-    globalThis.FileReader = MockFileReader as unknown as typeof FileReader;
+    globalThis.FileReader = function MockFileReader() {
+      return createMockFileReader();
+    } as unknown as typeof FileReader;
   });
 
   afterEach(() => {

@@ -17,15 +17,21 @@ afterAll(() => {
   server.close();
 });
 
-vi.mock("next/navigation", () => ({
-  usePathname: () => "",
-  useRouter: () => ({
-    back: vi.fn<() => void>(),
-    forward: vi.fn<() => void>(),
-    prefetch: vi.fn<() => Promise<void>>(),
-    push: vi.fn<(href: string) => void>(),
-    refresh: vi.fn<() => void>(),
-    replace: vi.fn<(href: string) => void>(),
-  }),
-  useSearchParams: () => new URLSearchParams(),
-}));
+vi.mock("next/navigation", () =>
+  Object.fromEntries([
+    ["usePathname", () => ""],
+    [
+      "useRouter",
+      () =>
+        Object.fromEntries([
+          ["back", vi.fn<() => void>()],
+          ["forward", vi.fn<() => void>()],
+          ["prefetch", vi.fn<() => Promise<void>>()],
+          ["push", vi.fn<(href: string) => void>()],
+          ["refresh", vi.fn<() => void>()],
+          ["replace", vi.fn<(href: string) => void>()],
+        ]),
+    ],
+    ["useSearchParams", () => new URLSearchParams()],
+  ]),
+);
