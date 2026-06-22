@@ -72,6 +72,7 @@
         "extensions": [".jsx", ".tsx"]
       }
     ],
+    "react/jsx-no-literals": "off",
     "react/jsx-max-depth": "off",
     "eslint/max-statements": [
       "error",

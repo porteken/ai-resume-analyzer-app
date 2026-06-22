@@ -75,12 +75,16 @@ describe("status API Route", () => {
   });
 
   it("should return 500 if required env vars are missing", async () => {
+    expect.hasAssertions();
+
     await expectMissingEnvError(() =>
       GET(createRequest("123"), createContext("123")),
     );
   });
 
   it("should handle non-JSON responses from external API", async () => {
+    expect.hasAssertions();
+
     await expectNonJsonUpstreamError(
       () => GET(createRequest("invalid-id"), createContext("invalid-id")),
       createTextFetchResponse("<html>Not Found</html>", 404, "text/html"),
@@ -88,12 +92,16 @@ describe("status API Route", () => {
   });
 
   it("should return 504 for timeout errors", async () => {
+    expect.hasAssertions();
+
     await expectTimeoutError(() =>
       GET(createRequest("123"), createContext("123")),
     );
   });
 
   it("should handle non-timeout fetch errors", async () => {
+    expect.hasAssertions();
+
     await expectFetchError(
       () => GET(createRequest("123"), createContext("123")),
       { details: "Connection timeout", error: "Failed to check status" },
@@ -101,6 +109,8 @@ describe("status API Route", () => {
   });
 
   it("should forward API response status codes", async () => {
+    expect.hasAssertions();
+
     await expectForwardedJsonError(
       () => GET(createRequest("nonexistent"), createContext("nonexistent")),
       { body: { error: "Job not found" }, error: "Job not found", status: 404 },

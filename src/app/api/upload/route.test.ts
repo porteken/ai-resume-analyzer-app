@@ -58,12 +58,16 @@ describe("upload API Route", () => {
   });
 
   it("should return 500 if required env vars are missing", async () => {
+    expect.hasAssertions();
+
     await expectMissingEnvError(() =>
       POST(createRequest({ job_description: "test", pdf_base64: "test" })),
     );
   });
 
   it("should handle non-JSON responses from external API", async () => {
+    expect.hasAssertions();
+
     await expectNonJsonUpstreamError(
       () =>
         POST(createRequest({ job_description: "test", pdf_base64: "test" })),
@@ -72,12 +76,16 @@ describe("upload API Route", () => {
   });
 
   it("should return 504 for timeout errors", async () => {
+    expect.hasAssertions();
+
     await expectTimeoutError(() =>
       POST(createRequest({ job_description: "test", pdf_base64: "test" })),
     );
   });
 
   it("should handle non-timeout fetch errors", async () => {
+    expect.hasAssertions();
+
     await expectFetchError(
       () =>
         POST(createRequest({ job_description: "test", pdf_base64: "test" })),
@@ -86,6 +94,8 @@ describe("upload API Route", () => {
   });
 
   it("should return 400 for invalid JSON body", async () => {
+    expect.hasAssertions();
+
     await expectInvalidJsonBodyError(() =>
       POST(createRawRequest("invalid-json")),
     );
@@ -112,6 +122,8 @@ describe("upload API Route", () => {
   });
 
   it("should forward API response status codes", async () => {
+    expect.hasAssertions();
+
     await expectForwardedJsonError(
       () =>
         POST(createRequest({ job_description: "test", pdf_base64: "test" })),
