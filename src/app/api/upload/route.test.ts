@@ -1,66 +1,47 @@
 import { MAX_JOB_DESCRIPTION_CHARS } from "@/features/resume-analysis/utils/job-description";
-import { NextRequest } from "next/server";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  createJsonFetchResponse,
+  createPostRequestFactory,
+  createRawPostRequestFactory,
+  createTextFetchResponse,
+  expectFetchError,
+  expectForwardedJsonError,
+  expectInvalidJsonBodyError,
+  expectJsonResponse,
+  expectMissingEnvError,
+  expectNonJsonUpstreamError,
+  expectTimeoutError,
+  installApiRouteTestHooks,
+  mockResolvedFetch,
+  mockApiKey,
+} from "@/testing/route";
+import { describe, expect, it } from "vitest";
+
+import { POST } from "./route";
 
 const mockApiEndpoint = "https://api.example.com/analyze";
-const mockApiKey = "test-api-key";
-const createFetchMock = () => vi.fn<typeof fetch>();
-const createMockResponse = (response: object): Response =>
-  response as unknown as Response;
-
-const loadPostHandler = async () => {
-  const routeModule = await import("./route");
-  return routeModule.POST;
-};
-
-const createRequest = (body: object) =>
-  new NextRequest("http://localhost:3000/api/upload", {
-    body: JSON.stringify(body),
-    method: "POST",
-  });
-
-const createRawRequest = (body: string) =>
-  new NextRequest("http://localhost:3000/api/upload", {
-    body,
-    method: "POST",
-  });
+const createRequest = createPostRequestFactory("/api/upload");
+const createRawRequest = createRawPostRequestFactory("/api/upload");
 
 describe("upload API Route", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.resetModules();
-    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
-    vi.stubEnv("API_KEY", "");
-    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", mockApiEndpoint);
-    vi.stubEnv("API_KEY", mockApiKey);
-    vi.spyOn(console, "error").mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-    vi.unstubAllEnvs();
-  });
+  installApiRouteTestHooks(mockApiEndpoint);
 
   it("should proxy upload requests to the canonical upload endpoint", async () => {
     const mockResponseData = { job_id: "123", status: "processing" };
-    const mockedFetch = createFetchMock().mockResolvedValue(
-      createMockResponse({
-        headers: new Headers({ "content-type": "application/json" }),
-        json: async () => mockResponseData,
-        status: 200,
-      }),
+    const mockedFetch = mockResolvedFetch(
+      createJsonFetchResponse(mockResponseData),
     );
-    globalThis.fetch = mockedFetch;
 
-    const postHandler = await loadPostHandler();
     const requestBody = {
       filename: "resume.pdf",
       job_description: "Software Engineer",
       pdf_base64: "base64encodedpdf",
     };
 
-    const response = await postHandler(createRequest(requestBody));
-    const data = await response.json();
+    const data = await expectJsonResponse(
+      () => POST(createRequest(requestBody)),
+      200,
+    );
 
     expect(mockedFetch).toHaveBeenCalledWith(
       "https://api.example.com/upload",
@@ -73,125 +54,68 @@ describe("upload API Route", () => {
         method: "POST",
       }),
     );
-    expect(response.status).toBe(200);
     expect(data).toStrictEqual(mockResponseData);
   });
 
   it("should return 500 if required env vars are missing", async () => {
-    vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
-    vi.stubEnv("API_KEY", "");
-
-    const mockedFetch = createFetchMock();
-    globalThis.fetch = mockedFetch;
-    const postHandler = await loadPostHandler();
-
-    const response = await postHandler(
-      createRequest({ job_description: "test", pdf_base64: "test" }),
+    await expectMissingEnvError(() =>
+      POST(createRequest({ job_description: "test", pdf_base64: "test" })),
     );
-    const data = await response.json();
-
-    expect(response.status).toBe(500);
-    expect(data.error).toContain("Server configuration error");
-    expect(mockedFetch).not.toHaveBeenCalled();
   });
 
   it("should handle non-JSON responses from external API", async () => {
-    globalThis.fetch = createFetchMock().mockResolvedValue(
-      createMockResponse({
-        headers: new Headers({ "content-type": "text/html" }),
-        status: 502,
-        text: async () => "<html>Error page</html>",
-      }),
+    await expectNonJsonUpstreamError(
+      () =>
+        POST(createRequest({ job_description: "test", pdf_base64: "test" })),
+      createTextFetchResponse("<html>Error page</html>", 502, "text/html"),
     );
-
-    const postHandler = await loadPostHandler();
-    const response = await postHandler(
-      createRequest({ job_description: "test", pdf_base64: "test" }),
-    );
-    const data = await response.json();
-
-    expect(response.status).toBe(502);
-    expect(data.error).toContain("non-JSON response");
   });
 
   it("should return 504 for timeout errors", async () => {
-    const timeoutError = Object.assign(new Error("Request timeout"), {
-      name: "TimeoutError",
-    });
-    globalThis.fetch = createFetchMock().mockRejectedValue(timeoutError);
-
-    const postHandler = await loadPostHandler();
-    const response = await postHandler(
-      createRequest({ job_description: "test", pdf_base64: "test" }),
+    await expectTimeoutError(() =>
+      POST(createRequest({ job_description: "test", pdf_base64: "test" })),
     );
-    const data = await response.json();
-
-    expect(response.status).toBe(504);
-    expect(data.error).toBe("Upstream API request timed out");
   });
 
   it("should handle non-timeout fetch errors", async () => {
-    globalThis.fetch = createFetchMock().mockRejectedValue(
-      new Error("Network error"),
+    await expectFetchError(
+      () =>
+        POST(createRequest({ job_description: "test", pdf_base64: "test" })),
+      { details: "Network error", error: "Failed to upload resume" },
     );
-
-    const postHandler = await loadPostHandler();
-    const response = await postHandler(
-      createRequest({ job_description: "test", pdf_base64: "test" }),
-    );
-    const data = await response.json();
-
-    expect(response.status).toBe(500);
-    expect(data.error).toBe("Failed to upload resume");
-    expect(data.details).toBe("Network error");
   });
 
   it("should return 400 for invalid JSON body", async () => {
-    const mockedFetch = createFetchMock();
-    globalThis.fetch = mockedFetch;
-
-    const postHandler = await loadPostHandler();
-    const response = await postHandler(createRawRequest("invalid-json"));
-    const data = await response.json();
-
-    expect(response.status).toBe(400);
-    expect(data.error).toBe("Invalid request body");
-    expect(mockedFetch).not.toHaveBeenCalled();
+    await expectInvalidJsonBodyError(() =>
+      POST(createRawRequest("invalid-json")),
+    );
   });
 
   it("should return 400 for overly long job descriptions", async () => {
-    const mockedFetch = createFetchMock();
-    globalThis.fetch = mockedFetch;
+    const mockedFetch = mockResolvedFetch({});
 
-    const postHandler = await loadPostHandler();
     const longDescription = "a".repeat(MAX_JOB_DESCRIPTION_CHARS + 1);
-    const response = await postHandler(
-      createRequest({ job_description: longDescription, pdf_base64: "test" }),
+    const data = await expectJsonResponse(
+      () =>
+        POST(
+          createRequest({
+            job_description: longDescription,
+            pdf_base64: "test",
+          }),
+        ),
+      400,
     );
-    const data = await response.json();
 
-    expect(response.status).toBe(400);
     expect(data.error).toBe("Invalid job description");
     expect(data.details).toContain("too long");
     expect(mockedFetch).not.toHaveBeenCalled();
   });
 
   it("should forward API response status codes", async () => {
-    globalThis.fetch = createFetchMock().mockResolvedValue(
-      createMockResponse({
-        headers: new Headers({ "content-type": "application/json" }),
-        json: async () => ({ error: "Invalid input" }),
-        status: 400,
-      }),
+    await expectForwardedJsonError(
+      () =>
+        POST(createRequest({ job_description: "test", pdf_base64: "test" })),
+      { body: { error: "Invalid input" }, error: "Invalid input", status: 400 },
     );
-
-    const postHandler = await loadPostHandler();
-    const response = await postHandler(
-      createRequest({ job_description: "test", pdf_base64: "test" }),
-    );
-    const data = await response.json();
-
-    expect(response.status).toBe(400);
-    expect(data.error).toBe("Invalid input");
   });
 });
