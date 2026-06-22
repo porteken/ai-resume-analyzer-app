@@ -3,9 +3,9 @@ import { afterEach, beforeEach, expect, vi } from "vitest";
 
 export const mockApiKey = "test-api-key";
 
-export const createFetchMock = () => vi.fn<typeof fetch>();
+const createFetchMock = () => vi.fn<typeof fetch>();
 
-export const createMockResponse = (response: object): Response =>
+const createMockResponse = (response: object): Response =>
   response as unknown as Response;
 
 export const createJsonFetchResponse = (body: object, status = 200) => ({
@@ -24,13 +24,13 @@ export const createTextFetchResponse = (
   text: async () => body,
 });
 
-export const createJsonRequest = (url: string, body: object) =>
+const createJsonRequest = (url: string, body: object) =>
   new NextRequest(url, {
     body: JSON.stringify(body),
     method: "POST",
   });
 
-export const createRawPostRequest = (url: string, body: string) =>
+const createRawPostRequest = (url: string, body: string) =>
   new NextRequest(url, {
     body,
     method: "POST",
@@ -43,7 +43,7 @@ export const createRawPostRequestFactory =
   (pathname: string) => (body: string) =>
     createRawPostRequest(`http://localhost:3000${pathname}`, body);
 
-export function createTimeoutError(): Error {
+function createTimeoutError(): Error {
   return Object.assign(new Error("Request timeout"), {
     name: "TimeoutError",
   });
@@ -71,7 +71,7 @@ export function mockResolvedFetch(response: object) {
   return mockedFetch;
 }
 
-export function mockRejectedFetch(error: unknown) {
+function mockRejectedFetch(error: unknown) {
   const mockedFetch = createFetchMock().mockRejectedValue(error);
   globalThis.fetch = mockedFetch as typeof fetch;
   return mockedFetch;
@@ -163,14 +163,14 @@ export async function expectForwardedJsonError(
   expect(data.error).toBe(options.error);
 }
 
-export function stubApiRouteEnv(apiEndpoint: string) {
+function stubApiRouteEnv(apiEndpoint: string) {
   vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
   vi.stubEnv("API_KEY", "");
   vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", apiEndpoint);
   vi.stubEnv("API_KEY", mockApiKey);
 }
 
-export function stubMissingApiRouteEnv() {
+function stubMissingApiRouteEnv() {
   vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
   vi.stubEnv("API_KEY", "");
 }
