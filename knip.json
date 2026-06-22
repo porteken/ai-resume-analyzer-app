@@ -1,9 +1,4 @@
 {
-  "ignoreDependencies": [
-    "eslint-plugin-playwright",
-    "eslint-plugin-sonarjs",
-    "eslint-plugin-better-tailwindcss",
-    "lint-staged"
-  ],
+  "ignoreDependencies": ["lint-staged"],
   "ignore": ["src/components/ui/**/*"]
 }
