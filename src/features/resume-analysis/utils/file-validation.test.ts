@@ -18,10 +18,10 @@ describe("file-validation utilities", () => {
   });
 
   it("truncates long job descriptions for legacy fallback payloads", () => {
-    const description = "a".repeat(10_001);
+    const description = "a".repeat(20_001);
     const truncated = truncateJobDescription(description);
 
-    expect(truncated).toHaveLength(10_015);
+    expect(truncated).toHaveLength(20_015);
     expect(truncated.endsWith("... [truncated]")).toBe(true);
   });
 

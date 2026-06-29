@@ -451,7 +451,11 @@ export const ResumeUploader = ({
         <Button
           aria-label="Analyze Resume"
           className="w-full transform bg-linear-to-r from-indigo-600 to-cyan-600 text-white shadow-lg transition-all duration-300 hover:scale-[1.02] hover:from-indigo-700 hover:to-cyan-700 hover:shadow-xl active:scale-[0.98]"
-          disabled={!file || !jobDescription.trim()}
+          disabled={
+            !file ||
+            !jobDescription.trim() ||
+            descriptionLength > MAX_JOB_DESCRIPTION_CHARS
+          }
           onClick={handleSubmit}
         >
           <Upload className="mr-2 size-4" />

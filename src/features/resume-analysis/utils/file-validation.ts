@@ -1,5 +1,6 @@
+import { MAX_JOB_DESCRIPTION_CHARS } from "@/features/resume-analysis/utils/job-description";
+
 const MAX_FILENAME_LENGTH = 200;
-const MAX_JOB_DESCRIPTION_LENGTH = 10_000;
 const MAX_FILE_SIZE_MB = 5;
 const BYTES_PER_KB = 1024;
 const KB_PER_MB = 1024;
@@ -24,15 +25,19 @@ export const sanitizeFilename = (filename: string): string => {
 };
 
 export const truncateJobDescription = (description: string): string => {
-  if (description.length <= MAX_JOB_DESCRIPTION_LENGTH) {
+  if (description.length <= MAX_JOB_DESCRIPTION_CHARS) {
     return description;
   }
-  return `${description.slice(0, MAX_JOB_DESCRIPTION_LENGTH)}... [truncated]`;
+  return `${description.slice(0, MAX_JOB_DESCRIPTION_CHARS)}... [truncated]`;
 };
 
 export const validateFile = (file: File | null): null | string => {
   if (!file) {
     return "Please provide both a PDF resume and a Job Description.";
+  }
+
+  if (file.size === 0) {
+    return "The selected file is empty. Please upload a valid PDF.";
   }
 
   const hasPdfExtension = file.name.toLowerCase().endsWith(".pdf");
