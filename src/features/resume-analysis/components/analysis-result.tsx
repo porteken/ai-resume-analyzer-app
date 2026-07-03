@@ -1,5 +1,6 @@
 "use client";
 
+import { AnalysisErrorBoundary } from "@/features/resume-analysis/components/analysis-error-boundary";
 import { cn } from "@/lib/utils";
 import {
   AlertCircle,
@@ -223,11 +224,11 @@ export const AnalysisResult = ({
 
       {result && (
         <div className="mt-4 animate-in space-y-5 rounded-2xl border border-white/30 bg-white/80 p-6 shadow-xl backdrop-blur-md duration-700 fade-in slide-in-from-bottom-6">
-          <div className="flex items-center gap-2 border-b border-slate-200/50 pb-3 font-semibold text-emerald-700">
+          <output className="flex items-center gap-2 border-b border-slate-200/50 pb-3 font-semibold text-emerald-700">
             <CheckCircle className="size-5" />
             <span>Analysis Complete</span>
-          </div>
-          {renderedResultContent}
+          </output>
+          <AnalysisErrorBoundary>{renderedResultContent}</AnalysisErrorBoundary>
         </div>
       )}
     </>

@@ -391,6 +391,10 @@ export const ResumeUploader = ({
 
   return (
     <div className="grid gap-6">
+      <output aria-live="polite" className="sr-only block">
+        {isLoading ? statusMessage || "Processing resume" : ""}
+      </output>
+
       <ResumeFileField
         clearSelectedFile={clearSelectedFile}
         file={file}

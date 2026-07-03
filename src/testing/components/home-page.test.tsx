@@ -388,7 +388,9 @@ describe("home Page Component", () => {
       expect(
         screen.getByRole("button", { name: /cancel analysis/iu }),
       ).toBeEnabled();
-      expect(screen.getByText("Uploading Resume...")).toBeInTheDocument();
+      expect(screen.getAllByText("Uploading Resume...").length).toBeGreaterThan(
+        0,
+      );
     });
   });
 
