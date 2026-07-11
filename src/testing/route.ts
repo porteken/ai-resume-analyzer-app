@@ -67,13 +67,13 @@ export function mockResolvedFetch(response: object) {
   const mockedFetch = createFetchMock().mockResolvedValue(
     createMockResponse(response),
   );
-  globalThis.fetch = mockedFetch as typeof fetch;
+  globalThis.fetch = mockedFetch;
   return mockedFetch;
 }
 
 function mockRejectedFetch(error: unknown) {
   const mockedFetch = createFetchMock().mockRejectedValue(error);
-  globalThis.fetch = mockedFetch as typeof fetch;
+  globalThis.fetch = mockedFetch;
   return mockedFetch;
 }
 
@@ -94,7 +94,7 @@ export async function expectMissingEnvError(
   stubMissingApiRouteEnv();
 
   const mockedFetch = createFetchMock();
-  globalThis.fetch = mockedFetch as typeof fetch;
+  globalThis.fetch = mockedFetch;
 
   const data = await expectJsonResponse(invokeRoute, 500);
 
@@ -106,7 +106,7 @@ export async function expectInvalidJsonBodyError(
   invokeRoute: () => Promise<Response>,
 ) {
   const mockedFetch = createFetchMock();
-  globalThis.fetch = mockedFetch as typeof fetch;
+  globalThis.fetch = mockedFetch;
 
   const data = await expectJsonResponse(invokeRoute, 400);
 
