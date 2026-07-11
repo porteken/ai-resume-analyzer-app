@@ -55,6 +55,7 @@ export function installApiRouteTestHooks(apiEndpoint: string) {
     vi.resetModules();
     stubApiRouteEnv(apiEndpoint);
     vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
