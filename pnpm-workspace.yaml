@@ -5,3 +5,4 @@ minimumReleaseAgeExclude:
   - lucide-react@1.17.0 || 1.22.0
   - knip@6.23.0
   - postcss@8.5.16
+  - eslint@10.7.0
