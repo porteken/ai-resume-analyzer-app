@@ -115,11 +115,18 @@
     "import/group-exports": "off",
     "import/exports-last": "off",
     "eslint/require-await": "error",
-    "eslint/no-use-before-define": ["error", { "functions": false }],
+    "eslint/no-use-before-define": [
+      "error",
+      {
+        "functions": false
+      }
+    ],
     "eslint/no-empty-function": "off",
     "eslint/no-duplicate-imports": [
       "error",
-      { "allowSeparateTypeImports": true }
+      {
+        "allowSeparateTypeImports": true
+      }
     ],
     "eslint/func-style": "off",
     "eslint/no-ternary": "off",
@@ -196,7 +203,14 @@
     "unicorn/no-useless-undefined": "error",
     "import/max-dependencies": "off",
     "eslint/max-classes-per-file": "off",
-    "unicorn/no-array-callback-reference": "off"
+    "unicorn/no-array-callback-reference": "off",
+    "typescript/require-await": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/return-await": "error",
+    "unicorn/prefer-number-coercion": "error",
+    "typescript/no-unnecessary-condition": "error",
+    "typescript/prefer-optional-chain": "error",
+    "react/react-compiler": "off"
   },
   "overrides": [
     {
@@ -230,7 +244,8 @@
         "typescript/no-unsafe-member-access": "off",
         "typescript/no-unsafe-argument": "off",
         "typescript/no-unsafe-return": "off",
-        "eslint/require-await": "off"
+        "eslint/require-await": "off",
+        "typescript/require-await": "off"
       }
     },
     {

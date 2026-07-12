@@ -402,12 +402,15 @@ const uploadToS3 = async (
 
   formData.append("file", file);
 
+  const hasLocation = typeof globalThis.location !== "undefined";
   const uploadUrl = new URL(
     presignedUrl,
-    globalThis.location?.href ?? "http://localhost",
+    hasLocation ? globalThis.location.href : "http://localhost",
   );
   const requestMode: RequestMode =
-    uploadUrl.origin === globalThis.location?.origin ? "cors" : "no-cors";
+    hasLocation && uploadUrl.origin === globalThis.location.origin
+      ? "cors"
+      : "no-cors";
 
   const response = await fetch(presignedUrl, {
     body: formData,
@@ -481,7 +484,7 @@ const triggerAnalysis = async (
     );
   }
 
-  const contentType = response.headers?.get?.("content-type");
+  const contentType = response.headers.get("content-type");
   if (!contentType?.includes("application/json")) {
     return null;
   }

@@ -34,7 +34,7 @@ export const proxyJsonRequest = async ({
 
     const contentType = response.headers.get("content-type");
     if (!contentType?.includes("application/json")) {
-      return handleNonJsonResponse(response);
+      return await handleNonJsonResponse(response);
     }
 
     const data: unknown = await response.json();

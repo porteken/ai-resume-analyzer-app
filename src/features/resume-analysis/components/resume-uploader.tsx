@@ -362,7 +362,7 @@ export const ResumeUploader = ({
     (event: React.DragEvent<HTMLButtonElement>) => {
       event.preventDefault();
 
-      handleSelectedFile(event.dataTransfer.files?.[0] ?? null);
+      handleSelectedFile(event.dataTransfer.files[0] ?? null);
       setIsDragging(false);
     },
     [handleSelectedFile],

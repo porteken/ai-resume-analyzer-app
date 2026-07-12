@@ -1,9 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const E2E_PORT = Number.parseInt(
-  process.env.PLAYWRIGHT_TEST_PORT ?? "3100",
-  10,
-);
+const E2E_PORT = Math.trunc(Number(process.env.PLAYWRIGHT_TEST_PORT ?? "3100"));
 const E2E_BASE_URL =
   process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${E2E_PORT}`;
 const isLocalLinux = process.platform === "linux" && !process.env.CI;
