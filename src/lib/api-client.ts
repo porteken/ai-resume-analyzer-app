@@ -38,7 +38,7 @@ const getErrorMessageFromPayload = (payload: unknown): null | string => {
   return error ?? details ?? message;
 };
 
-const parseErrorPayload = async (response: Response): Promise<unknown> => {
+const parseErrorPayload = (response: Response): Promise<unknown> => {
   const contentType = response.headers.get("content-type");
 
   if (contentType?.includes("application/json")) {
@@ -92,7 +92,7 @@ const request = async (url: string, init: RequestInit): Promise<Response> => {
   });
 };
 
-export const postJson = async (
+export const postJson = (
   url: string,
   payload: unknown,
   options?: RequestOptions,
@@ -104,7 +104,7 @@ export const postJson = async (
     signal: options?.signal,
   });
 
-export const getJson = async (
+export const getJson = (
   url: string,
   options?: RequestOptions,
 ): Promise<Response> =>

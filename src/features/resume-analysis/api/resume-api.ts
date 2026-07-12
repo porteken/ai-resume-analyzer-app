@@ -179,7 +179,7 @@ const getPollDelayMs = (attempt: number): number =>
     Math.min(attempt - 1, POLL_DELAY_BY_ATTEMPT_MS.length - 1)
   ] ?? DELAY_MULTIPLIER_5 * MS_PER_SECOND;
 
-const sendUploadRequest = async (
+const sendUploadRequest = (
   requestBody: object,
   signal?: AbortSignal,
 ): Promise<Response> => postJson("/api/upload", requestBody, { signal });
@@ -316,6 +316,23 @@ const getStatusResponse = async (
   }
 };
 
+const getCompletedPollResult = (
+  statusData: StatusResponseData,
+): AnalysisResultData | null => {
+  const analysisResult = statusData.analysis_result;
+
+  if (analysisResult !== undefined) {
+    return analysisResult;
+  }
+
+  if (statusData.status !== "completed") {
+    return null;
+  }
+
+  assertCompletedPollResult(analysisResult);
+  return analysisResult;
+};
+
 const pollUntilComplete = async ({
   attempt,
   maxAttempts,
@@ -331,7 +348,7 @@ const pollUntilComplete = async ({
   throwIfAborted(signal);
 
   const statusResponse = await getStatusResponse(statusUrl, signal);
-  const statusJson = await statusResponse.json().catch(() => null);
+  const statusJson: unknown = await statusResponse.json().catch(() => null);
   const statusData = parseStatusResponse(statusJson);
 
   if (!statusData) {
@@ -356,23 +373,6 @@ const pollUntilComplete = async ({
     attempt: attempt + 1,
     maxAttempts,
   });
-};
-
-const getCompletedPollResult = (
-  statusData: StatusResponseData,
-): AnalysisResultData | null => {
-  const analysisResult = statusData.analysis_result;
-
-  if (analysisResult !== undefined) {
-    return analysisResult;
-  }
-
-  if (statusData.status !== "completed") {
-    return null;
-  }
-
-  assertCompletedPollResult(analysisResult);
-  return analysisResult;
 };
 
 /**
@@ -486,7 +486,7 @@ const triggerAnalysis = async (
     return null;
   }
 
-  const responseData = await response.json().catch(() => null);
+  const responseData: unknown = await response.json().catch(() => null);
   return parseUploadResumeResponse(responseData);
 };
 
@@ -538,7 +538,7 @@ export const uploadResume = async (
     options?.signal,
   );
 
-  const uploadJson = await uploadResponse.json().catch(() => null);
+  const uploadJson: unknown = await uploadResponse.json().catch(() => null);
   const uploadData = parsePresignedUploadResponse(uploadJson);
 
   if (uploadData) {
@@ -578,7 +578,7 @@ export const uploadResume = async (
   throw new Error("Unexpected response from upload endpoint.");
 };
 
-export const pollForResults = async (
+export const pollForResults = (
   jobId: string,
   onProgress: (message: string) => void,
   options?: UploadRequestOptions,

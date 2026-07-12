@@ -37,7 +37,7 @@ export const proxyJsonRequest = async ({
       return handleNonJsonResponse(response);
     }
 
-    const data = await response.json();
+    const data: unknown = await response.json();
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
     if (isTimeoutError(error)) {
