@@ -8,7 +8,6 @@ test.describe("Accessibility", () => {
   });
 
   test("should be keyboard navigable @smoke", async ({ page }) => {
-    // Tab to 'About' link
     await page.keyboard.press("Tab");
     const aboutLink = page.getByRole("link", { name: /about/iu });
     await expect(aboutLink).toBeFocused();
@@ -18,7 +17,6 @@ test.describe("Accessibility", () => {
     });
     const fileInput = page.locator('input[type="file"]');
 
-    // Focus the upload button to start sequential navigation from it
     await uploadButton.focus();
     await expect(uploadButton).toBeFocused();
 
@@ -26,7 +24,6 @@ test.describe("Accessibility", () => {
     const textarea = page.getByLabel(/job description/iu);
     await expect(textarea).toBeFocused();
 
-    // Fill fields to enable the button
     await fileInput.setInputFiles({
       buffer: Buffer.from("test pdf content"),
       mimeType: "application/pdf",
@@ -34,7 +31,6 @@ test.describe("Accessibility", () => {
     });
     await textarea.fill("Test job description");
 
-    // Refocus textarea so we can tab to button
     await textarea.focus();
 
     await page.keyboard.press("Tab");
