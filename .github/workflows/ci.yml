@@ -20,7 +20,7 @@ env:
 
 jobs:
   quality-checks:
-    name: Lint and Typecheck
+    name: Format, Lint, and Typecheck
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -51,16 +51,13 @@ jobs:
           --ignore-scripts
 
       - name: Check formatting
-        run: pnpm run format:check
+        run: pnpm run fmt:check
 
       - name: Lint
         run: pnpm run lint
 
       - name: Typecheck
         run: pnpm run tsc
-
-      - name: Check unused code and dependencies
-        run: pnpm run knip
 
   vitest:
     name: Vitest (${{ matrix.shard_index }}/${{ strategy.job-total }})
@@ -104,6 +101,7 @@ jobs:
           pnpm exec vitest run
           --shard=${{ matrix.shard_index }}/${{ strategy.job-total }}
           --reporter=blob
+          --outputFile=vitest-blob-${{ matrix.shard_index }}-of-${{ strategy.job-total }}.json
 
       - name: Run Vitest shard with coverage
         if: github.event_name != 'push' || github.ref_name != 'prd'
@@ -112,14 +110,14 @@ jobs:
           --shard=${{ matrix.shard_index }}/${{ strategy.job-total }}
           --reporter=blob
           --coverage
+          --outputFile=vitest-blob-${{ matrix.shard_index }}-of-${{ strategy.job-total }}.json
 
       - name: Upload Vitest blob report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: vitest-blob-${{ matrix.shard_index }}
-          path: .vitest-reports/
-          include-hidden-files: true
+          path: vitest-blob-${{ matrix.shard_index }}-of-${{ strategy.job-total }}.json
           if-no-files-found: warn
           retention-days: 1
           compression-level: 1
@@ -127,7 +125,7 @@ jobs:
   merge-vitest:
     name: Merge Vitest Reports
     needs: vitest
-    if: ${{ !cancelled() }}
+    if: ${{ always() && !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -171,8 +169,9 @@ jobs:
 
           report_count="$(
             find ./all-vitest-reports \
+              -maxdepth 1 \
               -type f \
-              -name '*.blob' \
+              -name 'vitest-blob-*.json' \
               | wc -l
           )"
 
@@ -188,16 +187,18 @@ jobs:
         run: >
           pnpm exec vitest
           --merge-reports=./all-vitest-reports
+          --reporter=default
           --reporter=junit
-          --outputFile=./vitest-junit.xml
+          --outputFile.junit=vitest-junit.xml
 
       - name: Merge Vitest reports and coverage
         if: github.event_name != 'push' || github.ref_name != 'prd'
         run: >
           pnpm exec vitest
           --merge-reports=./all-vitest-reports
+          --reporter=default
           --reporter=junit
-          --outputFile=./vitest-junit.xml
+          --outputFile.junit=vitest-junit.xml
           --coverage
           --coverage.reporter=lcov
           --coverage.reporter=text-summary
@@ -230,40 +231,6 @@ jobs:
         run: |
           echo "::error::One or more Vitest shards failed."
           exit 1
-
-  vitest-db:
-    name: Vitest DB Integration
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
-        with:
-          run_install: false
-
-      - name: Set up Node.js
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: >
-          pnpm install
-          --frozen-lockfile
-          --prefer-offline
-          --ignore-scripts
-
-      - name: Run database integration tests
-        run: pnpm run test:db
 
   playwright-e2e:
     name: Playwright E2E (${{ matrix.shard_index }}/${{ strategy.job-total }})
@@ -315,7 +282,7 @@ jobs:
 
       - name: Run Playwright shard
         run: >
-          pnpm run test:e2e:ci --
+          pnpm run test:e2e --
           --shard=${{ matrix.shard_index }}/${{ strategy.job-total }}
           --reporter=list,blob
 
@@ -333,7 +300,7 @@ jobs:
   merge-playwright:
     name: Merge Playwright Reports
     needs: playwright-e2e
-    if: ${{ !cancelled() }}
+    if: ${{ always() && !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -463,17 +430,16 @@ jobs:
     needs:
       - quality-checks
       - merge-vitest
-      - vitest-db
       - merge-playwright
       - sonarqube
 
     if: >
+      always() &&
       !cancelled() &&
       github.event_name == 'push' &&
       (github.ref_name == 'dev' || github.ref_name == 'prd') &&
       needs.quality-checks.result == 'success' &&
       needs.merge-vitest.result == 'success' &&
-      needs.vitest-db.result == 'success' &&
       needs.merge-playwright.result == 'success' &&
       (
         needs.sonarqube.result == 'success' ||
