@@ -1,8 +1,7 @@
-import { expect } from "@playwright/test";
-
 import {
   createLargePDF,
   createTestPDF,
+  expect,
   fillJobDescription,
   mockAPIResponses,
   submitForm,
@@ -29,25 +28,36 @@ test.describe("Error Handling", () => {
     );
   });
 
-  test("should handle server errors gracefully @smoke", async ({ page }) => {
-    await mockAPIResponses.mockServerError(page);
+  test.describe("server error response", () => {
+    // This test mocks a 500 from /api/upload to verify the UI's error
+    // handling. The mocked 500 itself, and Chromium's automatic
+    // "Failed to load resource" console.error for that failed fetch, are
+    // both expected side effects of the mock and must not fail the test.
+    test.use({
+      allowedConsoleErrors: [/\/api\/upload/u],
+      allowedResponseErrors: [/\/api\/upload/u],
+    });
 
-    const pdfFile = createTestPDF();
-    await uploadFile(page, pdfFile);
-    await fillJobDescription(page, "Test job");
-    await submitForm(page);
+    test("should handle server errors gracefully @smoke", async ({ page }) => {
+      await mockAPIResponses.mockServerError(page);
 
-    await expect(page.getByTestId("analysis-error")).toContainText(
-      /server error/iu,
-      {
-        timeout: 10_000,
-      },
-    );
-    await expect(page.getByTestId("analysis-error")).toContainText(
-      /internal server error/iu,
-    );
+      const pdfFile = createTestPDF();
+      await uploadFile(page, pdfFile);
+      await fillJobDescription(page, "Test job");
+      await submitForm(page);
 
-    const button = page.getByRole("button", { name: /analyze resume/iu });
-    await expect(button).toBeEnabled();
+      await expect(page.getByTestId("analysis-error")).toContainText(
+        /server error/iu,
+        {
+          timeout: 10_000,
+        },
+      );
+      await expect(page.getByTestId("analysis-error")).toContainText(
+        /internal server error/iu,
+      );
+
+      const button = page.getByRole("button", { name: /analyze resume/iu });
+      await expect(button).toBeEnabled();
+    });
   });
 });

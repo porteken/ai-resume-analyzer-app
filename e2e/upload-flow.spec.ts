@@ -1,7 +1,6 @@
-import { expect } from "@playwright/test";
-
 import {
   createTestPDF,
+  expect,
   fillJobDescription,
   mockAPIResponses,
   submitForm,

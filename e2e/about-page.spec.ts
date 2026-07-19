@@ -1,6 +1,4 @@
-import { expect } from "@playwright/test";
-
-import { test } from "./helpers/fixtures";
+import { expect, test } from "./helpers/fixtures";
 
 test("should display the about page with title and description @smoke", async ({
   page,
