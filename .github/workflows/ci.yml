@@ -280,7 +280,7 @@ jobs:
           firefox
           webkit
       - name: Run Playwright shard
-        run: pnpm exec playwright test --shard=${{ matrix.shard_index }}/${{ env.PLAYWRIGHT_E2E_SHARDS }} --reporter=list,blob
+        run: pnpm exec playwright test --shard=${{ matrix.shard_index }}/5 --reporter=list,blob
 
       - name: Upload Playwright Blob
         if: always()
