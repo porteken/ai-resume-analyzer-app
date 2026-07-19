@@ -279,8 +279,9 @@ jobs:
           chromium
           firefox
           webkit
-
       - name: Run Playwright shard
+        env:
+          PLAYWRIGHT_BLOB_OUTPUT_FILE: playwright-blob-${{ matrix.shard_index }}-of-${{ strategy.job-total }}.zip
         run: >
           pnpm run test:e2e --
           --shard=${{ matrix.shard_index }}/${{ strategy.job-total }}
@@ -291,10 +292,9 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: playwright-blob-${{ matrix.shard_index }}
-          path: blob-report/*.zip
-          if-no-files-found: warn
+          path: playwright-blob-${{ matrix.shard_index }}-of-${{ strategy.job-total }}.zip
+          if-no-files-found: error
           retention-days: 1
-
           compression-level: 0
 
   merge-playwright:
@@ -346,7 +346,7 @@ jobs:
             find ./playwright-blobs \
               -maxdepth 1 \
               -type f \
-              -name '*.zip' \
+              -name 'playwright-blob-*.zip' \
               | wc -l
           )"
 
