@@ -280,20 +280,15 @@ jobs:
           firefox
           webkit
       - name: Run Playwright shard
-        run: >
-          pnpm run test:e2e --
-          --shard=${{ matrix.shard_index }}/${{ strategy.job-total }}
-          --reporter=list,blob
+        run: pnpm exec playwright test --shard=${{ matrix.shard_index }}/${{ env.PLAYWRIGHT_E2E_SHARDS }} --reporter=list,blob
 
-      - name: Upload Playwright blob report
+      - name: Upload Playwright Blob
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: playwright-blob-${{ matrix.shard_index }}
           path: blob-report/*.zip
-          if-no-files-found: warn
           retention-days: 1
-          compression-level: 0
 
   merge-playwright:
     name: Merge Playwright Reports
