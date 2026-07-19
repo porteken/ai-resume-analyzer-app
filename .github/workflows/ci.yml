@@ -98,7 +98,6 @@ jobs:
           --prefer-offline
           --ignore-scripts
 
-      # SonarQube is skipped on prd, so avoid coverage instrumentation there.
       - name: Run Vitest shard without coverage
         if: github.event_name == 'push' && github.ref_name == 'prd'
         run: >
@@ -306,11 +305,9 @@ jobs:
           --prefer-offline
           --ignore-scripts
 
-      # Required by Desktop Chrome, Desktop Firefox, Desktop Safari,
-      # Mobile Chrome, and Mobile Safari projects.
       - name: Install Playwright browsers and OS dependencies
         run: >
-          pnpm exec playwright install --ignore-scripts
+          pnpm exec playwright install
           --with-deps
           chromium
           firefox
@@ -331,7 +328,6 @@ jobs:
           if-no-files-found: warn
           retention-days: 1
 
-          # Playwright blob reports are already ZIP archives.
           compression-level: 0
 
   merge-playwright:
@@ -421,7 +417,6 @@ jobs:
     name: SonarQube
     needs: merge-vitest
 
-    # Production deploys do not repeat the dev/PR SonarQube scan.
     if: >
       !cancelled() &&
       github.ref_name != 'prd' &&
@@ -472,8 +467,6 @@ jobs:
       - merge-playwright
       - sonarqube
 
-    # A status function is required because SonarQube is intentionally
-    # skipped on prd. All other required jobs must succeed.
     if: >
       !cancelled() &&
       github.event_name == 'push' &&
