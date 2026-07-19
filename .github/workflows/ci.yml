@@ -351,13 +351,14 @@ jobs:
           fi
 
       - name: Merge Playwright reports
+        id: merge_reports
         run: >
           pnpm exec playwright merge-reports
           --reporter=line,html
           ./playwright-blobs
 
       - name: Upload Playwright HTML report
-        if: always()
+        if: steps.merge_reports.outcome == 'success'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: playwright-html-report
