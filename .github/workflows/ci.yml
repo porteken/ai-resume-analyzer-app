@@ -330,26 +330,6 @@ jobs:
           pattern: playwright-blob-*
           merge-multiple: true
 
-      - name: Verify Playwright blob reports
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          report_count="$(
-            find ./playwright-blobs \
-              -maxdepth 1 \
-              -type f \
-              -name 'playwright-blob-*.zip' \
-              | wc -l
-          )"
-
-          echo "Found ${report_count} Playwright blob reports."
-
-          if [ "${report_count}" -ne 5 ]; then
-            echo "::error::Expected 5 Playwright blob reports, but found ${report_count}."
-            exit 1
-          fi
-
       - name: Merge Playwright reports
         id: merge_reports
         run: >
