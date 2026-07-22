@@ -49,6 +49,21 @@ export default defineConfig([
   {
     files: ["e2e/**/*.ts", "playwright.config.ts"],
     extends: [playwright.configs["flat/recommended"]],
+    rules: {
+      "playwright/expect-expect": [
+        "warn",
+        {
+          assertFunctionNames: [
+            "gotoAndWaitForMapPage",
+            "gotoRankingsPage",
+            "navigateToLocationDetailsFromMap",
+            "openLocationDetailsModal",
+            "waitForLocationDetailsPage",
+            "waitForMapPage",
+          ],
+        },
+      ],
+    },
   },
   ...oxlint.configs["flat/recommended"],
 ]);

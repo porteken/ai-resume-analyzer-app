@@ -16,12 +16,11 @@
   "categories": {
     "correctness": "error",
     "suspicious": "error",
-    "perf": "error",
-    "restriction": "error",
-    "style": "error"
+    "perf": "warn"
   },
   "options": {
-    "typeAware": true
+    "typeAware": true,
+    "reportUnusedDisableDirectives": "error"
   },
   "env": {
     "es2024": true,
@@ -37,11 +36,12 @@
     }
   },
   "ignorePatterns": [
-    ".next/*",
-    "next-env.d.ts",
-    "src/__tests__/utils/*",
-    "coverage/*",
-    "src/components/ui/*"
+    ".next/**",
+    "coverage/**",
+    "playwright-report/**",
+    "test-results/**",
+    "blob-report/**",
+    "next-env.d.ts"
   ],
   "rules": {
     "eslint/no-unused-vars": [
@@ -52,36 +52,15 @@
         "varsIgnorePattern": "^_"
       }
     ],
-    "eslint/complexity": ["error", 15],
-    "vitest/prefer-called-times": "off",
-    "typescript/consistent-type-imports": [
-      "error",
-      {
-        "prefer": "type-imports",
-        "fixStyle": "separate-type-imports"
-      }
-    ],
-    "import/consistent-type-specifier-style": "off",
-    "typescript/explicit-function-return-type": "off",
-    "typescript/explicit-module-boundary-types": "off",
-    "import/no-nodejs-modules": "off",
-    "promise/avoid-new": "off",
-    "react/jsx-filename-extension": [
-      "error",
-      {
-        "extensions": [".jsx", ".tsx"]
-      }
-    ],
-    "react/jsx-no-literals": "off",
-    "react/jsx-max-depth": "off",
+    "eslint/complexity": ["warn", 15],
     "eslint/max-statements": [
-      "error",
+      "warn",
       {
         "max": 40
       }
     ],
     "eslint/max-params": [
-      "error",
+      "warn",
       {
         "max": 4
       }
@@ -92,86 +71,49 @@
         "allowAsStatement": true
       }
     ],
-    "react/only-export-components": "off",
-    "oxc/no-async-await": "off",
-    "oxc/no-optional-chaining": "off",
-    "oxc/no-rest-spread-properties": "off",
-    "react/react-in-jsx-scope": "off",
-    "eslint/sort-imports": "off",
-    "unicorn/no-null": "off",
-    "eslint/no-undefined": "off",
-    "vitest/no-importing-vitest-globals": "off",
-    "vitest/require-test-timeout": "off",
-    "vitest/prefer-expect-assertions": "off",
-    "vitest/no-hooks": "off",
-    "vitest/max-expects": "off",
-    "typescript/consistent-type-definitions": ["error", "interface"],
-    "vitest/prefer-describe-function-title": "off",
-    "vitest/prefer-to-be-truthy": "off",
-    "eslint/init-declarations": "off",
-    "vitest/prefer-to-be-falsy": "off",
-    "import/no-named-export": "off",
-    "import/prefer-default-export": "off",
-    "import/group-exports": "off",
-    "import/exports-last": "off",
-    "eslint/require-await": "error",
     "eslint/no-use-before-define": [
       "error",
       {
         "functions": false
       }
     ],
-    "eslint/no-empty-function": "off",
     "eslint/no-duplicate-imports": [
       "error",
       {
         "allowSeparateTypeImports": true
       }
     ],
-    "eslint/func-style": "off",
-    "eslint/no-ternary": "off",
-    "eslint/no-plusplus": "off",
-    "eslint/id-length": "off",
-    "eslint/no-inline-comments": "off",
-    "eslint/capitalized-comments": "off",
-    "eslint/sort-keys": "off",
-    "eslint/prefer-destructuring": "off",
-    "react/jsx-props-no-spreading": "off",
-    "react/forbid-component-props": "off",
-    "react/no-multi-comp": "off",
-    "eslint/no-magic-numbers": "off",
-    "import/no-relative-parent-imports": "off",
-    "eslint/no-continue": "off",
-    "typescript/explicit-member-accessibility": "off",
-    "typescript/promise-function-async": "off",
-    "eslint/new-cap": "off",
-    "eslint/class-methods-use-this": "off",
-    "eslint/func-names": "off",
-    "eslint/arrow-body-style": ["error", "as-needed"],
-    "vitest/require-hook": "off",
-    "react/prefer-function-component": "off",
-    "react/jsx-boolean-value": "off",
-    "typescript/array-type": "off",
-    "import/no-namespace": "off",
-    "import/no-default-export": "off",
-    "vitest/prefer-import-in-mock": "off",
-    "typescript/parameter-properties": "off",
+    "eslint/arrow-body-style": ["warn", "as-needed"],
     "eslint/no-console": [
       "error",
       {
         "allow": ["warn", "error"]
       }
     ],
-    "typescript/no-inferrable-types": "off",
-    "unicorn/custom-error-definition": "off",
-    "import/unambiguous": "off",
-    "react/jsx-handler-names": "off",
-    "typescript/non-nullable-type-assertion-style": "off",
-    "import/no-unassigned-import": "off",
+    "eslint/eqeqeq": "error",
+    "eslint/no-promise-executor-return": "error",
+    "eslint/require-unicode-regexp": "warn",
+    "eslint/no-useless-assignment": "warn",
+    "eslint/no-empty-function": "warn",
+    "eslint/new-cap": "off",
     "eslint/no-await-in-loop": "off",
-    "import/namespace": "off",
-    "promise/prefer-await-to-callbacks": "off",
-    "typescript/unbound-method": "off",
+    "typescript/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports",
+        "fixStyle": "separate-type-imports"
+      }
+    ],
+    "typescript/no-floating-promises": [
+      "error",
+      {
+        "ignoreVoid": true
+      }
+    ],
+    "typescript/unbound-method": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "warn",
+    "typescript/no-unsafe-type-assertion": "warn",
     "typescript/no-unsafe-call": "error",
     "typescript/no-unsafe-assignment": "error",
     "typescript/no-unsafe-member-access": "error",
@@ -179,38 +121,45 @@
     "typescript/no-unsafe-return": "error",
     "typescript/no-misused-promises": "error",
     "typescript/switch-exhaustiveness-check": "error",
-    "typescript/prefer-nullish-coalescing": "error",
+    "typescript/prefer-nullish-coalescing": "warn",
     "typescript/no-confusing-void-expression": "error",
-    "typescript/strict-void-return": "error",
+    "typescript/strict-void-return": "warn",
     "typescript/only-throw-error": "error",
-    "eslint/eqeqeq": "error",
-    "eslint/no-throw-literal": "error",
-    "eslint/no-promise-executor-return": "error",
-    "eslint/require-unicode-regexp": "error",
-    "unicorn/prefer-import-meta-properties": "error",
-    "eslint/no-restricted-exports": "error",
-    "eslint/no-useless-assignment": "error",
-    "import/first": "error",
-    "import/export": "error",
-    "import/named": "error",
-    "promise/no-return-in-finally": "error",
-    "react/require-render-return": "error",
-    "unicorn/no-useless-iterator-to-array": "error",
-    "typescript/prefer-readonly-parameter-types": "off",
-    "typescript/strict-boolean-expressions": "off",
-    "eslint/max-lines-per-function": "off",
-    "eslint/max-lines": "off",
-    "unicorn/no-useless-undefined": "error",
-    "import/max-dependencies": "off",
-    "eslint/max-classes-per-file": "off",
-    "unicorn/no-array-callback-reference": "off",
     "typescript/require-await": "error",
     "typescript/ban-ts-comment": "error",
     "typescript/return-await": "error",
-    "unicorn/prefer-number-coercion": "error",
-    "typescript/no-unnecessary-condition": "error",
+    "typescript/no-unnecessary-condition": "warn",
     "typescript/prefer-optional-chain": "error",
-    "react/react-compiler": "off"
+    "typescript/consistent-type-definitions": "warn",
+    "import/first": "error",
+    "import/export": "error",
+    "import/named": "warn",
+    "import/namespace": "error",
+    "import/no-unassigned-import": [
+      "error",
+      {
+        "allow": [
+          "**/*.css",
+          "**/*.scss",
+          "**/*.sass",
+          "server-only",
+          "client-only"
+        ]
+      }
+    ],
+    "promise/no-return-in-finally": "error",
+    "react/jsx-filename-extension": [
+      "warn",
+      {
+        "extensions": [".jsx", ".tsx"]
+      }
+    ],
+    "react/react-in-jsx-scope": "off",
+    "react/require-render-return": "error",
+    "unicorn/prefer-import-meta-properties": "warn",
+    "unicorn/no-useless-iterator-to-array": "warn",
+    "unicorn/no-useless-undefined": "warn",
+    "unicorn/no-abusive-eslint-disable": "error"
   },
   "overrides": [
     {
@@ -225,27 +174,28 @@
       },
       "rules": {
         "eslint/no-magic-numbers": "off",
-        "import/no-namespace": "off",
         "eslint/max-statements": "off",
         "eslint/max-params": "off",
+        "eslint/no-empty-function": "off",
+        "eslint/no-console": "off",
         "typescript/no-explicit-any": "off",
-        "vitest/no-conditional-in-test": "off",
-        "vitest/require-hook": "off",
         "typescript/no-unsafe-type-assertion": "off",
         "typescript/no-non-null-assertion": "off",
-        "import/first": "off",
-        "vitest/prefer-import-in-mock": "off",
-        "vitest/prefer-called-once": "off",
-        "vitest/prefer-expect-type-of": "off",
-        "vitest/prefer-called-with": "off",
-        "vitest/prefer-mock-return-shorthand": "off",
         "typescript/no-unsafe-call": "off",
         "typescript/no-unsafe-assignment": "off",
         "typescript/no-unsafe-member-access": "off",
         "typescript/no-unsafe-argument": "off",
         "typescript/no-unsafe-return": "off",
+        "typescript/unbound-method": "off",
         "eslint/require-await": "off",
-        "typescript/require-await": "off"
+        "typescript/require-await": "off",
+        "vitest/no-conditional-in-test": "off",
+        "vitest/require-hook": "off",
+        "vitest/prefer-import-in-mock": "off",
+        "vitest/prefer-called-once": "off",
+        "vitest/prefer-expect-type-of": "off",
+        "vitest/prefer-called-with": "off",
+        "vitest/prefer-mock-return-shorthand": "off"
       }
     },
     {
@@ -257,33 +207,16 @@
         "src/app/**/actions.{ts,tsx}",
         "src/server/**/*.{ts,tsx}",
         "server/**/*.{ts,tsx}",
-        "src/middleware.{ts,js}",
         "src/middleware.{ts,js}"
       ],
+      "env": {
+        "node": true
+      },
       "rules": {
         "import/no-default-export": "off",
         "import/no-commonjs": "off",
         "typescript/no-require-imports": "off",
-        "eslint/no-console": "off",
-        "react/jsx-max-depth": "off",
-        "typescript/no-unsafe-assignment": "off"
-      }
-    },
-    {
-      "files": [
-        "src/app/**/page.{ts,tsx}",
-        "src/app/**/layout.{ts,tsx}",
-        "src/app/**/template.{ts,tsx}",
-        "src/app/**/loading.{ts,tsx}",
-        "src/app/**/error.{ts,tsx}",
-        "src/app/**/not-found.{ts,tsx}",
-        "src/app/**/robots.{ts,tsx}",
-        "src/app/**/sitemap.{ts,tsx}",
-        "src/pages/**/*.{ts,tsx}",
-        "src/pages/**/*.{ts,tsx}"
-      ],
-      "rules": {
-        "import/no-default-export": "off"
+        "eslint/no-console": "off"
       }
     },
     {
@@ -293,16 +226,39 @@
         "playwright.config.ts"
       ],
       "rules": {
+        "eslint/no-empty-function": "off",
+        "import/no-unassigned-import": "off",
         "vitest/prefer-import-in-mock": "off",
         "vitest/require-top-level-describe": "off"
       }
     },
     {
-      "files": ["e2e/**"],
+      "files": ["e2e/**/*.{ts,tsx}"],
+      "env": {
+        "node": true
+      },
       "rules": {
         "vitest/consistent-test-filename": "off",
         "vitest/no-importing-vitest-globals": "off",
         "vitest/prefer-importing-vitest-globals": "off"
+      }
+    },
+    {
+      "files": ["src/components/ui/**/*.{ts,tsx}"],
+      "rules": {
+        "eslint/complexity": "off",
+        "eslint/max-statements": "off",
+        "eslint/max-params": "off",
+        "react-perf/jsx-no-new-function-as-prop": "off"
+      }
+    },
+    {
+      "files": ["**/*.{js,jsx,mjs,cjs}"],
+      "rules": {
+        "eslint/no-undef": "error",
+        "eslint/require-await": "error",
+        "eslint/no-throw-literal": "error",
+        "typescript/require-await": "off"
       }
     }
   ]
