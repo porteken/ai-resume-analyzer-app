@@ -29,10 +29,6 @@ test.describe("Error Handling", () => {
   });
 
   test.describe("server error response", () => {
-    // This test mocks a 500 from /api/upload to verify the UI's error
-    // handling. The mocked 500 itself, and Chromium's automatic
-    // "Failed to load resource" console.error for that failed fetch, are
-    // both expected side effects of the mock and must not fail the test.
     test.use({
       allowedConsoleErrors: [/\/api\/upload/u],
       allowedResponseErrors: [/\/api\/upload/u],
