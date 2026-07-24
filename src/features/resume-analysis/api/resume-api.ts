@@ -375,17 +375,6 @@ const pollUntilComplete = async ({
   });
 };
 
-/**
- * Uploads a PDF directly to S3 using a presigned URL.
- *
- * This avoids metadata size issues by using the presigned POST flow.
- *
- * @param {File} file - The resume PDF to upload.
- * @param {string} presignedUrl - The S3 presigned POST endpoint.
- * @param {PresignedUrlFields} fields - The S3 form fields required for the upload.
- * @param {AbortSignal | undefined} signal - Optional abort signal for cancelling the upload.
- * @returns {Promise<void>} A promise that resolves when the upload completes successfully.
- */
 const uploadToS3 = async (
   file: File,
   presignedUrl: string,

@@ -19,9 +19,7 @@ describe("analysisErrorBoundary", () => {
   });
 
   it("renders a fallback alert when a child throws", () => {
-    vi.spyOn(console, "error").mockImplementation(() => {
-      /* noop */
-    });
+    vi.spyOn(console, "error").mockImplementation(() => {});
 
     render(
       <AnalysisErrorBoundary>

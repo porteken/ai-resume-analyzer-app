@@ -14,17 +14,8 @@ import type {
 
 export { expect } from "@playwright/test";
 
-/**
- * Global allowlist for expected console errors (e.g. framework noise). Must
- * start empty — entries are added deliberately, one at a time, with a
- * comment justifying each as unambiguous non-application noise.
- */
 const GLOBAL_ALLOWED_CONSOLE_ERRORS: RegExp[] = [];
 
-/**
- * Global allowlist for expected same-origin 5xx responses (e.g. routes that
- * are always mocked as failing in negative-path tests). Must start empty.
- */
 const GLOBAL_ALLOWED_RESPONSE_ERRORS: RegExp[] = [];
 
 type BrowserErrorSource = "console" | "pageerror" | "response" | "weberror";
@@ -59,13 +50,6 @@ const isSameOrigin = (url: string, baseURL: string | undefined): boolean => {
   }
 };
 
-/**
- * WebKit sometimes reports a Next.js RSC prefetch fetch that was aborted by
- * client-side navigation as an access-control failure instead of an
- * AbortError. This is a WebKit/Next.js prefetch-cancellation quirk, not an
- * application error — real access-control failures don't carry an `_rsc`
- * query param.
- */
 const isWebKitRscPrefetchAbort = (message: string): boolean =>
   message.endsWith("due to access control checks.") &&
   /[?&]_rsc=/u.test(message);
