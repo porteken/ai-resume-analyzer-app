@@ -4,7 +4,7 @@ import {
   truncateJobDescription,
 } from "@/features/resume-analysis/utils/file-validation";
 import { sleep } from "@/features/resume-analysis/utils/sleep";
-import { throwIfAborted } from "@/lib/abort-utils";
+import { createAbortError, throwIfAborted } from "@/lib/abort-utils";
 import { ApiClientError, getJson, postJson } from "@/lib/api-client";
 import { isObjectRecord } from "@/lib/type-guards";
 
@@ -15,15 +15,15 @@ const HTTP_STATUS_SERVICE_UNAVAILABLE = 503;
 const LEGACY_SAFE_JOB_DESCRIPTION_LENGTH = 500;
 
 const DELAY_MULTIPLIER_1 = 1;
+const DELAY_MULTIPLIER_1_5 = 1.5;
 const DELAY_MULTIPLIER_2 = 2;
-const DELAY_MULTIPLIER_3 = 3;
-const DELAY_MULTIPLIER_5 = 5;
 
+// Steady-state capped at 2s (down from 5s) so the client notices a completed
+// result sooner; average dead time after completion drops from ~2.5s to ~1s.
 const POLL_DELAY_BY_ATTEMPT_MS = [
   DELAY_MULTIPLIER_1 * MS_PER_SECOND,
+  DELAY_MULTIPLIER_1_5 * MS_PER_SECOND,
   DELAY_MULTIPLIER_2 * MS_PER_SECOND,
-  DELAY_MULTIPLIER_3 * MS_PER_SECOND,
-  DELAY_MULTIPLIER_5 * MS_PER_SECOND,
 ] as const;
 
 interface ApiErrorResponse {
@@ -53,6 +53,18 @@ interface UploadRequestOptions {
   signal?: AbortSignal;
 }
 
+export interface PrefetchedUpload {
+  jobId: string;
+  s3Url?: string;
+}
+
+interface AnalysisFinalizationContext {
+  jobDescription: string;
+  onProgress?: (message: string) => void;
+  s3Url?: string;
+  signal?: AbortSignal;
+}
+
 interface UploadRequestPayload {
   filename: string;
   job_description?: string;
@@ -74,6 +86,34 @@ interface PollUntilCompleteOptions {
 
 const isAbortError = (error: unknown): boolean =>
   error instanceof Error && error.name === "AbortError";
+
+// Lets an already-in-flight prefetch promise (started before `signal` existed)
+// still respond to a later cancellation, e.g. the user hitting "Cancel Analysis"
+// while a prefetched upload from file-select time is still being awaited.
+const raceWithAbort = <T>(
+  promise: Promise<T>,
+  signal?: AbortSignal,
+): Promise<T> => {
+  if (!signal) {
+    return promise;
+  }
+
+  if (signal.aborted) {
+    return Promise.reject(createAbortError());
+  }
+
+  const abortPromise = new Promise<never>((_resolve, reject) => {
+    signal.addEventListener(
+      "abort",
+      () => {
+        reject(createAbortError());
+      },
+      { once: true },
+    );
+  });
+
+  return Promise.race([promise, abortPromise]);
+};
 
 const isStringRecord = (value: unknown): value is Record<string, string> =>
   isObjectRecord(value) &&
@@ -177,7 +217,7 @@ const parseStatusResponse = (value: unknown): null | StatusResponseData => {
 const getPollDelayMs = (attempt: number): number =>
   POLL_DELAY_BY_ATTEMPT_MS[
     Math.min(attempt - 1, POLL_DELAY_BY_ATTEMPT_MS.length - 1)
-  ] ?? DELAY_MULTIPLIER_5 * MS_PER_SECOND;
+  ] ?? DELAY_MULTIPLIER_2 * MS_PER_SECOND;
 
 const sendUploadRequest = (
   requestBody: object,
@@ -509,12 +549,106 @@ const sendUploadRequestWithFallbacks = async (
   }
 };
 
+// Runs only the presign + S3-upload steps, stopping short of triggering
+// analysis. Lets the caller start this the moment a file is selected, while
+// the job description is still being typed, and await it later at submit
+// time instead of paying for it serially after the user clicks Analyze.
+export const prefetchResumeUpload = async (
+  file: File,
+  signal?: AbortSignal,
+): Promise<PrefetchedUpload> => {
+  const sanitizedFilename = sanitizeFilename(file.name);
+  const payload: UploadRequestPayload = { filename: sanitizedFilename };
+
+  const uploadResponse = await sendUploadRequestWithFallbacks(
+    file,
+    payload,
+    "",
+    signal,
+  );
+
+  const uploadJson: unknown = await uploadResponse.json().catch(() => null);
+  const uploadData = parsePresignedUploadResponse(uploadJson);
+
+  if (!uploadData) {
+    // Legacy/synchronous backends don't have a separate presign step to
+    // prefetch; let uploadResume's full flow handle them from scratch.
+    throw new Error("Unexpected response from upload endpoint.");
+  }
+
+  await uploadToS3(
+    file,
+    uploadData.upload.url,
+    uploadData.upload.fields,
+    signal,
+  );
+
+  return { jobId: uploadData.job_id, s3Url: uploadData.s3_url };
+};
+
+const finalizeAnalysis = async (
+  jobId: string,
+  context: AnalysisFinalizationContext,
+): Promise<UploadResumeResponse> => {
+  context.onProgress?.("Analyzing Resume...");
+  const analyzeResponse = await triggerAnalysis(
+    jobId,
+    {
+      jobDescription: truncateJobDescription(context.jobDescription),
+      s3Url: context.s3Url,
+    },
+    context.signal,
+  );
+
+  if (analyzeResponse?.analysis_result) {
+    return {
+      analysis_result: analyzeResponse.analysis_result,
+      job_id: analyzeResponse.job_id ?? jobId,
+    };
+  }
+
+  return { job_id: jobId };
+};
+
+const tryPrefetchedUpload = async (
+  prefetched: Promise<PrefetchedUpload>,
+  context: AnalysisFinalizationContext,
+): Promise<null | UploadResumeResponse> => {
+  try {
+    const prefetchedUpload = await raceWithAbort(prefetched, context.signal);
+    return await finalizeAnalysis(prefetchedUpload.jobId, {
+      ...context,
+      s3Url: prefetchedUpload.s3Url,
+    });
+  } catch (error) {
+    if (isAbortError(error)) {
+      throw error;
+    }
+    // Prefetch failed, was aborted for a different file, or returned a
+    // legacy shape we can't reuse — the caller reruns the full flow below,
+    // exactly as if no prefetch had been attempted.
+    return null;
+  }
+};
+
 export const uploadResume = async (
   file: File,
   jobDescription: string,
   onProgress?: (message: string) => void,
-  options?: UploadRequestOptions,
+  options?: UploadRequestOptions & { prefetched?: Promise<PrefetchedUpload> },
 ): Promise<UploadResumeResponse> => {
+  if (options?.prefetched) {
+    const prefetchedResult = await tryPrefetchedUpload(options.prefetched, {
+      jobDescription,
+      onProgress,
+      signal: options.signal,
+    });
+
+    if (prefetchedResult) {
+      return prefetchedResult;
+    }
+  }
+
   const sanitizedFilename = sanitizeFilename(file.name);
   const truncatedDescription = truncateJobDescription(jobDescription);
 
@@ -542,24 +676,12 @@ export const uploadResume = async (
       options?.signal,
     );
 
-    onProgress?.("Analyzing Resume...");
-    const analyzeResponse = await triggerAnalysis(
-      uploadData.job_id,
-      {
-        jobDescription: truncatedDescription,
-        s3Url: uploadData.s3_url,
-      },
-      options?.signal,
-    );
-
-    if (analyzeResponse?.analysis_result) {
-      return {
-        analysis_result: analyzeResponse.analysis_result,
-        job_id: analyzeResponse.job_id ?? uploadData.job_id,
-      };
-    }
-
-    return { job_id: uploadData.job_id };
+    return finalizeAnalysis(uploadData.job_id, {
+      jobDescription,
+      onProgress,
+      s3Url: uploadData.s3_url,
+      signal: options?.signal,
+    });
   }
 
   const legacyData = parseUploadResumeResponse(uploadJson);
@@ -576,7 +698,9 @@ export const pollForResults = (
   options?: UploadRequestOptions,
 ): Promise<AnalysisResultData> => {
   const statusUrl = `/api/status/${jobId}`;
-  const maxAttempts = 150;
+  // Recomputed for the tighter 2s steady-state poll delay to preserve the
+  // original ~12-minute overall polling ceiling.
+  const maxAttempts = 372;
 
   return pollUntilComplete({
     attempt: 1,

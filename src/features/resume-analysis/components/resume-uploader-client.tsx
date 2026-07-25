@@ -15,6 +15,7 @@ export const ResumeUploaderClient = (): JSX.Element => {
     cancelAnalysis,
     error,
     isLoading,
+    prefetchUpload,
     result,
     statusMessage,
     submitAnalysis,
@@ -32,6 +33,7 @@ export const ResumeUploaderClient = (): JSX.Element => {
       <ResumeUploader
         isLoading={isLoading}
         onCancel={cancelAnalysis}
+        onFileSelected={prefetchUpload}
         onFileSelectionError={setSelectedFileError}
         onFileSelectionSuccess={handleFileSelectionSuccess}
         onSubmit={submitAnalysis}

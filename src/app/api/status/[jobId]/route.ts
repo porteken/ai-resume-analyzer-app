@@ -6,6 +6,8 @@ import {
 } from "@/lib/server/api-utils";
 import { proxyJsonRequest } from "@/lib/server/proxy-utils";
 
+export const maxDuration = 300;
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ jobId: string }> },

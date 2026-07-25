@@ -2,6 +2,7 @@
 
 import {
   pollForResults,
+  prefetchResumeUpload,
   uploadResume,
 } from "@/features/resume-analysis/api/resume-api";
 import { validateFile } from "@/features/resume-analysis/utils/file-validation";
@@ -9,15 +10,23 @@ import { validateJobDescription } from "@/features/resume-analysis/utils/job-des
 import { ApiClientError } from "@/lib/api-client";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { PrefetchedUpload } from "@/features/resume-analysis/api/resume-api";
 import type { AnalysisResultData } from "@/types";
 
 interface UseResumeAnalysisReturn {
   cancelAnalysis: () => void;
   error: null | string;
   isLoading: boolean;
+  prefetchUpload: (file: File | null) => void;
   result: AnalysisResultData | null;
   statusMessage: string;
   submitAnalysis: (file: File | null, jobDescription: string) => Promise<void>;
+}
+
+interface PendingPrefetch {
+  abortController: AbortController;
+  file: File;
+  promise: Promise<PrefetchedUpload>;
 }
 
 const isApiResponseError = (error_: Error): boolean => {
@@ -71,13 +80,35 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
   const [result, setResult] = useState<AnalysisResultData | null>(null);
   const [error, setError] = useState<null | string>(null);
   const abortControllerReference = useRef<AbortController | null>(null);
+  const prefetchReference = useRef<null | PendingPrefetch>(null);
 
   useEffect(
     () => () => {
       abortControllerReference.current?.abort();
+      prefetchReference.current?.abortController.abort();
     },
     [],
   );
+
+  const prefetchUpload = useCallback((file: File | null) => {
+    const pending = prefetchReference.current;
+
+    if (pending && pending.file !== file) {
+      pending.abortController.abort();
+      prefetchReference.current = null;
+    }
+
+    if (!file || prefetchReference.current) {
+      return;
+    }
+
+    const abortController = new AbortController();
+    const promise = prefetchResumeUpload(file, abortController.signal);
+    // Prevent an unhandled-rejection warning for a failed prefetch; the real
+    // failure is handled later when uploadResume awaits this same promise.
+    promise.catch(() => null);
+    prefetchReference.current = { abortController, file, promise };
+  }, []);
 
   const resetForValidationError = (validationError: string) => {
     setResult(null);
@@ -94,6 +125,8 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
 
     abortControllerReference.current = null;
     abortController.abort();
+    prefetchReference.current?.abortController.abort();
+    prefetchReference.current = null;
     setIsLoading(false);
     setStatusMessage("");
     setError(null);
@@ -123,11 +156,15 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
     jobDescription: string,
     abortController: AbortController,
   ) => {
+    const pending = prefetchReference.current;
+    const prefetched = pending?.file === file ? pending.promise : undefined;
+
     const uploadData = await uploadResume(
       file,
       jobDescription.trim(),
       setStatusMessage,
       {
+        prefetched,
         signal: abortController.signal,
       },
     );
@@ -188,6 +225,7 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
     cancelAnalysis,
     error,
     isLoading,
+    prefetchUpload,
     result,
     statusMessage,
     submitAnalysis,

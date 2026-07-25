@@ -348,7 +348,7 @@ describe("resume polling API", () => {
     expect(fetchMock).toHaveBeenCalledOnce();
     expect(onProgress).toHaveBeenCalledWith("Analyzing Resume...");
 
-    await vi.advanceTimersByTimeAsync(1999);
+    await vi.advanceTimersByTimeAsync(1499);
     expect(fetchMock).toHaveBeenCalledOnce();
 
     await vi.advanceTimersByTimeAsync(1);

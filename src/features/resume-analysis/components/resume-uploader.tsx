@@ -19,6 +19,7 @@ import React, {
   type JSX,
   type RefObject,
   useCallback,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -26,6 +27,7 @@ import React, {
 interface ResumeUploaderProperties {
   isLoading: boolean;
   onCancel: () => void;
+  onFileSelected: (file: File | null) => void;
   onFileSelectionError: (message: string) => void;
   onFileSelectionSuccess: () => void;
   onSubmit: (file: File | null, jobDescription: string) => Promise<void>;
@@ -58,6 +60,33 @@ const getProcessingStep = (
   }
 
   return "idle";
+};
+
+const SECONDS_PER_MINUTE = 60;
+const ELAPSED_TICK_MS = 1000;
+
+const formatElapsedTime = (totalSeconds: number): string => {
+  const minutes = Math.floor(totalSeconds / SECONDS_PER_MINUTE);
+  const seconds = totalSeconds % SECONDS_PER_MINUTE;
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+};
+
+// Ticks for as long as ResumeUploadProgress stays mounted, which is exactly
+// the duration of an in-flight analysis (it's only rendered while isLoading).
+const useElapsedSeconds = (): number => {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setElapsedSeconds((previous) => previous + 1);
+    }, ELAPSED_TICK_MS);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  return elapsedSeconds;
 };
 
 interface ResumeFileFieldProperties {
@@ -210,6 +239,7 @@ const ResumeUploadProgress = ({
   statusMessage,
 }: Readonly<ResumeUploadProgressProperties>): JSX.Element => {
   const processingStep = getProcessingStep(statusMessage);
+  const elapsedSeconds = useElapsedSeconds();
 
   const getStepIcon = (step: "analyzing" | "uploading"): JSX.Element => {
     if (processingStep === step) {
@@ -237,9 +267,17 @@ const ResumeUploadProgress = ({
 
   return (
     <div className="animate-in rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 shadow-sm duration-500 zoom-in-95 fade-in">
-      <div className="mb-3 flex items-center gap-2 text-sm font-medium text-indigo-700">
-        <Sparkles className="size-4" />
-        <span>{statusMessage || "Processing Resume..."}</span>
+      <div className="mb-3 flex items-center justify-between gap-2 text-sm font-medium text-indigo-700">
+        <span className="flex items-center gap-2">
+          <Sparkles className="size-4" />
+          <span>{statusMessage || "Processing Resume..."}</span>
+        </span>
+        <span
+          aria-label={`Elapsed time: ${elapsedSeconds} seconds`}
+          className="text-indigo-400 tabular-nums"
+        >
+          {formatElapsedTime(elapsedSeconds)}
+        </span>
       </div>
 
       <div className="grid gap-3">
@@ -270,6 +308,7 @@ const ResumeUploadProgress = ({
 export const ResumeUploader = ({
   isLoading,
   onCancel,
+  onFileSelected,
   onFileSelectionError,
   onFileSelectionSuccess,
   onSubmit,
@@ -294,6 +333,7 @@ export const ResumeUploader = ({
       if (!nextFile) {
         setFile(null);
         onFileSelectionSuccess();
+        onFileSelected(null);
         return;
       }
 
@@ -303,13 +343,20 @@ export const ResumeUploader = ({
         setFile(null);
         clearFileInput();
         onFileSelectionError(validationError);
+        onFileSelected(null);
         return;
       }
 
       setFile(nextFile);
       onFileSelectionSuccess();
+      onFileSelected(nextFile);
     },
-    [clearFileInput, onFileSelectionError, onFileSelectionSuccess],
+    [
+      clearFileInput,
+      onFileSelected,
+      onFileSelectionError,
+      onFileSelectionSuccess,
+    ],
   );
 
   const handleFileChange = useCallback(
@@ -372,7 +419,8 @@ export const ResumeUploader = ({
     setFile(null);
     clearFileInput();
     onFileSelectionSuccess();
-  }, [clearFileInput, onFileSelectionSuccess]);
+    onFileSelected(null);
+  }, [clearFileInput, onFileSelected, onFileSelectionSuccess]);
 
   const handleJobDescChange = useCallback(
     (event: React.ChangeEvent<HTMLTextAreaElement>) => {
