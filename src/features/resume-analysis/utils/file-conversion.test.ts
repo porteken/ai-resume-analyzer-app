@@ -85,33 +85,20 @@ describe("file conversion", () => {
     await expect(convertFileToBase64(file)).resolves.toBe("QUJDREVGRw==");
   });
 
-  it("rejects when the file reader returns a non-string result", async () => {
-    fileReaderMode = "non-string-result";
+  it.each([
+    { mode: "non-string-result", scenario: "returns a non-string result" },
+    { mode: "missing-base64", scenario: "returns no base64 content" },
+    { mode: "error", scenario: "emits an error" },
+  ] satisfies { mode: FileReaderMode; scenario: string }[])(
+    "rejects when the file reader $scenario",
+    async ({ mode }) => {
+      fileReaderMode = mode;
 
-    await expect(
-      convertFileToBase64(
-        new File(["pdf-content"], "resume.pdf", { type: "application/pdf" }),
-      ),
-    ).rejects.toThrow("File reading failed");
-  });
-
-  it("rejects when the file reader result does not include base64 content", async () => {
-    fileReaderMode = "missing-base64";
-
-    await expect(
-      convertFileToBase64(
-        new File(["pdf-content"], "resume.pdf", { type: "application/pdf" }),
-      ),
-    ).rejects.toThrow("File reading failed");
-  });
-
-  it("rejects when the file reader emits an error", async () => {
-    fileReaderMode = "error";
-
-    await expect(
-      convertFileToBase64(
-        new File(["pdf-content"], "resume.pdf", { type: "application/pdf" }),
-      ),
-    ).rejects.toThrow("File reading failed");
-  });
+      await expect(
+        convertFileToBase64(
+          new File(["pdf-content"], "resume.pdf", { type: "application/pdf" }),
+        ),
+      ).rejects.toThrow("File reading failed");
+    },
+  );
 });

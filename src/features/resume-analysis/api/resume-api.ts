@@ -18,8 +18,6 @@ const DELAY_MULTIPLIER_1 = 1;
 const DELAY_MULTIPLIER_1_5 = 1.5;
 const DELAY_MULTIPLIER_2 = 2;
 
-// Steady-state capped at 2s (down from 5s) so the client notices a completed
-// result sooner; average dead time after completion drops from ~2.5s to ~1s.
 const POLL_DELAY_BY_ATTEMPT_MS = [
   DELAY_MULTIPLIER_1 * MS_PER_SECOND,
   DELAY_MULTIPLIER_1_5 * MS_PER_SECOND,
@@ -87,9 +85,6 @@ interface PollUntilCompleteOptions {
 const isAbortError = (error: unknown): boolean =>
   error instanceof Error && error.name === "AbortError";
 
-// Lets an already-in-flight prefetch promise (started before `signal` existed)
-// still respond to a later cancellation, e.g. the user hitting "Cancel Analysis"
-// while a prefetched upload from file-select time is still being awaited.
 const raceWithAbort = <T>(
   promise: Promise<T>,
   signal?: AbortSignal,
@@ -431,7 +426,7 @@ const uploadToS3 = async (
 
   formData.append("file", file);
 
-  const hasLocation = typeof globalThis.location !== "undefined";
+  const hasLocation = "location" in globalThis;
   const uploadUrl = new URL(
     presignedUrl,
     hasLocation ? globalThis.location.href : "http://localhost",
@@ -549,10 +544,6 @@ const sendUploadRequestWithFallbacks = async (
   }
 };
 
-// Runs only the presign + S3-upload steps, stopping short of triggering
-// analysis. Lets the caller start this the moment a file is selected, while
-// the job description is still being typed, and await it later at submit
-// time instead of paying for it serially after the user clicks Analyze.
 export const prefetchResumeUpload = async (
   file: File,
   signal?: AbortSignal,
@@ -571,8 +562,6 @@ export const prefetchResumeUpload = async (
   const uploadData = parsePresignedUploadResponse(uploadJson);
 
   if (!uploadData) {
-    // Legacy/synchronous backends don't have a separate presign step to
-    // prefetch; let uploadResume's full flow handle them from scratch.
     throw new Error("Unexpected response from upload endpoint.");
   }
 
@@ -624,9 +613,6 @@ const tryPrefetchedUpload = async (
     if (isAbortError(error)) {
       throw error;
     }
-    // Prefetch failed, was aborted for a different file, or returned a
-    // legacy shape we can't reuse — the caller reruns the full flow below,
-    // exactly as if no prefetch had been attempted.
     return null;
   }
 };
@@ -698,8 +684,6 @@ export const pollForResults = (
   options?: UploadRequestOptions,
 ): Promise<AnalysisResultData> => {
   const statusUrl = `/api/status/${jobId}`;
-  // Recomputed for the tighter 2s steady-state poll delay to preserve the
-  // original ~12-minute overall polling ceiling.
   const maxAttempts = 372;
 
   return pollUntilComplete({
