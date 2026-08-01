@@ -48,7 +48,7 @@ export const warnIfLegacyEndpointSource = (): void => {
     diagnostics.hasEndpointConflict
   ) {
     warnedLegacyEndpoint = true;
-    console.warn(
+    console.error(
       "[api] Using NEXT_PUBLIC_API_ENDPOINT fallback; set server-only API_ENDPOINT instead (NEXT_PUBLIC_* variables are exposed in the client bundle)",
       diagnostics,
     );
