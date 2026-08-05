@@ -41,7 +41,8 @@
     "playwright-report/**",
     "test-results/**",
     "blob-report/**",
-    "next-env.d.ts"
+    "next-env.d.ts",
+    "src/components/ui/**"
   ],
   "rules": {
     "eslint/no-unused-vars": [
@@ -241,15 +242,6 @@
         "vitest/consistent-test-filename": "off",
         "vitest/no-importing-vitest-globals": "off",
         "vitest/prefer-importing-vitest-globals": "off"
-      }
-    },
-    {
-      "files": ["src/components/ui/**/*.{ts,tsx}"],
-      "rules": {
-        "eslint/complexity": "off",
-        "eslint/max-statements": "off",
-        "eslint/max-params": "off",
-        "react-perf/jsx-no-new-function-as-prop": "off"
       }
     },
     {
