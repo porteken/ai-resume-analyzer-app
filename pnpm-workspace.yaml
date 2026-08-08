@@ -78,4 +78,4 @@ minimumReleaseAgeExclude:
   - happy-dom@20.11.1 || 20.11.2
   - lint-staged@17.1.1
   - radix-ui@1.6.5
-  - '@types/node@26.2.0'
+  - "@types/node@26.2.0"
