@@ -71,8 +71,6 @@ const formatElapsedTime = (totalSeconds: number): string => {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 };
 
-// Ticks for as long as ResumeUploadProgress stays mounted, which is exactly
-// the duration of an in-flight analysis (it's only rendered while isLoading).
 const useElapsedSeconds = (): number => {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 

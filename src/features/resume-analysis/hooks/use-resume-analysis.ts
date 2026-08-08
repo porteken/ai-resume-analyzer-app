@@ -104,8 +104,6 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
 
     const abortController = new AbortController();
     const promise = prefetchResumeUpload(file, abortController.signal);
-    // Prevent an unhandled-rejection warning for a failed prefetch; the real
-    // failure is handled later when uploadResume awaits this same promise.
     promise.catch(() => null);
     prefetchReference.current = { abortController, file, promise };
   }, []);

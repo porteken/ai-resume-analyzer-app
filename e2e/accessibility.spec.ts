@@ -6,8 +6,6 @@ test.describe("Accessibility", () => {
   });
 
   test("should be keyboard navigable @smoke", async ({ page }) => {
-    // Selecting a file now prefetches the presigned upload in the background;
-    // mock it so this purely keyboard-navigation test doesn't hit a real backend.
     await mockAPIResponses.mockImmediateSuccess(page);
 
     await page.keyboard.press("Tab");

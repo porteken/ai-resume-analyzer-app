@@ -14,11 +14,9 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "target": "esnext",
-    /* Enhanced type safety (beyond strict) */
     "noUncheckedIndexedAccess": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
-    /* Modern module hygiene */
     "verbatimModuleSyntax": true,
     "erasableSyntaxOnly": true,
     "plugins": [
