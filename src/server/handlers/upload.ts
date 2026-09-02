@@ -1,15 +1,15 @@
-import { getApiConfig } from "../../config/env";
-import { validateJobDescription } from "../../features/resume-analysis/utils/job-description";
+import { getApiConfig } from "../../config/env.ts";
+import { validateJobDescription } from "../../features/resume-analysis/utils/job-description.ts";
 import {
   HTTP_STATUS,
   UPSTREAM_TIMEOUT_MS,
   createErrorResponse,
   createMissingApiConfigResponse,
-} from "../../lib/server/api-utils";
-import { proxyJsonRequest } from "../../lib/server/proxy-utils";
-import { parseRequestBody } from "../../lib/server/request-utils";
+} from "../../lib/server/api-utils.ts";
+import { proxyJsonRequest } from "../../lib/server/proxy-utils.ts";
+import { parseRequestBody } from "../../lib/server/request-utils.ts";
 
-import type { ApiEnvironment } from "../../config/env";
+import type { ApiEnvironment } from "../../config/env.ts";
 
 const validateBodyJobDescription = (
   body: Record<string, unknown>,

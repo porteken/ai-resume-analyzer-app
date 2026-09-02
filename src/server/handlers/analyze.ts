@@ -1,12 +1,12 @@
-import { getApiConfig } from "../../config/env";
+import { getApiConfig } from "../../config/env.ts";
 import {
   ANALYZE_TIMEOUT_MS,
   createMissingApiConfigResponse,
-} from "../../lib/server/api-utils";
-import { proxyJsonRequest } from "../../lib/server/proxy-utils";
-import { parseRequestBody } from "../../lib/server/request-utils";
+} from "../../lib/server/api-utils.ts";
+import { proxyJsonRequest } from "../../lib/server/proxy-utils.ts";
+import { parseRequestBody } from "../../lib/server/request-utils.ts";
 
-import type { ApiEnvironment } from "../../config/env";
+import type { ApiEnvironment } from "../../config/env.ts";
 
 export async function handleAnalyze(
   request: Request,

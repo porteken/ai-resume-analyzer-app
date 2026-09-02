@@ -1,11 +1,11 @@
-import { getApiConfig } from "../../config/env";
+import { getApiConfig } from "../../config/env.ts";
 import {
   UPSTREAM_TIMEOUT_MS,
   createMissingApiConfigResponse,
-} from "../../lib/server/api-utils";
-import { proxyJsonRequest } from "../../lib/server/proxy-utils";
+} from "../../lib/server/api-utils.ts";
+import { proxyJsonRequest } from "../../lib/server/proxy-utils.ts";
 
-import type { ApiEnvironment } from "../../config/env";
+import type { ApiEnvironment } from "../../config/env.ts";
 
 export async function handleStatus(
   _request: Request,

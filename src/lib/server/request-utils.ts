@@ -1,5 +1,5 @@
-import { isObjectRecord } from "../type-guards";
-import { HTTP_STATUS, createErrorResponse } from "./api-utils";
+import { isObjectRecord } from "../type-guards.ts";
+import { HTTP_STATUS, createErrorResponse } from "./api-utils.ts";
 
 type ParseRequestBodyResult =
   | {

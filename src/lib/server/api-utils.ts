@@ -1,6 +1,6 @@
-import { getApiConfigDiagnostics } from "../../config/env";
+import { getApiConfigDiagnostics } from "../../config/env.ts";
 
-import type { ApiEnvironment } from "../../config/env";
+import type { ApiEnvironment } from "../../config/env.ts";
 
 export const UPSTREAM_TIMEOUT_MS = 30_000;
 export const ANALYZE_TIMEOUT_MS = 60_000;

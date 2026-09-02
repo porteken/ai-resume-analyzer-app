@@ -3,8 +3,8 @@ import {
   MS_PER_SECOND,
   createErrorResponse,
   isTimeoutError,
-} from "./api-utils";
-import { handleNonJsonResponse } from "./request-utils";
+} from "./api-utils.ts";
+import { handleNonJsonResponse } from "./request-utils.ts";
 
 interface ProxyJsonRequestOptions {
   body?: unknown;

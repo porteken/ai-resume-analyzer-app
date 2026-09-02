@@ -1,8 +1,8 @@
-import { handleAnalyze } from "./handlers/analyze";
-import { handleStatus } from "./handlers/status";
-import { handleUpload } from "./handlers/upload";
+import { handleAnalyze } from "./handlers/analyze.ts";
+import { handleStatus } from "./handlers/status.ts";
+import { handleUpload } from "./handlers/upload.ts";
 
-import type { ApiEnvironment } from "../config/env";
+import type { ApiEnvironment } from "../config/env.ts";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 
