@@ -2,6 +2,7 @@ import { handleAnalyze } from "./handlers/analyze";
 import { handleStatus } from "./handlers/status";
 import { handleUpload } from "./handlers/upload";
 
+import type { ApiEnvironment } from "../config/env";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
 
@@ -45,18 +46,19 @@ async function dispatchApiRoute(
   fullUrl: URL,
   method: string,
   request: Request,
+  environment: ApiEnvironment,
 ): Promise<Response> {
   if (fullUrl.pathname === "/api/upload" && method === "POST") {
-    return handleUpload(request);
+    return handleUpload(request, environment);
   }
 
   if (fullUrl.pathname === "/api/analyze" && method === "POST") {
-    return handleAnalyze(request);
+    return handleAnalyze(request, environment);
   }
 
   if (fullUrl.pathname.startsWith("/api/status/") && method === "GET") {
     const jobId = fullUrl.pathname.replace("/api/status/", "");
-    return handleStatus(request, jobId);
+    return handleStatus(request, jobId, environment);
   }
 
   return Response.json({ error: "Not found" }, { status: 404 });
@@ -65,6 +67,7 @@ async function dispatchApiRoute(
 async function handleApiMiddlewareRequest(
   req: IncomingMessage,
   res: ServerResponse,
+  environment: ApiEnvironment,
 ): Promise<void> {
   const host = req.headers.host ?? "localhost:3000";
   const fullUrl = new URL(req.url ?? "", `http://${host}`);
@@ -79,7 +82,12 @@ async function handleApiMiddlewareRequest(
     method,
   });
 
-  const response = await dispatchApiRoute(fullUrl, method, request);
+  const response = await dispatchApiRoute(
+    fullUrl,
+    method,
+    request,
+    environment,
+  );
 
   res.statusCode = response.status;
   response.headers.forEach((value, key) => {
@@ -90,7 +98,7 @@ async function handleApiMiddlewareRequest(
   res.end(new Uint8Array(arrayBuffer));
 }
 
-export function apiDevPlugin(): Plugin {
+export function apiDevPlugin(environment: ApiEnvironment): Plugin {
   return {
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
@@ -100,16 +108,19 @@ export function apiDevPlugin(): Plugin {
           return;
         }
 
-        void handleApiMiddlewareRequest(req, res).catch((error: unknown) => {
-          res.statusCode = 500;
-          res.setHeader("Content-Type", "application/json");
-          res.end(
-            JSON.stringify({
-              details: error instanceof Error ? error.message : "Unknown error",
-              error: "Dev API middleware error",
-            }),
-          );
-        });
+        void handleApiMiddlewareRequest(req, res, environment).catch(
+          (error: unknown) => {
+            res.statusCode = 500;
+            res.setHeader("Content-Type", "application/json");
+            res.end(
+              JSON.stringify({
+                details:
+                  error instanceof Error ? error.message : "Unknown error",
+                error: "Dev API middleware error",
+              }),
+            );
+          },
+        );
       });
     },
     name: "api-dev-middleware",

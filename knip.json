@@ -1,4 +1,5 @@
 {
+  "entry": ["functions/api/**/*.ts"],
   "ignoreDependencies": ["lint-staged"],
   "ignore": ["src/components/ui/**/*"]
 }
