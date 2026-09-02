@@ -8,9 +8,8 @@ import tseslint from "typescript-eslint";
 export default defineConfig([
   {
     ignores: [
-      ".next/**",
+      "dist/**",
       "coverage/**",
-      "next-env.d.ts",
       "src/__tests__/utils/**",
       "src/components/ui/**",
     ],
@@ -42,7 +41,7 @@ export default defineConfig([
     },
     settings: {
       "better-tailwindcss": {
-        entryPoint: "src/app/globals.css",
+        entryPoint: "src/index.css",
       },
     },
   },

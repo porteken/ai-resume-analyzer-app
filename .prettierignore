@@ -4,5 +4,5 @@ playwright-results.log
 playwright-results/
 test-results/
 coverage/
-.next/
+dist/
 node_modules/

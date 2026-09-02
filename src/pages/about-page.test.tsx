@@ -1,23 +1,31 @@
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
 
-import About from "./page";
+import { AboutPage } from "./about-page";
+
+const renderAboutPage = () =>
+  render(
+    <MemoryRouter>
+      <AboutPage />
+    </MemoryRouter>,
+  );
 
 describe("about page component", () => {
   it("should render the main heading", () => {
-    render(<About />);
+    renderAboutPage();
     expect(screen.getByText("About AI Resume Analyzer")).toBeInTheDocument();
   });
 
   it("should render the app description", () => {
-    render(<About />);
+    renderAboutPage();
     expect(
       screen.getByText(/ai resume analyzer is a web application/iu),
     ).toBeInTheDocument();
   });
 
   it("should render GitHub links", () => {
-    render(<About />);
+    renderAboutPage();
     const frontendLink = screen.getByRole("link", {
       name: /frontend app on github/iu,
     });
@@ -42,14 +50,14 @@ describe("about page component", () => {
   });
 
   it("should render contact email link", () => {
-    render(<About />);
+    renderAboutPage();
     const emailLink = screen.getByText("porteken@gmail.com");
     expect(emailLink).toBeInTheDocument();
     expect(emailLink).toHaveAttribute("href", "mailto:porteken@gmail.com");
   });
 
   it("should render a back to home link", () => {
-    render(<About />);
+    renderAboutPage();
 
     const backLink = screen.getByRole("link", { name: /back to home/iu });
     expect(backLink).toBeInTheDocument();

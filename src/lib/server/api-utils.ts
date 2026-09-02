@@ -1,5 +1,6 @@
-import { getApiConfigDiagnostics } from "@/config/env";
-import { NextResponse } from "next/server";
+import { getApiConfigDiagnostics } from "../../config/env";
+
+import type { ApiEnvironment } from "../../config/env";
 
 export const UPSTREAM_TIMEOUT_MS = 30_000;
 export const ANALYZE_TIMEOUT_MS = 60_000;
@@ -17,42 +18,23 @@ export const createErrorResponse = (
   error: string,
   status: number,
   details?: string,
-): NextResponse =>
-  NextResponse.json(details ? { details, error } : { error }, {
+): Response =>
+  Response.json(details ? { details, error } : { error }, {
     status,
   });
 
-export const createMissingApiConfigResponse = (): NextResponse => {
+export const createMissingApiConfigResponse = (
+  environment?: ApiEnvironment,
+): Response => {
   console.error(
     "[api] API config resolution failed",
-    getApiConfigDiagnostics(),
+    getApiConfigDiagnostics(environment),
   );
 
   return createErrorResponse(
-    "Server configuration error: Missing API_ENDPOINT (or NEXT_PUBLIC_API_ENDPOINT) or API_KEY",
+    "Server configuration error: Missing API_ENDPOINT or API_KEY",
     HTTP_STATUS.INTERNAL_SERVER_ERROR,
   );
-};
-
-let warnedLegacyEndpoint = false;
-
-export const warnIfLegacyEndpointSource = (): void => {
-  if (warnedLegacyEndpoint) {
-    return;
-  }
-
-  const diagnostics = getApiConfigDiagnostics();
-
-  if (
-    diagnostics.endpointSource === "NEXT_PUBLIC_API_ENDPOINT" ||
-    diagnostics.hasEndpointConflict
-  ) {
-    warnedLegacyEndpoint = true;
-    console.error(
-      "[api] Using NEXT_PUBLIC_API_ENDPOINT fallback; set server-only API_ENDPOINT instead (NEXT_PUBLIC_* variables are exposed in the client bundle)",
-      diagnostics,
-    );
-  }
 };
 
 export const isTimeoutError = (error: unknown): boolean => {

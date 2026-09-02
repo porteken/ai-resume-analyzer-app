@@ -3,9 +3,8 @@ import {
   MS_PER_SECOND,
   createErrorResponse,
   isTimeoutError,
-} from "@/lib/server/api-utils";
-import { handleNonJsonResponse } from "@/lib/server/request-utils";
-import { NextResponse } from "next/server";
+} from "./api-utils";
+import { handleNonJsonResponse } from "./request-utils";
 
 interface ProxyJsonRequestOptions {
   body?: unknown;
@@ -38,7 +37,7 @@ export const proxyJsonRequest = async ({
     }
 
     const data: unknown = await response.json();
-    return NextResponse.json(data, { status: response.status });
+    return Response.json(data, { status: response.status });
   } catch (error) {
     if (isTimeoutError(error)) {
       return createErrorResponse(

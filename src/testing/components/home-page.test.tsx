@@ -1,4 +1,3 @@
-import Home from "@/app/page";
 import { MAX_JOB_DESCRIPTION_CHARS } from "@/features/resume-analysis/utils/job-description";
 import {
   fillResumeAnalysisForm,
@@ -13,7 +12,7 @@ import {
   createMockPDFFile,
 } from "@/testing/mocks/file";
 import { server } from "@/testing/mocks/server";
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { HttpResponse, delay, http } from "msw";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -90,18 +89,18 @@ describe("home Page Component", () => {
   });
 
   it("should render the main heading", () => {
-    render(<Home />);
+    renderHomePage();
     expect(screen.getByText("AI Resume Analyzer")).toBeInTheDocument();
   });
 
   it("should render file input and job description textarea", () => {
-    render(<Home />);
+    renderHomePage();
     expect(screen.getByLabelText(/resume \(pdf\)/iu)).toBeInTheDocument();
     expect(screen.getByLabelText(/job description/iu)).toBeInTheDocument();
   });
 
   it("should expose an accessible browse button label for the resume uploader", () => {
-    render(<Home />);
+    renderHomePage();
 
     expect(
       screen.getByRole("button", { name: /choose file/iu }),
@@ -109,7 +108,7 @@ describe("home Page Component", () => {
   });
 
   it("should have analyze button disabled initially", () => {
-    render(<Home />);
+    renderHomePage();
     expect(getAnalyzeButton()).toBeDisabled();
   });
 

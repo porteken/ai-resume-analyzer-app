@@ -1,21 +1,21 @@
-import { getApiConfig } from "@/config/env";
+import { getApiConfig } from "../../config/env";
 import {
   ANALYZE_TIMEOUT_MS,
   createMissingApiConfigResponse,
-  warnIfLegacyEndpointSource,
-} from "@/lib/server/api-utils";
-import { proxyJsonRequest } from "@/lib/server/proxy-utils";
-import { parseRequestBody } from "@/lib/server/request-utils";
+} from "../../lib/server/api-utils";
+import { proxyJsonRequest } from "../../lib/server/proxy-utils";
+import { parseRequestBody } from "../../lib/server/request-utils";
 
-export const maxDuration = 300;
+import type { ApiEnvironment } from "../../config/env";
 
-export async function POST(request: Request): Promise<Response> {
-  const apiConfig = getApiConfig();
+export async function handleAnalyze(
+  request: Request,
+  environment?: ApiEnvironment,
+): Promise<Response> {
+  const apiConfig = getApiConfig(environment);
   if (!apiConfig) {
-    return createMissingApiConfigResponse();
+    return createMissingApiConfigResponse(environment);
   }
-  warnIfLegacyEndpointSource();
-
   const { body, error: parseError } = await parseRequestBody(request);
   if (parseError) {
     return parseError;

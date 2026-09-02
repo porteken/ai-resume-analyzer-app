@@ -1,4 +1,3 @@
-import { MAX_JOB_DESCRIPTION_CHARS } from "@/features/resume-analysis/utils/job-description";
 import {
   createJsonFetchResponse,
   createPostRequestFactory,
@@ -12,39 +11,41 @@ import {
   expectNonJsonUpstreamError,
   expectTimeoutError,
   installApiRouteTestHooks,
-  mockResolvedFetch,
   mockApiKey,
+  mockResolvedFetch,
 } from "@/testing/route";
 import { describe, expect, it } from "vitest";
 
-import { POST } from "./route";
+import { handleAnalyze } from "./analyze";
 
 const mockApiEndpoint = "https://api.example.com/analyze";
-const createRequest = createPostRequestFactory("/api/upload");
-const createRawRequest = createRawPostRequestFactory("/api/upload");
+const createRequest = createPostRequestFactory("/api/analyze");
+const createRawRequest = createRawPostRequestFactory("/api/analyze");
 
-describe("upload API Route", () => {
+describe("analyze API Handler", () => {
   installApiRouteTestHooks(mockApiEndpoint);
 
-  it("should proxy upload requests to the canonical upload endpoint", async () => {
-    const mockResponseData = { job_id: "123", status: "processing" };
+  it("should proxy analyze requests to the canonical analyze endpoint", async () => {
+    const mockResponseData = {
+      analysis_result: "## Analysis\nStrong candidate",
+    };
     const mockedFetch = mockResolvedFetch(
       createJsonFetchResponse(mockResponseData),
     );
 
     const requestBody = {
-      filename: "resume.pdf",
       job_description: "Software Engineer",
-      pdf_base64: "base64encodedpdf",
+      job_id: "123",
+      s3_url: "s3://bucket/resume.pdf",
     };
 
     const data = await expectJsonResponse(
-      () => POST(createRequest(requestBody)),
+      () => handleAnalyze(createRequest(requestBody)),
       200,
     );
 
     expect(mockedFetch).toHaveBeenCalledWith(
-      "https://api.example.com/upload",
+      "https://api.example.com/analyze",
       expect.objectContaining({
         body: JSON.stringify(requestBody),
         headers: {
@@ -61,7 +62,7 @@ describe("upload API Route", () => {
     expect.hasAssertions();
 
     await expectMissingEnvError(() =>
-      POST(createRequest({ job_description: "test", pdf_base64: "test" })),
+      handleAnalyze(createRequest({ job_id: "123" })),
     );
   });
 
@@ -69,8 +70,7 @@ describe("upload API Route", () => {
     expect.hasAssertions();
 
     await expectNonJsonUpstreamError(
-      () =>
-        POST(createRequest({ job_description: "test", pdf_base64: "test" })),
+      () => handleAnalyze(createRequest({ job_id: "123" })),
       createTextFetchResponse("<html>Error page</html>", 502, "text/html"),
     );
   });
@@ -79,7 +79,7 @@ describe("upload API Route", () => {
     expect.hasAssertions();
 
     await expectTimeoutError(() =>
-      POST(createRequest({ job_description: "test", pdf_base64: "test" })),
+      handleAnalyze(createRequest({ job_id: "123" })),
     );
   });
 
@@ -87,9 +87,8 @@ describe("upload API Route", () => {
     expect.hasAssertions();
 
     await expectFetchError(
-      () =>
-        POST(createRequest({ job_description: "test", pdf_base64: "test" })),
-      { details: "Network error", error: "Failed to upload resume" },
+      () => handleAnalyze(createRequest({ job_id: "123" })),
+      { details: "Network error", error: "Failed to analyze resume" },
     );
   });
 
@@ -97,37 +96,20 @@ describe("upload API Route", () => {
     expect.hasAssertions();
 
     await expectInvalidJsonBodyError(() =>
-      POST(createRawRequest("invalid-json")),
+      handleAnalyze(createRawRequest("invalid-json")),
     );
-  });
-
-  it("should return 400 for overly long job descriptions", async () => {
-    const mockedFetch = mockResolvedFetch({});
-
-    const longDescription = "a".repeat(MAX_JOB_DESCRIPTION_CHARS + 1);
-    const data = await expectJsonResponse(
-      () =>
-        POST(
-          createRequest({
-            job_description: longDescription,
-            pdf_base64: "test",
-          }),
-        ),
-      400,
-    );
-
-    expect(data.error).toBe("Invalid job description");
-    expect(data.details).toContain("too long");
-    expect(mockedFetch).not.toHaveBeenCalled();
   });
 
   it("should forward API response status codes", async () => {
     expect.hasAssertions();
 
     await expectForwardedJsonError(
-      () =>
-        POST(createRequest({ job_description: "test", pdf_base64: "test" })),
-      { body: { error: "Invalid input" }, error: "Invalid input", status: 400 },
+      () => handleAnalyze(createRequest({ job_id: "123" })),
+      {
+        body: { error: "Analysis failed" },
+        error: "Analysis failed",
+        status: 422,
+      },
     );
   });
 });

@@ -1,6 +1,8 @@
 allowBuilds:
+  esbuild: true
   msw: true
   sharp: true
+  workerd: true
 minimumReleaseAgeExclude:
   - lucide-react@1.17.0 || 1.22.0 || 1.25.0
   - knip@6.23.0 || 6.29.0

@@ -1,4 +1,3 @@
-import { NextRequest } from "next/server";
 import { afterEach, beforeEach, expect, vi } from "vitest";
 
 export const mockApiKey = "test-api-key";
@@ -25,14 +24,16 @@ export const createTextFetchResponse = (
 });
 
 const createJsonRequest = (url: string, body: object) =>
-  new NextRequest(url, {
+  new Request(url, {
     body: JSON.stringify(body),
+    headers: { "content-type": "application/json" },
     method: "POST",
   });
 
 const createRawPostRequest = (url: string, body: string) =>
-  new NextRequest(url, {
+  new Request(url, {
     body,
+    headers: { "content-type": "application/json" },
     method: "POST",
   });
 
@@ -78,12 +79,11 @@ function mockRejectedFetch(error: unknown) {
   return mockedFetch;
 }
 
-export async function expectJsonResponse(
-  invokeRoute: () => Promise<Response>,
-  expectedStatus: number,
-) {
+export async function expectJsonResponse<
+  T extends Record<string, unknown> = Record<string, unknown>,
+>(invokeRoute: () => Promise<Response>, expectedStatus: number): Promise<T> {
   const response = await invokeRoute();
-  const data = await response.json();
+  const data = (await response.json()) as T;
 
   expect(response.status).toBe(expectedStatus);
   return data;
@@ -165,13 +165,13 @@ export async function expectForwardedJsonError(
 }
 
 function stubApiRouteEnv(apiEndpoint: string) {
-  vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
+  vi.stubEnv("API_ENDPOINT", "");
   vi.stubEnv("API_KEY", "");
-  vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", apiEndpoint);
+  vi.stubEnv("API_ENDPOINT", apiEndpoint);
   vi.stubEnv("API_KEY", mockApiKey);
 }
 
 function stubMissingApiRouteEnv() {
-  vi.stubEnv("NEXT_PUBLIC_API_ENDPOINT", "");
+  vi.stubEnv("API_ENDPOINT", "");
   vi.stubEnv("API_KEY", "");
 }

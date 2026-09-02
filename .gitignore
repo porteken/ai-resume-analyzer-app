@@ -9,9 +9,8 @@
 
 /coverage
 /playwright-report
-/.next/
+/dist/
 /out/
-
 /build/
 
 .DS_Store

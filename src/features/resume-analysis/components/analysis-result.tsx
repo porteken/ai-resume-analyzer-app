@@ -1,5 +1,3 @@
-"use client";
-
 import { AnalysisErrorBoundary } from "@/features/resume-analysis/components/analysis-error-boundary";
 import { cn } from "@/lib/utils";
 import {

@@ -5,36 +5,38 @@ interface ApiConfig {
   uploadEndpoint: string;
 }
 
+export interface ApiEnvironment {
+  API_ENDPOINT?: string;
+  API_KEY?: string;
+}
+
 interface ApiConfigDiagnostics {
   apiKeyFingerprint: null | string;
   apiKeySource: ApiKeySource;
   endpointForLog: null | string;
   endpointSource: EndpointSource;
-  hasEndpointConflict: boolean;
 }
 
 type ApiKeySource = "API_KEY" | "missing";
-type EndpointSource = "API_ENDPOINT" | "missing" | "NEXT_PUBLIC_API_ENDPOINT";
+type EndpointSource = "API_ENDPOINT" | "missing";
 
-const getEnvironmentValue = (name: string): string | undefined => {
-  if (name === "API_ENDPOINT") {
-    return process.env.API_ENDPOINT;
-  }
-
-  if (name === "NEXT_PUBLIC_API_ENDPOINT") {
-    return process.env.NEXT_PUBLIC_API_ENDPOINT;
-  }
-
-  if (name === "API_KEY") {
-    return process.env.API_KEY;
+const getEnvironmentValue = (
+  name: keyof ApiEnvironment,
+  environment?: ApiEnvironment,
+): string | undefined => {
+  if (environment) {
+    return environment[name];
   }
 
   return process.env[name];
 };
 
-const getFirstNonEmptyEnv = (...names: string[]): null | string => {
+const getFirstNonEmptyEnv = (
+  environment: ApiEnvironment | undefined,
+  ...names: (keyof ApiEnvironment)[]
+): null | string => {
   for (const name of names) {
-    const value = getEnvironmentValue(name);
+    const value = getEnvironmentValue(name, environment);
 
     if (typeof value === "string" && value.trim() !== "") {
       return value.trim();
@@ -44,25 +46,29 @@ const getFirstNonEmptyEnv = (...names: string[]): null | string => {
   return null;
 };
 
-const hasNonEmptyEnv = (name: string): boolean => {
-  const value = getEnvironmentValue(name);
+const hasNonEmptyEnv = (
+  name: keyof ApiEnvironment,
+  environment?: ApiEnvironment,
+): boolean => {
+  const value = getEnvironmentValue(name, environment);
   return typeof value === "string" && value.trim() !== "";
 };
 
-const getSelectedEnvironmentName = (): EndpointSource => {
-  if (hasNonEmptyEnv("API_ENDPOINT")) {
+const getSelectedEnvironmentName = (
+  environment?: ApiEnvironment,
+): EndpointSource => {
+  if (hasNonEmptyEnv("API_ENDPOINT", environment)) {
     return "API_ENDPOINT";
-  }
-
-  if (hasNonEmptyEnv("NEXT_PUBLIC_API_ENDPOINT")) {
-    return "NEXT_PUBLIC_API_ENDPOINT";
   }
 
   return "missing";
 };
 
-const normalizeEnvValue = (name: string): null | string => {
-  const value = getEnvironmentValue(name);
+const normalizeEnvValue = (
+  name: keyof ApiEnvironment,
+  environment?: ApiEnvironment,
+): null | string => {
+  const value = getEnvironmentValue(name, environment);
 
   if (typeof value !== "string") {
     return null;
@@ -119,20 +125,19 @@ const getEndpointLogValue = (endpoint: string): string => {
   }
 };
 
-export const getApiConfigDiagnostics = (): ApiConfigDiagnostics => {
-  const apiEndpoint = normalizeEnvValue("API_ENDPOINT");
-  const publicApiEndpoint = normalizeEnvValue("NEXT_PUBLIC_API_ENDPOINT");
-  const apiKey = normalizeEnvValue("API_KEY");
+export const getApiConfigDiagnostics = (
+  environment?: ApiEnvironment,
+): ApiConfigDiagnostics => {
+  const apiEndpoint = normalizeEnvValue("API_ENDPOINT", environment);
+  const apiKey = normalizeEnvValue("API_KEY", environment);
 
-  const endpointSource = getSelectedEnvironmentName();
+  const endpointSource = getSelectedEnvironmentName(environment);
   const apiKeySource: ApiKeySource = apiKey ? "API_KEY" : "missing";
 
   let selectedEndpoint: null | string = null;
 
   if (endpointSource === "API_ENDPOINT") {
     selectedEndpoint = apiEndpoint;
-  } else if (endpointSource === "NEXT_PUBLIC_API_ENDPOINT") {
-    selectedEndpoint = publicApiEndpoint;
   }
   const selectedApiKey = apiKeySource === "API_KEY" ? apiKey : null;
 
@@ -145,19 +150,14 @@ export const getApiConfigDiagnostics = (): ApiConfigDiagnostics => {
       ? getEndpointLogValue(selectedEndpoint)
       : null,
     endpointSource,
-    hasEndpointConflict:
-      apiEndpoint !== null &&
-      publicApiEndpoint !== null &&
-      apiEndpoint !== publicApiEndpoint,
   };
 };
 
-export const getApiConfig = (): ApiConfig | null => {
-  const apiEndpoint = getFirstNonEmptyEnv(
-    "API_ENDPOINT",
-    "NEXT_PUBLIC_API_ENDPOINT",
-  );
-  const apiKey = getFirstNonEmptyEnv("API_KEY");
+export const getApiConfig = (
+  environment?: ApiEnvironment,
+): ApiConfig | null => {
+  const apiEndpoint = getFirstNonEmptyEnv(environment, "API_ENDPOINT");
+  const apiKey = getFirstNonEmptyEnv(environment, "API_KEY");
 
   if (!apiEndpoint || !apiKey) {
     return null;

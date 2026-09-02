@@ -60,7 +60,7 @@ export default defineConfig({
   },
 
   webServer: {
-    command: `env NEXT_PUBLIC_E2E_TEST=1 NEXT_PUBLIC_SITE_URL=${E2E_BASE_URL} NODE_ENV=test pnpm exec next dev --turbopack --port ${E2E_PORT}`,
+    command: `env VITE_E2E_TEST=1 VITE_SITE_URL=${E2E_BASE_URL} NODE_ENV=test pnpm exec vite --port ${E2E_PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     url: E2E_BASE_URL,

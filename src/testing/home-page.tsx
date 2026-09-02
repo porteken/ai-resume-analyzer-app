@@ -1,7 +1,8 @@
-import Home from "@/app/page";
+import { HomePage } from "@/pages/home-page";
 import { createMockPDFFile } from "@/testing/mocks/file";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router";
 
 const DEFAULT_JOB_DESCRIPTION = "Software Engineer";
 
@@ -11,7 +12,11 @@ export function getAnalyzeButton(): HTMLElement {
 
 export function renderHomePage() {
   const user = userEvent.setup();
-  render(<Home />);
+  render(
+    <MemoryRouter>
+      <HomePage />
+    </MemoryRouter>,
+  );
 
   return {
     analyzeButton: getAnalyzeButton,

@@ -1,26 +1,19 @@
 import { ArrowLeft, ExternalLink, Mail, Server } from "lucide-react";
-import Link from "next/link";
+import { Link } from "react-router";
 
 import type { LucideIcon } from "lucide-react";
-import type { Metadata } from "next";
 import type { JSX } from "react";
-
-export const metadata: Metadata = {
-  description:
-    "Learn more about AI Resume Analyzer — a tool that uses Gemini 3 Flash AI to evaluate resume-job description fit.",
-  title: "About",
-};
 
 const projectLinks = [
   {
     href: "https://github.com/porteken/ai-resume-analyzer-app",
-    label: "Frontend App on GitHub",
     icon: ExternalLink,
+    label: "Frontend App on GitHub",
   },
   {
     href: "https://github.com/porteken/ai-resume-analyzer-sam",
-    label: "Backend API on GitHub",
     icon: Server,
+    label: "Backend API on GitHub",
   },
 ] as const;
 
@@ -70,7 +63,7 @@ const ProjectLinkCard = ({
   </a>
 );
 
-export default function About(): JSX.Element {
+export function AboutPage(): JSX.Element {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-6">
       <div className="absolute inset-0 animate-[gradient-shift_8s_ease_infinite] bg-linear-to-br from-indigo-100 via-white to-cyan-100 bg-size-[200%_200%]" />
@@ -80,7 +73,7 @@ export default function About(): JSX.Element {
         <div className="animate-in space-y-8 rounded-3xl border border-white/50 bg-white/70 p-8 shadow-2xl backdrop-blur-xl duration-700 zoom-in-95 fade-in md:p-10">
           <Link
             className="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 transition-colors hover:text-indigo-700 hover:underline"
-            href="/"
+            to="/"
           >
             <ArrowLeft className="size-4" />
             Back to Home

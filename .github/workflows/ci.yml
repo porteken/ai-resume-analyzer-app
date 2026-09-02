@@ -242,7 +242,7 @@ jobs:
 
     env:
       E2E_USE_RUNTIME_MOCKS: "false"
-      NEXT_PUBLIC_E2E_TEST: "true"
+      VITE_E2E_TEST: "true"
 
     strategy:
       fail-fast: false
@@ -399,7 +399,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   deploy:
-    name: Deploy to Vercel
+    name: Deploy to Cloudflare Pages
 
     needs:
       - quality-checks
@@ -424,33 +424,45 @@ jobs:
       )
 
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
 
-    permissions: {}
+    permissions:
+      contents: read
 
     steps:
-      - name: Trigger Vercel deploy hook
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
+        with:
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: >
+          pnpm install
+          --frozen-lockfile
+          --prefer-offline
+          --ignore-scripts
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Deploy to Cloudflare Pages
         shell: bash
         env:
-          VERCEL_DEPLOY_HOOK: ${{ github.ref_name == 'prd' && secrets.VERCEL_DEPLOY_HOOK_PRD || secrets.VERCEL_DEPLOY_HOOK_DEV }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_BRANCH: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-
-          if [ -z "${VERCEL_DEPLOY_HOOK:-}" ]; then
-            echo "::error::VERCEL_DEPLOY_HOOK for ${GITHUB_REF_NAME} is not configured."
-            exit 1
-          fi
-
-          echo "Triggering Vercel deployment for branch: ${GITHUB_REF_NAME}"
-
-          curl \
-            --fail-with-body \
-            --silent \
-            --show-error \
-            --retry 3 \
-            --retry-all-errors \
-            --retry-delay 2 \
-            --connect-timeout 10 \
-            --max-time 60 \
-            --request POST \
-            "${VERCEL_DEPLOY_HOOK}"
+          pnpm exec wrangler pages deploy dist \
+            --project-name=ai-resume-analyzer-app \
+            --branch="${CF_BRANCH}"

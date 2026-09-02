@@ -1,7 +1,5 @@
-import { HTTP_STATUS, createErrorResponse } from "@/lib/server/api-utils";
-import { isObjectRecord } from "@/lib/type-guards";
-
-import type { NextResponse } from "next/server";
+import { isObjectRecord } from "../type-guards";
+import { HTTP_STATUS, createErrorResponse } from "./api-utils";
 
 type ParseRequestBodyResult =
   | {
@@ -10,7 +8,7 @@ type ParseRequestBodyResult =
     }
   | {
       body: null;
-      error: NextResponse;
+      error: Response;
     };
 
 export const parseRequestBody = async (
@@ -51,7 +49,7 @@ export const parseRequestBody = async (
 
 export const handleNonJsonResponse = async (
   response: Response,
-): Promise<NextResponse> => {
+): Promise<Response> => {
   const text = await response.text();
 
   const MAX_LOG_LENGTH = 200;

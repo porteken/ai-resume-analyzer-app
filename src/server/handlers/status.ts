@@ -1,24 +1,21 @@
-import { getApiConfig } from "@/config/env";
+import { getApiConfig } from "../../config/env";
 import {
   UPSTREAM_TIMEOUT_MS,
   createMissingApiConfigResponse,
-  warnIfLegacyEndpointSource,
-} from "@/lib/server/api-utils";
-import { proxyJsonRequest } from "@/lib/server/proxy-utils";
+} from "../../lib/server/api-utils";
+import { proxyJsonRequest } from "../../lib/server/proxy-utils";
 
-export const maxDuration = 300;
+import type { ApiEnvironment } from "../../config/env";
 
-export async function GET(
+export async function handleStatus(
   _request: Request,
-  { params }: { params: Promise<{ jobId: string }> },
+  jobId: string,
+  environment?: ApiEnvironment,
 ): Promise<Response> {
-  const apiConfig = getApiConfig();
+  const apiConfig = getApiConfig(environment);
   if (!apiConfig) {
-    return createMissingApiConfigResponse();
+    return createMissingApiConfigResponse(environment);
   }
-  warnIfLegacyEndpointSource();
-
-  const { jobId } = await params;
   const encodedJobId = encodeURIComponent(jobId);
 
   return proxyJsonRequest({

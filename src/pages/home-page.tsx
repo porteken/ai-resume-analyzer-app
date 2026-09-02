@@ -1,9 +1,9 @@
 import { ResumeUploaderClient } from "@/features/resume-analysis/components/resume-uploader-client";
-import Link from "next/link";
+import { Link } from "react-router";
 
 import type { JSX } from "react";
 
-export default function Home(): JSX.Element {
+export function HomePage(): JSX.Element {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-6">
       <div className="absolute inset-0 animate-[gradient-shift_8s_ease_infinite] bg-linear-to-br from-indigo-100 via-white to-cyan-100 bg-size-[200%_200%]" />
@@ -21,7 +21,7 @@ export default function Home(): JSX.Element {
             </p>
             <Link
               className="text-sm text-indigo-600 transition-colors hover:text-indigo-700 hover:underline"
-              href="/about"
+              to="/about"
             >
               About
             </Link>
