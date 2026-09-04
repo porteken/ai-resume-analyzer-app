@@ -12,17 +12,18 @@ import type { AnalysisResultData } from "@/types";
 
 const MS_PER_SECOND = 1000;
 const HTTP_STATUS_SERVICE_UNAVAILABLE = 503;
+const HTTP_STATUS_TOO_MANY_REQUESTS = 429;
 const LEGACY_SAFE_JOB_DESCRIPTION_LENGTH = 500;
+
+// Polling: cap total attempts and use exponential backoff 2s -> 30s max.
+// 60 attempts with capped backoff keeps worst-case polling bounded instead
+// of the previous unbounded 372-attempt loop.
+const MAX_POLL_ATTEMPTS = 60;
+const POLL_MAX_DELAY_MS = 30 * MS_PER_SECOND;
+const POLL_BASE_DELAY_MS = 2 * MS_PER_SECOND;
 
 const DELAY_MULTIPLIER_1 = 1;
 const DELAY_MULTIPLIER_1_5 = 1.5;
-const DELAY_MULTIPLIER_2 = 2;
-
-const POLL_DELAY_BY_ATTEMPT_MS = [
-  DELAY_MULTIPLIER_1 * MS_PER_SECOND,
-  DELAY_MULTIPLIER_1_5 * MS_PER_SECOND,
-  DELAY_MULTIPLIER_2 * MS_PER_SECOND,
-] as const;
 
 interface ApiErrorResponse {
   details?: string;
@@ -49,6 +50,7 @@ interface StatusResponseData {
 
 interface UploadRequestOptions {
   signal?: AbortSignal;
+  turnstileToken?: string;
 }
 
 export interface PrefetchedUpload {
@@ -61,12 +63,14 @@ interface AnalysisFinalizationContext {
   onProgress?: (message: string) => void;
   s3Url?: string;
   signal?: AbortSignal;
+  turnstileToken?: string;
 }
 
 interface UploadRequestPayload {
   filename: string;
   job_description?: string;
   pdf_base64?: string;
+  turnstileToken?: string;
 }
 
 interface UploadResumeResponse {
@@ -209,10 +213,20 @@ const parseStatusResponse = (value: unknown): null | StatusResponseData => {
   };
 };
 
-const getPollDelayMs = (attempt: number): number =>
-  POLL_DELAY_BY_ATTEMPT_MS[
-    Math.min(attempt - 1, POLL_DELAY_BY_ATTEMPT_MS.length - 1)
-  ] ?? DELAY_MULTIPLIER_2 * MS_PER_SECOND;
+const getPollDelayMs = (attempt: number): number => {
+  // Preserve the original gentle 1s / 1.5s ramp for the first two polls
+  // (covered by existing tests), then exponential backoff from 2s capped
+  // at 30s: attempt 3 -> 2s, 4 -> 4s, 5 -> 8s, 6 -> 16s, 7+ -> 30s.
+  if (attempt <= 1) {
+    return DELAY_MULTIPLIER_1 * MS_PER_SECOND;
+  }
+  if (attempt === 2) {
+    return DELAY_MULTIPLIER_1_5 * MS_PER_SECOND;
+  }
+  const exponent = attempt - 3;
+  const delay = POLL_BASE_DELAY_MS * 2 ** exponent;
+  return Math.min(delay, POLL_MAX_DELAY_MS);
+};
 
 const sendUploadRequest = (
   requestBody: object,
@@ -238,26 +252,90 @@ const isMetadataTooLargeError = (message: string): boolean =>
 const SERVICE_UNAVAILABLE_MESSAGE =
   "Analysis service is temporarily unavailable due to high demand. Please try again in a few minutes.";
 
+const getRetryAfterSeconds = (error: ApiClientError): number | null => {
+  const raw = error.response.headers.get("retry-after");
+  if (!raw) {
+    return null;
+  }
+  const seconds = Number.parseInt(raw.trim(), 10);
+  return Number.isFinite(seconds) && seconds >= 0 ? seconds : null;
+};
+
+const TOO_MANY_REQUESTS_MESSAGE =
+  "Too many requests. Please wait a moment and try again.";
+
+const formatRetryAfterMessage = (retryAfterSeconds: number): string =>
+  `Too many requests. Please try again in ${retryAfterSeconds} second${retryAfterSeconds === 1 ? "" : "s"}.`;
+
+const getTooManyRequestsMessage = (error: ApiClientError): string | null => {
+  if (error.status !== HTTP_STATUS_TOO_MANY_REQUESTS) {
+    return null;
+  }
+
+  const retryAfter = getRetryAfterSeconds(error);
+  if (retryAfter === null) {
+    return TOO_MANY_REQUESTS_MESSAGE;
+  }
+
+  return formatRetryAfterMessage(retryAfter);
+};
+
+const getServiceUnavailableMessage = (
+  error: ApiClientError,
+  errorData: ApiErrorResponse,
+): string | null => {
+  if (error.status !== HTTP_STATUS_SERVICE_UNAVAILABLE) {
+    return null;
+  }
+
+  if (errorData.type !== "ServiceUnavailable") {
+    return null;
+  }
+
+  return SERVICE_UNAVAILABLE_MESSAGE;
+};
+
+type StatusErrorMessageHandler = (
+  error: ApiClientError,
+  errorData: ApiErrorResponse,
+) => string | null;
+
+const STATUS_ERROR_MESSAGE_HANDLERS: Record<number, StatusErrorMessageHandler> =
+  {
+    [HTTP_STATUS_SERVICE_UNAVAILABLE]: getServiceUnavailableMessage,
+    [HTTP_STATUS_TOO_MANY_REQUESTS]: getTooManyRequestsMessage,
+  };
+
+const getStatusMessage = (
+  error: ApiClientError,
+  errorData: ApiErrorResponse,
+): string | null =>
+  STATUS_ERROR_MESSAGE_HANDLERS[error.status]?.(error, errorData) ?? null;
+
+const getApiClientErrorMessage = (
+  error: ApiClientError,
+  fallbackMessage: string,
+): string => {
+  const errorData = parseApiErrorResponse(error.data);
+  const message = getUploadErrorMessage(errorData);
+  if (message) {
+    return message;
+  }
+
+  const statusMessage = getStatusMessage(error, errorData);
+  if (statusMessage) {
+    return statusMessage;
+  }
+
+  return error.message || fallbackMessage;
+};
+
 const getErrorMessageFromError = (
   error: unknown,
   fallbackMessage: string,
 ): string => {
   if (error instanceof ApiClientError) {
-    const errorData = parseApiErrorResponse(error.data);
-    const message = getUploadErrorMessage(errorData);
-
-    if (message) {
-      return message;
-    }
-
-    if (
-      error.status === HTTP_STATUS_SERVICE_UNAVAILABLE &&
-      errorData.type === "ServiceUnavailable"
-    ) {
-      return SERVICE_UNAVAILABLE_MESSAGE;
-    }
-
-    return error.message || fallbackMessage;
+    return getApiClientErrorMessage(error, fallbackMessage);
   }
 
   if (error instanceof Error && error.message.trim() !== "") {
@@ -464,11 +542,18 @@ const uploadToS3 = async (
   }
 };
 
+const withTurnstile = <T extends object>(
+  payload: T,
+  turnstileToken?: string,
+): T & { turnstileToken?: string } =>
+  turnstileToken ? { ...payload, turnstileToken } : payload;
+
 const triggerAnalysis = async (
   jobId: string,
   options?: {
     jobDescription?: string;
     s3Url?: string;
+    turnstileToken?: string;
   },
   signal?: AbortSignal,
 ): Promise<null | UploadResumeResponse> => {
@@ -476,6 +561,7 @@ const triggerAnalysis = async (
     job_description?: string;
     job_id: string;
     s3_url?: string;
+    turnstileToken?: string;
   } = { job_id: jobId };
 
   if (options?.s3Url) {
@@ -484,6 +570,10 @@ const triggerAnalysis = async (
 
   if (options?.jobDescription) {
     payload.job_description = options.jobDescription;
+  }
+
+  if (options?.turnstileToken) {
+    payload.turnstileToken = options.turnstileToken;
   }
 
   throwIfAborted(signal);
@@ -547,9 +637,13 @@ const sendUploadRequestWithFallbacks = async (
 export const prefetchResumeUpload = async (
   file: File,
   signal?: AbortSignal,
+  turnstileToken?: string,
 ): Promise<PrefetchedUpload> => {
   const sanitizedFilename = sanitizeFilename(file.name);
-  const payload: UploadRequestPayload = { filename: sanitizedFilename };
+  const payload: UploadRequestPayload = withTurnstile(
+    { filename: sanitizedFilename },
+    turnstileToken,
+  );
 
   const uploadResponse = await sendUploadRequestWithFallbacks(
     file,
@@ -585,6 +679,7 @@ const finalizeAnalysis = async (
     {
       jobDescription: truncateJobDescription(context.jobDescription),
       s3Url: context.s3Url,
+      turnstileToken: context.turnstileToken,
     },
     context.signal,
   );
@@ -628,6 +723,7 @@ export const uploadResume = async (
       jobDescription,
       onProgress,
       signal: options.signal,
+      turnstileToken: options.turnstileToken,
     });
 
     if (prefetchedResult) {
@@ -638,10 +734,13 @@ export const uploadResume = async (
   const sanitizedFilename = sanitizeFilename(file.name);
   const truncatedDescription = truncateJobDescription(jobDescription);
 
-  const payload = {
-    filename: sanitizedFilename,
-    job_description: truncatedDescription,
-  };
+  const payload: UploadRequestPayload = withTurnstile(
+    {
+      filename: sanitizedFilename,
+      job_description: truncatedDescription,
+    },
+    options?.turnstileToken,
+  );
 
   const uploadResponse = await sendUploadRequestWithFallbacks(
     file,
@@ -667,6 +766,7 @@ export const uploadResume = async (
       onProgress,
       s3Url: uploadData.s3_url,
       signal: options?.signal,
+      turnstileToken: options?.turnstileToken,
     });
   }
 
@@ -684,11 +784,10 @@ export const pollForResults = (
   options?: UploadRequestOptions,
 ): Promise<AnalysisResultData> => {
   const statusUrl = `/api/status/${jobId}`;
-  const maxAttempts = 372;
 
   return pollUntilComplete({
     attempt: 1,
-    maxAttempts,
+    maxAttempts: MAX_POLL_ATTEMPTS,
     onProgress,
     signal: options?.signal,
     statusUrl,

@@ -8,6 +8,7 @@ import {
 } from "../../lib/server/api-utils.ts";
 import { proxyJsonRequest } from "../../lib/server/proxy-utils.ts";
 import { parseRequestBody } from "../../lib/server/request-utils.ts";
+import { verifyTurnstileRequest } from "../../lib/server/turnstile.ts";
 
 import type { ApiEnvironment } from "../../config/env.ts";
 
@@ -46,6 +47,15 @@ export async function handleUpload(
   const jobDescriptionError = validateBodyJobDescription(body);
   if (jobDescriptionError) {
     return jobDescriptionError;
+  }
+
+  const turnstileError = await verifyTurnstileRequest(
+    body,
+    request,
+    environment,
+  );
+  if (turnstileError) {
+    return turnstileError;
   }
 
   return proxyJsonRequest({

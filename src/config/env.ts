@@ -8,6 +8,7 @@ interface ApiConfig {
 export interface ApiEnvironment {
   API_ENDPOINT?: string;
   API_KEY?: string;
+  TURNSTILE_SECRET_KEY?: string;
 }
 
 interface ApiConfigDiagnostics {

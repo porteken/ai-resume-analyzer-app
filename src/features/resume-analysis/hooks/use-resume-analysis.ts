@@ -15,10 +15,14 @@ interface UseResumeAnalysisReturn {
   cancelAnalysis: () => void;
   error: null | string;
   isLoading: boolean;
-  prefetchUpload: (file: File | null) => void;
+  prefetchUpload: (file: File | null, turnstileToken?: string) => void;
   result: AnalysisResultData | null;
   statusMessage: string;
-  submitAnalysis: (file: File | null, jobDescription: string) => Promise<void>;
+  submitAnalysis: (
+    file: File | null,
+    jobDescription: string,
+    options?: { turnstileToken?: string },
+  ) => Promise<void>;
 }
 
 interface PendingPrefetch {
@@ -88,23 +92,30 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
     [],
   );
 
-  const prefetchUpload = useCallback((file: File | null) => {
-    const pending = prefetchReference.current;
+  const prefetchUpload = useCallback(
+    (file: File | null, turnstileToken?: string) => {
+      const pending = prefetchReference.current;
 
-    if (pending && pending.file !== file) {
-      pending.abortController.abort();
-      prefetchReference.current = null;
-    }
+      if (pending && pending.file !== file) {
+        pending.abortController.abort();
+        prefetchReference.current = null;
+      }
 
-    if (!file || prefetchReference.current) {
-      return;
-    }
+      if (!file || prefetchReference.current) {
+        return;
+      }
 
-    const abortController = new AbortController();
-    const promise = prefetchResumeUpload(file, abortController.signal);
-    promise.catch(() => null);
-    prefetchReference.current = { abortController, file, promise };
-  }, []);
+      const abortController = new AbortController();
+      const promise = prefetchResumeUpload(
+        file,
+        abortController.signal,
+        turnstileToken,
+      );
+      promise.catch(() => null);
+      prefetchReference.current = { abortController, file, promise };
+    },
+    [],
+  );
 
   const resetForValidationError = (validationError: string) => {
     setResult(null);
@@ -151,6 +162,7 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
     file: File,
     jobDescription: string,
     abortController: AbortController,
+    turnstileToken?: string,
   ) => {
     const pending = prefetchReference.current;
     const prefetched = pending?.file === file ? pending.promise : undefined;
@@ -162,6 +174,7 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
       {
         prefetched,
         signal: abortController.signal,
+        turnstileToken,
       },
     );
 
@@ -188,7 +201,11 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
   };
 
   const submitAnalysis = useCallback(
-    async (file: File | null, jobDescription: string) => {
+    async (
+      file: File | null,
+      jobDescription: string,
+      options?: { turnstileToken?: string },
+    ) => {
       const validationError =
         validateFile(file) ?? validateJobDescription(jobDescription);
       if (validationError) {
@@ -203,7 +220,12 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
       const abortController = startRequest();
 
       try {
-        await runAnalysis(file, jobDescription, abortController);
+        await runAnalysis(
+          file,
+          jobDescription,
+          abortController,
+          options?.turnstileToken,
+        );
       } catch (error_: unknown) {
         if (error_ instanceof Error && error_.name === "AbortError") {
           return;

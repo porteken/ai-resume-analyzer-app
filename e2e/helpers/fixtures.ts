@@ -14,7 +14,12 @@ import type {
 
 export { expect } from "@playwright/test";
 
-const GLOBAL_ALLOWED_CONSOLE_ERRORS: RegExp[] = [];
+const GLOBAL_ALLOWED_CONSOLE_ERRORS: RegExp[] = [
+  /\[Turnstile\]/u,
+  /turnstile/iu,
+  /cf-turnstile-response/u,
+  /challenges\.cloudflare\.com/u,
+];
 
 const GLOBAL_ALLOWED_RESPONSE_ERRORS: RegExp[] = [];
 
