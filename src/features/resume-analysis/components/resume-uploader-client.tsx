@@ -32,6 +32,16 @@ export const ResumeUploaderClient = ({
       ? resolvedSiteKey.trim()
       : undefined;
 
+  if (normalizedSiteKey) {
+    console.error("[Turnstile] siteKey present", {
+      length: normalizedSiteKey.length,
+    });
+  } else {
+    console.error(
+      "[Turnstile] MISCONFIGURED: VITE_TURNSTILE_SITE_KEY missing at build",
+    );
+  }
+
   const [internalTurnstileToken, setInternalTurnstileToken] = useState<
     null | string
   >(controlledTurnstileToken ?? null);

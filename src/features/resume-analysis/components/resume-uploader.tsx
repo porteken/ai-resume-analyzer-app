@@ -206,14 +206,16 @@ const TurnstileWidget = ({
             sitekey: siteKey,
           },
         );
-      } catch {
+      } catch (error) {
+        console.error("[Turnstile] render failed", error);
         callbacksReference.current.onError?.();
       }
     };
 
     loadTurnstileScriptOnce()
       .then(renderWidget)
-      .catch(() => {
+      .catch((error: unknown) => {
+        console.error("[Turnstile] script load failed", error);
         if (!cancelled) {
           callbacksReference.current.onError?.();
         }
@@ -539,6 +541,9 @@ export const ResumeUploader = ({
 
   const handleTurnstileVerify = useCallback(
     (token: string) => {
+      console.error("[Turnstile] verify token received", {
+        length: token.length,
+      });
       setInternalTurnstileToken(token);
       onTurnstileTokenChange?.(token);
     },
@@ -546,6 +551,7 @@ export const ResumeUploader = ({
   );
 
   const handleTurnstileExpire = useCallback(() => {
+    console.error("[Turnstile] token expired, reset required");
     setInternalTurnstileToken(null);
     onTurnstileTokenChange?.(null);
     try {
@@ -556,6 +562,7 @@ export const ResumeUploader = ({
   }, [onTurnstileTokenChange]);
 
   const handleTurnstileError = useCallback(() => {
+    console.error("[Turnstile] widget error or script load/render failure");
     setInternalTurnstileToken(null);
     onTurnstileTokenChange?.(null);
   }, [onTurnstileTokenChange]);
@@ -748,8 +755,22 @@ export const ResumeUploader = ({
             type="hidden"
             value={effectiveTurnstileToken ?? ""}
           />
+          {!effectiveTurnstileToken ? (
+            <output
+              className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800"
+            >
+              Complete the Turnstile challenge to enable Analyze.
+            </output>
+          ) : null}
         </>
-      ) : null}
+      ) : (
+        <div
+          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700"
+          role="alert"
+        >
+          Turnstile misconfigured: missing site key (VITE_TURNSTILE_SITE_KEY).
+        </div>
+      )}
 
       {isLoading ? (
         <Button
@@ -769,7 +790,8 @@ export const ResumeUploader = ({
           disabled={
             !file ||
             !jobDescription.trim() ||
-            descriptionLength > MAX_JOB_DESCRIPTION_CHARS
+            descriptionLength > MAX_JOB_DESCRIPTION_CHARS ||
+            Boolean(turnstileSiteKey && !effectiveTurnstileToken)
           }
           onClick={handleSubmit}
         >
