@@ -67,6 +67,9 @@ jobs:
     permissions:
       contents: read
 
+    env:
+      VITE_TURNSTILE_SITE_KEY: "1x00000000000000000000AA"
+
     strategy:
       fail-fast: false
       matrix:
@@ -243,6 +246,7 @@ jobs:
     env:
       E2E_USE_RUNTIME_MOCKS: "false"
       VITE_E2E_TEST: "true"
+      VITE_TURNSTILE_SITE_KEY: "1x00000000000000000000AA"
 
     strategy:
       fail-fast: false

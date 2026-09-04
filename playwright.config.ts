@@ -60,7 +60,7 @@ export default defineConfig({
   },
 
   webServer: {
-    command: `env VITE_E2E_TEST=1 VITE_SITE_URL=${E2E_BASE_URL} NODE_ENV=test pnpm exec vite --port ${E2E_PORT}`,
+    command: `env VITE_E2E_TEST=1 VITE_SITE_URL=${E2E_BASE_URL} VITE_TURNSTILE_SITE_KEY=${process.env.VITE_TURNSTILE_SITE_KEY ?? "1x00000000000000000000AA"} NODE_ENV=test pnpm exec vite --port ${E2E_PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     url: E2E_BASE_URL,

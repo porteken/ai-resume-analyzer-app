@@ -11,6 +11,9 @@ export default defineConfig({
     },
   },
   test: {
+    env: {
+      VITE_TURNSTILE_SITE_KEY: "1x00000000000000000000AA",
+    },
     coverage: {
       exclude: [
         "node_modules/",
