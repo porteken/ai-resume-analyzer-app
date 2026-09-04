@@ -771,11 +771,6 @@ export const ResumeUploader = ({
             type="hidden"
             value={effectiveTurnstileToken ?? ""}
           />
-          {!effectiveTurnstileToken ? (
-            <output className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-              Complete the Turnstile challenge to enable Analyze.
-            </output>
-          ) : null}
         </>
       ) : (
         <div
