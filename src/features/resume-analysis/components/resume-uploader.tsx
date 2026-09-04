@@ -28,9 +28,220 @@ interface ResumeUploaderProperties {
   onFileSelected: (file: File | null) => void;
   onFileSelectionError: (message: string) => void;
   onFileSelectionSuccess: () => void;
-  onSubmit: (file: File | null, jobDescription: string) => Promise<void>;
+  onSubmit: (
+    file: File | null,
+    jobDescription: string,
+    options?: { turnstileToken?: string },
+  ) => Promise<void>;
   statusMessage: string;
+  /**
+   * Optional Cloudflare Turnstile site key (public key only — never put the
+   * secret key here). Falls back to `VITE_TURNSTILE_SITE_KEY` in
+   * `resume-uploader-client.tsx`. Leave undefined to disable the widget
+   * (backend fails open without TURNSTILE_SECRET_KEY, e.g. local dev).
+   *
+   * Required env:
+   * - Frontend (public): `VITE_TURNSTILE_SITE_KEY`
+   * - Server (secret, Cloudflare Pages secret / process env):
+   *   `TURNSTILE_SECRET_KEY` (already consumed by `src/lib/server/turnstile.ts`).
+   */
+  turnstileSiteKey?: string;
+  turnstileToken?: string | null;
+  /**
+   * Called when the Turnstile widget verifies/expires/errors so a parent
+   * (e.g. `ResumeUploaderClient`) can mirror the token into its own state.
+   * When omitted, `ResumeUploader` still captures the token internally and
+   * passes it to `onSubmit` as `{ turnstileToken }`.
+   */
+  onTurnstileTokenChange?: (token: null | string) => void;
 }
+
+const TURNSTILE_SCRIPT_SRC =
+  "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+
+interface TurnstileRenderOptions {
+  callback?: (token: string) => void;
+  "error-callback"?: () => void;
+  "expired-callback"?: () => void;
+  sitekey: string;
+}
+
+interface TurnstileInstance {
+  remove: (widgetId?: string) => void;
+  render: (container: HTMLElement, options: TurnstileRenderOptions) => string;
+  reset: (widgetId?: string) => void;
+}
+
+declare global {
+  interface Window {
+    onTurnstileError?: () => void;
+    onTurnstileExpired?: () => void;
+    onTurnstileVerify?: (token: string) => void;
+    turnstile?: TurnstileInstance;
+  }
+}
+
+let turnstileScriptLoadPromise: null | Promise<void> = null;
+
+const loadTurnstileScriptOnce = (): Promise<void> => {
+  if (typeof document === "undefined") {
+    return Promise.reject(new Error("Document unavailable"));
+  }
+
+  if (window.turnstile) {
+    return Promise.resolve();
+  }
+
+  if (turnstileScriptLoadPromise) {
+    return turnstileScriptLoadPromise;
+  }
+
+  const existingScript = document.querySelector<HTMLScriptElement>(
+    'script[src^="https://challenges.cloudflare.com/turnstile/v0/api.js"]',
+  );
+  if (existingScript) {
+    turnstileScriptLoadPromise = new Promise<void>((resolve, reject) => {
+      existingScript.addEventListener("load", () => {
+        resolve();
+      });
+      existingScript.addEventListener(
+        "error",
+        () => {
+          turnstileScriptLoadPromise = null;
+          reject(new Error("Turnstile script failed to load"));
+        },
+        { once: true },
+      );
+    });
+    return turnstileScriptLoadPromise;
+  }
+
+  turnstileScriptLoadPromise = new Promise<void>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = TURNSTILE_SCRIPT_SRC;
+    script.async = true;
+    script.defer = true;
+    script.addEventListener("load", () => {
+      resolve();
+    });
+    script.addEventListener(
+      "error",
+      () => {
+        turnstileScriptLoadPromise = null;
+        reject(new Error("Turnstile script failed to load"));
+      },
+      { once: true },
+    );
+    document.head.appendChild(script);
+  });
+
+  return turnstileScriptLoadPromise;
+};
+
+interface TurnstileWidgetProperties {
+  onError?: () => void;
+  onExpire?: () => void;
+  onVerify: (token: string) => void;
+  siteKey: string;
+}
+
+/**
+ * Managed Turnstile widget (explicit render).
+ * Loads `api.js` once, renders via `window.turnstile.render`, and forwards
+ * verify/expired/error callbacks. `data-*` attributes are kept so the
+ * implicit fallback + tests can still locate the widget.
+ */
+const TurnstileWidget = ({
+  onError,
+  onExpire,
+  onVerify,
+  siteKey,
+}: TurnstileWidgetProperties): JSX.Element => {
+  const containerReference = useRef<HTMLDivElement | null>(null);
+  const widgetIdReference = useRef<null | string>(null);
+  const callbacksReference = useRef({ onError, onExpire, onVerify });
+  callbacksReference.current = { onError, onExpire, onVerify };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    window.onTurnstileVerify = (token: string) => {
+      callbacksReference.current.onVerify(token);
+    };
+    window.onTurnstileExpired = () => {
+      callbacksReference.current.onExpire?.();
+    };
+    window.onTurnstileError = () => {
+      callbacksReference.current.onError?.();
+    };
+
+    const renderWidget = (): void => {
+      if (cancelled || !containerReference.current || !window.turnstile) {
+        return;
+      }
+
+      if (widgetIdReference.current) {
+        try {
+          window.turnstile.remove(widgetIdReference.current);
+        } catch {
+          // Ignore cleanup errors (e.g. widget already removed in tests).
+        }
+        widgetIdReference.current = null;
+      }
+      containerReference.current.innerHTML = "";
+
+      try {
+        widgetIdReference.current = window.turnstile.render(
+          containerReference.current,
+          {
+            callback: (token: string) => {
+              callbacksReference.current.onVerify(token);
+            },
+            "error-callback": () => {
+              callbacksReference.current.onError?.();
+            },
+            "expired-callback": () => {
+              callbacksReference.current.onExpire?.();
+            },
+            sitekey: siteKey,
+          },
+        );
+      } catch {
+        callbacksReference.current.onError?.();
+      }
+    };
+
+    loadTurnstileScriptOnce()
+      .then(renderWidget)
+      .catch(() => {
+        if (!cancelled) {
+          callbacksReference.current.onError?.();
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      if (widgetIdReference.current && window.turnstile) {
+        try {
+          window.turnstile.remove(widgetIdReference.current);
+        } catch {
+          // Ignore cleanup errors.
+        }
+        widgetIdReference.current = null;
+      }
+    };
+  }, [siteKey]);
+
+  return (
+    <div
+      data-callback="onTurnstileVerify"
+      data-error-callback="onTurnstileError"
+      data-expired-callback="onTurnstileExpired"
+      data-sitekey={siteKey}
+      ref={containerReference}
+    />
+  );
+};
 
 const BYTES_PER_KB = 1024;
 const KB_PER_MB = 1024;
@@ -309,14 +520,45 @@ export const ResumeUploader = ({
   onFileSelectionSuccess,
   onSubmit,
   statusMessage,
+  turnstileSiteKey,
+  turnstileToken,
+  onTurnstileTokenChange,
 }: ResumeUploaderProperties): JSX.Element => {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [jobDescription, setJobDescription] = useState("");
+  const [internalTurnstileToken, setInternalTurnstileToken] = useState<
+    null | string
+  >(null);
   const fileInputReference = useRef<HTMLElementTagNameMap["input"] | null>(
     null,
   );
   const descriptionLength = jobDescription.length;
+
+  const effectiveTurnstileToken = turnstileToken ?? internalTurnstileToken;
+
+  const handleTurnstileVerify = useCallback(
+    (token: string) => {
+      setInternalTurnstileToken(token);
+      onTurnstileTokenChange?.(token);
+    },
+    [onTurnstileTokenChange],
+  );
+
+  const handleTurnstileExpire = useCallback(() => {
+    setInternalTurnstileToken(null);
+    onTurnstileTokenChange?.(null);
+    try {
+      window.turnstile?.reset();
+    } catch {
+      // Ignore reset errors (widget may not be rendered yet).
+    }
+  }, [onTurnstileTokenChange]);
+
+  const handleTurnstileError = useCallback(() => {
+    setInternalTurnstileToken(null);
+    onTurnstileTokenChange?.(null);
+  }, [onTurnstileTokenChange]);
 
   const clearFileInput = useCallback(() => {
     if (fileInputReference.current) {
@@ -430,8 +672,10 @@ export const ResumeUploader = ({
       jobDescription.trim().replaceAll(/\s+/gu, " "),
     );
     setJobDescription(cleanedDescription);
-    void onSubmit(file, cleanedDescription);
-  }, [file, jobDescription, onSubmit]);
+    void onSubmit(file, cleanedDescription, {
+      turnstileToken: effectiveTurnstileToken ?? undefined,
+    });
+  }, [file, jobDescription, onSubmit, effectiveTurnstileToken]);
 
   return (
     <div className="grid gap-6">
@@ -483,6 +727,29 @@ export const ResumeUploader = ({
       </div>
 
       {isLoading && <ResumeUploadProgress statusMessage={statusMessage} />}
+
+      {/* Cloudflare Turnstile Managed widget (explicit render).
+          Site key comes from `VITE_TURNSTILE_SITE_KEY` via
+          `ResumeUploaderClient` (public site key only — never the secret).
+          `api.js` is loaded once by `TurnstileWidget`; the token is captured
+          via callback -> internal state / `onTurnstileTokenChange` and passed
+          as `turnstileToken` so resume-api.ts includes it in /api/upload and
+          /api/analyze bodies. Backend verifies with TURNSTILE_SECRET_KEY. */}
+      {turnstileSiteKey ? (
+        <>
+          <TurnstileWidget
+            onError={handleTurnstileError}
+            onExpire={handleTurnstileExpire}
+            onVerify={handleTurnstileVerify}
+            siteKey={turnstileSiteKey}
+          />
+          <input
+            name="cf-turnstile-response"
+            type="hidden"
+            value={effectiveTurnstileToken ?? ""}
+          />
+        </>
+      ) : null}
 
       {isLoading ? (
         <Button

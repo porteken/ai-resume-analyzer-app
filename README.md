@@ -6,8 +6,8 @@ A web application hosted [here](https://ai-resume-analyzer-app.pages.dev/) that 
 
 Frontend:
 
-- Next.js
-- React
+- Vite
+- Reactc
 - TypeScript
 - Tailwind CSS
 - shadcn
