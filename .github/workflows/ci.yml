@@ -453,6 +453,8 @@ jobs:
           --ignore-scripts
 
       - name: Build
+        env:
+          VITE_TURNSTILE_SITE_KEY: ${{ github.ref_name == 'prd' && secrets.VITE_TURNSTILE_SITE_KEY_PROD || secrets.VITE_TURNSTILE_SITE_KEY_DEV }}
         run: pnpm run build
 
       - name: Deploy to Cloudflare Pages
