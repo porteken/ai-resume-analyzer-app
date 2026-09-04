@@ -261,34 +261,81 @@ const getRetryAfterSeconds = (error: ApiClientError): number | null => {
   return Number.isFinite(seconds) && seconds >= 0 ? seconds : null;
 };
 
+const TOO_MANY_REQUESTS_MESSAGE =
+  "Too many requests. Please wait a moment and try again.";
+
+const formatRetryAfterMessage = (retryAfterSeconds: number): string =>
+  `Too many requests. Please try again in ${retryAfterSeconds} second${retryAfterSeconds === 1 ? "" : "s"}.`;
+
+const getTooManyRequestsMessage = (error: ApiClientError): string | null => {
+  if (error.status !== HTTP_STATUS_TOO_MANY_REQUESTS) {
+    return null;
+  }
+
+  const retryAfter = getRetryAfterSeconds(error);
+  if (retryAfter === null) {
+    return TOO_MANY_REQUESTS_MESSAGE;
+  }
+
+  return formatRetryAfterMessage(retryAfter);
+};
+
+const getServiceUnavailableMessage = (
+  error: ApiClientError,
+  errorData: ApiErrorResponse,
+): string | null => {
+  if (error.status !== HTTP_STATUS_SERVICE_UNAVAILABLE) {
+    return null;
+  }
+
+  if (errorData.type !== "ServiceUnavailable") {
+    return null;
+  }
+
+  return SERVICE_UNAVAILABLE_MESSAGE;
+};
+
+type StatusErrorMessageHandler = (
+  error: ApiClientError,
+  errorData: ApiErrorResponse,
+) => string | null;
+
+const STATUS_ERROR_MESSAGE_HANDLERS: Record<number, StatusErrorMessageHandler> =
+  {
+    [HTTP_STATUS_SERVICE_UNAVAILABLE]: getServiceUnavailableMessage,
+    [HTTP_STATUS_TOO_MANY_REQUESTS]: getTooManyRequestsMessage,
+  };
+
+const getStatusMessage = (
+  error: ApiClientError,
+  errorData: ApiErrorResponse,
+): string | null =>
+  STATUS_ERROR_MESSAGE_HANDLERS[error.status]?.(error, errorData) ?? null;
+
+const getApiClientErrorMessage = (
+  error: ApiClientError,
+  fallbackMessage: string,
+): string => {
+  const errorData = parseApiErrorResponse(error.data);
+  const message = getUploadErrorMessage(errorData);
+  if (message) {
+    return message;
+  }
+
+  const statusMessage = getStatusMessage(error, errorData);
+  if (statusMessage) {
+    return statusMessage;
+  }
+
+  return error.message || fallbackMessage;
+};
+
 const getErrorMessageFromError = (
   error: unknown,
   fallbackMessage: string,
 ): string => {
   if (error instanceof ApiClientError) {
-    const errorData = parseApiErrorResponse(error.data);
-    const message = getUploadErrorMessage(errorData);
-
-    if (message) {
-      return message;
-    }
-
-    if (error.status === HTTP_STATUS_TOO_MANY_REQUESTS) {
-      const retryAfter = getRetryAfterSeconds(error);
-      if (retryAfter !== null) {
-        return `Too many requests. Please try again in ${retryAfter} second${retryAfter === 1 ? "" : "s"}.`;
-      }
-      return "Too many requests. Please wait a moment and try again.";
-    }
-
-    if (
-      error.status === HTTP_STATUS_SERVICE_UNAVAILABLE &&
-      errorData.type === "ServiceUnavailable"
-    ) {
-      return SERVICE_UNAVAILABLE_MESSAGE;
-    }
-
-    return error.message || fallbackMessage;
+    return getApiClientErrorMessage(error, fallbackMessage);
   }
 
   if (error instanceof Error && error.message.trim() !== "") {
