@@ -150,14 +150,41 @@ describe("handlers with Turnstile enabled", () => {
     expect(data).toStrictEqual(upstream);
   });
 
-  it("analyze strips turnstileToken and proxies on success", async () => {
+  it("analyze proxies without requiring a token (verified once on upload)", async () => {
     const upstream = { analysis_result: "ok" };
     const mockedFetch = mockFetchByUrl(true, upstream);
 
     const data = await expectJsonResponse(
       () =>
         handleAnalyze(
-          createAnalyzeRequest({ job_id: "123", turnstileToken: "good" }),
+          createAnalyzeRequest({ job_id: "123" }),
+          withTurnstileEnv("test-secret"),
+        ),
+      200,
+    );
+
+    expect(data).toStrictEqual(upstream);
+    // No siteverify call for analyze — single verification happens on upload.
+    expect(
+      mockedFetch.mock.calls.every((call) => {
+        const url =
+          typeof call[0] === "string" ? call[0] : (call[0] as Request).url;
+        return !url.includes("challenges.cloudflare");
+      }),
+    ).toBe(true);
+  });
+
+  it("analyze strips turnstileToken if sent and proxies without verifying", async () => {
+    const upstream = { analysis_result: "ok" };
+    const mockedFetch = mockFetchByUrl(true, upstream);
+
+    const data = await expectJsonResponse(
+      () =>
+        handleAnalyze(
+          createAnalyzeRequest({
+            job_id: "123",
+            turnstileToken: "reused-token",
+          }),
           withTurnstileEnv("test-secret"),
         ),
       200,
@@ -171,36 +198,13 @@ describe("handlers with Turnstile enabled", () => {
     });
     const upstreamInit = upstreamCall?.[1] as RequestInit;
     expect(upstreamInit.body as string).not.toContain("turnstileToken");
-  });
-
-  it("analyze returns 403 when verification fails", async () => {
-    mockFetchByUrl(false, {});
-
-    const data = await expectJsonResponse(
-      () =>
-        handleAnalyze(
-          createAnalyzeRequest({ job_id: "123", turnstileToken: "bad" }),
-          withTurnstileEnv("test-secret"),
-        ),
-      403,
-    );
-
-    expect(data.error).toBe("Bot verification failed");
-  });
-
-  it("analyze returns 403 when token missing", async () => {
-    const mockedFetch = mockFetchByUrl(true, {});
-
-    const data = await expectJsonResponse(
-      () =>
-        handleAnalyze(
-          createAnalyzeRequest({ job_id: "123" }),
-          withTurnstileEnv("test-secret"),
-        ),
-      403,
-    );
-
-    expect(data.error).toBe("Bot verification required");
-    expect(mockedFetch).not.toHaveBeenCalled();
+    // Token is stripped, never verified on analyze.
+    expect(
+      mockedFetch.mock.calls.some((call) => {
+        const url =
+          typeof call[0] === "string" ? call[0] : (call[0] as Request).url;
+        return url.includes("challenges.cloudflare");
+      }),
+    ).toBe(false);
   });
 });

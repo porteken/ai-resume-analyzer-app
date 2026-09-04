@@ -682,7 +682,23 @@ export const ResumeUploader = ({
     void onSubmit(file, cleanedDescription, {
       turnstileToken: effectiveTurnstileToken ?? undefined,
     });
-  }, [file, jobDescription, onSubmit, effectiveTurnstileToken]);
+    // Turnstile tokens are single-use: clear + reset so the next submit
+    // requires a fresh solve instead of replaying a consumed token
+    // (which siteverify rejects with timeout-or-duplicate).
+    setInternalTurnstileToken(null);
+    onTurnstileTokenChange?.(null);
+    try {
+      window.turnstile?.reset();
+    } catch {
+      // Ignore reset errors (widget may not be rendered yet).
+    }
+  }, [
+    file,
+    jobDescription,
+    onSubmit,
+    effectiveTurnstileToken,
+    onTurnstileTokenChange,
+  ]);
 
   return (
     <div className="grid gap-6">

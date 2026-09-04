@@ -5,7 +5,6 @@ import {
 } from "../../lib/server/api-utils.ts";
 import { proxyJsonRequest } from "../../lib/server/proxy-utils.ts";
 import { parseRequestBody } from "../../lib/server/request-utils.ts";
-import { verifyTurnstileRequest } from "../../lib/server/turnstile.ts";
 
 import type { ApiEnvironment } from "../../config/env.ts";
 
@@ -22,14 +21,12 @@ export async function handleAnalyze(
     return parseError;
   }
 
-  const turnstileError = await verifyTurnstileRequest(
-    body,
-    request,
-    environment,
-  );
-  if (turnstileError) {
-    return turnstileError;
-  }
+  // Turnstile is verified once on /api/upload (which mints the job + presigned
+  // URL). /api/analyze reuses the same client token, but Turnstile tokens are
+  // single-use — a second siteverify would fail with timeout-or-duplicate.
+  // Trust the job chain here (analyze validates s3 location against the Dynamo
+  // record created by the verified upload) and never proxy the token to AWS.
+  delete body.turnstileToken;
 
   return proxyJsonRequest({
     body,

@@ -39,11 +39,21 @@ const verifyTurnstileToken = async (
     });
 
     const data: unknown = await response.json().catch(() => null);
-    return (
+    const success =
       typeof data === "object" &&
       data !== null &&
-      (data as { success?: unknown }).success === true
-    );
+      (data as { success?: unknown }).success === true;
+    if (!success) {
+      // Log error-codes (e.g. invalid-input-secret, timeout-or-duplicate,
+      // invalid-input-response) to distinguish secret mismatch from token
+      // reuse without leaking the secret or token.
+      const codes =
+        typeof data === "object" && data !== null
+          ? (data as { "error-codes"?: unknown })["error-codes"]
+          : undefined;
+      console.error("[Turnstile] siteverify failed", { codes });
+    }
+    return success;
   } catch {
     return false;
   }
