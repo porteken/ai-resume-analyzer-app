@@ -325,7 +325,7 @@ const ResumeFileField = ({
   isDragging,
   isLoading,
 }: Readonly<ResumeFileFieldProperties>): JSX.Element => (
-  <div className="grid animate-in gap-3 duration-500 fade-in slide-in-from-left-4">
+  <div className="grid animate-in grid-cols-1 gap-3 duration-500 fade-in slide-in-from-left-4">
     <div className="flex items-center justify-between gap-3">
       <Label
         className="font-medium text-slate-700"
@@ -410,8 +410,8 @@ const ResumeFileField = ({
 
     {file && (
       <div className="flex flex-col gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/70 p-4 shadow-sm backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3 text-left">
-          <div className="flex size-11 items-center justify-center rounded-2xl bg-white text-indigo-600 shadow-sm">
+        <div className="flex min-w-0 items-center gap-3 text-left">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white text-indigo-600 shadow-sm">
             <FileText className="size-5" />
           </div>
           <div className="min-w-0">
@@ -426,7 +426,7 @@ const ResumeFileField = ({
 
         <Button
           aria-label="Remove selected resume"
-          className="self-start text-slate-600 hover:text-slate-900 sm:self-auto"
+          className="shrink-0 self-start text-slate-600 hover:text-slate-900 sm:self-auto"
           disabled={isLoading}
           onClick={clearSelectedFile}
           type="button"
@@ -701,7 +701,7 @@ export const ResumeUploader = ({
   ]);
 
   return (
-    <div className="grid gap-6">
+    <div className="grid grid-cols-1 gap-6">
       <output aria-live="polite" className="sr-only block">
         {isLoading ? statusMessage || "Processing resume" : ""}
       </output>

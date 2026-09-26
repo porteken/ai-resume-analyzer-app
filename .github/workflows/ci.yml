@@ -21,7 +21,7 @@ env:
 jobs:
   quality-checks:
     name: Format, Lint, and Typecheck
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     permissions:
@@ -61,7 +61,7 @@ jobs:
 
   vitest:
     name: Vitest (${{ matrix.shard_index }}/${{ strategy.job-total }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     permissions:
@@ -129,7 +129,7 @@ jobs:
     name: Merge Vitest Reports
     needs: vitest
     if: ${{ always() && !cancelled() }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     permissions:
@@ -237,7 +237,7 @@ jobs:
 
   playwright-e2e:
     name: Playwright E2E (${{ matrix.shard_index }}/${{ strategy.job-total }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     permissions:
@@ -298,7 +298,7 @@ jobs:
     name: Merge Playwright Reports
     needs: playwright-e2e
     if: ${{ always() && !cancelled() }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     permissions:
@@ -367,7 +367,7 @@ jobs:
       github.ref_name != 'prd' &&
       needs.merge-vitest.result == 'success'
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     permissions:
@@ -427,7 +427,7 @@ jobs:
         )
       )
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
 
     permissions:
