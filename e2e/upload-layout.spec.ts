@@ -1,4 +1,10 @@
-import { createTestPDF, expect, test, uploadFile } from "./helpers/fixtures";
+import {
+  createTestPDF,
+  expect,
+  mockAPIResponses,
+  test,
+  uploadFile,
+} from "./helpers/fixtures";
 
 for (const width of [375, 759, 1440]) {
   test(`selected resume stays inside the form at ${width}px @smoke`, async ({
@@ -6,6 +12,7 @@ for (const width of [375, 759, 1440]) {
   }) => {
     await page.setViewportSize({ width, height: 1000 });
     await page.emulateMedia({ reducedMotion: "reduce" });
+    await mockAPIResponses.mockImmediateSuccess(page);
     await page.goto("/");
     await uploadFile(
       page,
