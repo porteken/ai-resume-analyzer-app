@@ -8,7 +8,6 @@
     "promise",
     "react",
     "unicorn",
-    "nextjs",
     "vitest",
     "jsx-a11y",
     "react-perf"
@@ -29,20 +28,16 @@
   },
   "settings": {
     "react": {
-      "version": "19.2.5"
-    },
-    "next": {
-      "rootDir": "."
+      "version": "19.2.8"
     }
   },
   "ignorePatterns": [
-    ".next/**",
+    "dist/**",
+    ".wrangler/**",
     "coverage/**",
     "playwright-report/**",
     "test-results/**",
-    "blob-report/**",
-    "next-env.d.ts",
-    "src/components/ui/**"
+    "blob-report/**"
   ],
   "rules": {
     "eslint/no-unused-vars": [
@@ -88,7 +83,7 @@
     "eslint/no-console": [
       "error",
       {
-        "allow": ["error", "error"]
+        "allow": ["error"]
       }
     ],
     "eslint/eqeqeq": "error",
@@ -160,7 +155,26 @@
     "unicorn/prefer-import-meta-properties": "error",
     "unicorn/no-useless-iterator-to-array": "error",
     "unicorn/no-useless-undefined": "error",
-    "unicorn/no-abusive-eslint-disable": "error"
+    "unicorn/no-abusive-eslint-disable": "error",
+    "eslint/array-callback-return": "error",
+    "eslint/no-constructor-return": "error",
+    "eslint/no-loop-func": "error",
+    "eslint/no-self-compare": "error",
+    "eslint/no-var": "error",
+    "eslint/prefer-const": "error",
+    "eslint/no-prototype-builtins": "error",
+    "typescript/no-empty-object-type": "error",
+    "typescript/no-unsafe-function-type": "error",
+    "typescript/restrict-plus-operands": "error",
+    "typescript/prefer-promise-reject-errors": "error",
+    "typescript/use-unknown-in-catch-callback-variable": "error",
+    "import/no-cycle": "error",
+    "react/button-has-type": "error",
+    "react/no-unknown-property": "error",
+    "react-perf/jsx-no-new-function-as-prop": "off",
+    "react-perf/jsx-no-new-object-as-prop": "off",
+    "react-perf/jsx-no-new-array-as-prop": "off",
+    "react-perf/jsx-no-jsx-as-prop": "off"
   },
   "overrides": [
     {
@@ -201,14 +215,10 @@
     },
     {
       "files": [
-        "next.config.{js,mjs,ts}",
         "*.config.{js,mjs,ts,cjs}",
         "scripts/**/*.{js,ts}",
-        "src/app/**/route.{ts,tsx}",
-        "src/app/**/actions.{ts,tsx}",
         "src/server/**/*.{ts,tsx}",
-        "server/**/*.{ts,tsx}",
-        "src/middleware.{ts,js}"
+        "server/**/*.{ts,tsx}"
       ],
       "env": {
         "node": true
@@ -242,6 +252,14 @@
         "vitest/consistent-test-filename": "off",
         "vitest/no-importing-vitest-globals": "off",
         "vitest/prefer-importing-vitest-globals": "off"
+      }
+    },
+    {
+      "files": ["src/components/ui/**/*.{ts,tsx}"],
+      "rules": {
+        "eslint/complexity": "off",
+        "eslint/max-statements": "off",
+        "eslint/max-params": "off"
       }
     },
     {
