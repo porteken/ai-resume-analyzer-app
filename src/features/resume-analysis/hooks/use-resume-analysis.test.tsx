@@ -93,8 +93,12 @@ describe("useResumeAnalysis", () => {
     expect(result.current.result).toBe("polled-result");
   });
 
-  it("maps failed-to-fetch to connection message", async () => {
-    mockedUpload.mockRejectedValueOnce(new Error("Failed to fetch"));
+  it.each([
+    "Failed to fetch",
+    "Network error",
+    'Failed to execute "fetch()" on "Window" with URL "https://example.com": Network error',
+  ])("maps %s to connection message", async (message) => {
+    mockedUpload.mockRejectedValueOnce(new Error(message));
     const { result } = renderHook(() => useResumeAnalysis());
 
     await act(async () => {

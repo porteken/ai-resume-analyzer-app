@@ -61,6 +61,7 @@ export function installApiRouteTestHooks(apiEndpoint: string) {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     vi.unstubAllEnvs();
   });
 }
@@ -69,13 +70,13 @@ export function mockResolvedFetch(response: object) {
   const mockedFetch = createFetchMock().mockResolvedValue(
     createMockResponse(response),
   );
-  globalThis.fetch = mockedFetch;
+  vi.stubGlobal("fetch", mockedFetch);
   return mockedFetch;
 }
 
 function mockRejectedFetch(error: unknown) {
   const mockedFetch = createFetchMock().mockRejectedValue(error);
-  globalThis.fetch = mockedFetch;
+  vi.stubGlobal("fetch", mockedFetch);
   return mockedFetch;
 }
 
@@ -95,7 +96,7 @@ export async function expectMissingEnvError(
   stubMissingApiRouteEnv();
 
   const mockedFetch = createFetchMock();
-  globalThis.fetch = mockedFetch;
+  vi.stubGlobal("fetch", mockedFetch);
 
   const data = await expectJsonResponse(invokeRoute, 500);
 
@@ -107,7 +108,7 @@ export async function expectInvalidJsonBodyError(
   invokeRoute: () => Promise<Response>,
 ) {
   const mockedFetch = createFetchMock();
-  globalThis.fetch = mockedFetch;
+  vi.stubGlobal("fetch", mockedFetch);
 
   const data = await expectJsonResponse(invokeRoute, 400);
 

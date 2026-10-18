@@ -28,7 +28,7 @@
   },
   "settings": {
     "react": {
-      "version": "19.2.8"
+      "version": "19.3.1"
     }
   },
   "ignorePatterns": [
@@ -177,6 +177,17 @@
     "react-perf/jsx-no-jsx-as-prop": "off"
   },
   "overrides": [
+    {
+      "files": ["src/testing/matchers.d.ts"],
+      "rules": {
+        "typescript/no-empty-object-type": [
+          "error",
+          {
+            "allowWithName": "^Matchers$"
+          }
+        ]
+      }
+    },
     {
       "files": [
         "**/__tests__/**/*.{ts,tsx}",

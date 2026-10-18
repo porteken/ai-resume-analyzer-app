@@ -50,6 +50,8 @@ const isBrowserNetworkError = (error_: Error): boolean => {
 
   return (
     message === "failed to fetch" ||
+    message === "network error" ||
+    message.endsWith(": network error") ||
     message.includes("networkerror when attempting to fetch resource") ||
     message.includes("load failed")
   );
@@ -117,11 +119,11 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
     [],
   );
 
-  const resetForValidationError = (validationError: string) => {
+  const resetForValidationError = useCallback((validationError: string) => {
     setResult(null);
     setStatusMessage("");
     setError(validationError);
-  };
+  }, []);
 
   const cancelAnalysis = useCallback(() => {
     const abortController = abortControllerReference.current;
@@ -139,7 +141,7 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
     setError(null);
   }, []);
 
-  const startRequest = (): AbortController => {
+  const startRequest = useCallback((): AbortController => {
     abortControllerReference.current?.abort();
     const abortController = new AbortController();
     abortControllerReference.current = abortController;
@@ -148,57 +150,52 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
     setResult(null);
     setStatusMessage("Uploading Resume...");
     return abortController;
-  };
+  }, []);
 
-  const finishRequest = (abortController: AbortController) => {
-    if (abortControllerReference.current === abortController) {
-      abortControllerReference.current = null;
-      setIsLoading(false);
-      setStatusMessage("");
-    }
-  };
+  const runAnalysis = useCallback(
+    async (
+      file: File,
+      jobDescription: string,
+      abortController: AbortController,
+      turnstileToken?: string,
+    ) => {
+      const pending = prefetchReference.current;
+      const prefetched = pending?.file === file ? pending.promise : undefined;
 
-  const runAnalysis = async (
-    file: File,
-    jobDescription: string,
-    abortController: AbortController,
-    turnstileToken?: string,
-  ) => {
-    const pending = prefetchReference.current;
-    const prefetched = pending?.file === file ? pending.promise : undefined;
-
-    const uploadData = await uploadResume(
-      file,
-      jobDescription.trim(),
-      setStatusMessage,
-      {
-        prefetched,
-        signal: abortController.signal,
-        turnstileToken,
-      },
-    );
-
-    if (uploadData.analysis_result) {
-      setResult(uploadData.analysis_result);
-      return;
-    }
-
-    if (!uploadData.job_id) {
-      throw new Error(
-        "Unexpected response format from server. No job_id or analysis_result found.",
+      const uploadData = await uploadResume(
+        file,
+        jobDescription.trim(),
+        setStatusMessage,
+        {
+          prefetched,
+          signal: abortController.signal,
+          turnstileToken,
+        },
       );
-    }
 
-    setStatusMessage("Analyzing Resume...");
-    const analysisResult = await pollForResults(
-      uploadData.job_id,
-      setStatusMessage,
-      {
-        signal: abortController.signal,
-      },
-    );
-    setResult(analysisResult);
-  };
+      if (uploadData.analysis_result) {
+        setResult(uploadData.analysis_result);
+        return;
+      }
+
+      if (!uploadData.job_id) {
+        throw new Error(
+          "Unexpected response format from server. No job_id or analysis_result found.",
+        );
+      }
+
+      setStatusMessage("Analyzing Resume...");
+      const analysisResult = await pollForResults(
+        uploadData.job_id,
+        setStatusMessage,
+        {
+          signal: abortController.signal,
+        },
+      );
+      setResult(analysisResult);
+    },
+    [],
+  );
 
   const submitAnalysis = useCallback(
     async (
@@ -233,10 +230,14 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
 
         setError(getSubmitErrorMessage(error_));
       } finally {
-        finishRequest(abortController);
+        if (abortControllerReference.current === abortController) {
+          abortControllerReference.current = null;
+          setIsLoading(false);
+          setStatusMessage("");
+        }
       }
     },
-    [],
+    [resetForValidationError, runAnalysis, startRequest],
   );
 
   return {
