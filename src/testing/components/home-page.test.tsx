@@ -63,7 +63,24 @@ const mockAnalyze503 = () => {
     ),
     http.post(
       "https://bucket.s3.amazonaws.com",
-      () => new HttpResponse(null, { status: 204, statusText: "No Content" }),
+      () =>
+        new HttpResponse(null, {
+          status: 204,
+          statusText: "No Content",
+          headers: { "Access-Control-Allow-Origin": "*" },
+        }),
+    ),
+    http.options(
+      "https://bucket.s3.amazonaws.com",
+      () =>
+        new HttpResponse(null, {
+          status: 204,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST",
+            "Access-Control-Allow-Headers": "*",
+          },
+        }),
     ),
     http.post("*/api/analyze", () =>
       HttpResponse.json(
@@ -337,7 +354,9 @@ describe("home Page Component", () => {
     await submitResumeAnalysis(renderHomePage());
 
     await waitFor(() => {
-      expect(screen.getByText(/failed to upload resume/iu)).toBeInTheDocument();
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        /failed to upload resume/iu,
+      );
     });
   });
 

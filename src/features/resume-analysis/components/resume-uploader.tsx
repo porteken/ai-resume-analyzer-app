@@ -18,6 +18,7 @@ import React, {
   type RefObject,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -160,7 +161,9 @@ const TurnstileWidget = ({
   const containerReference = useRef<HTMLDivElement | null>(null);
   const widgetIdReference = useRef<null | string>(null);
   const callbacksReference = useRef({ onError, onExpire, onVerify });
-  callbacksReference.current = { onError, onExpire, onVerify };
+  useLayoutEffect(() => {
+    callbacksReference.current = { onError, onExpire, onVerify };
+  }, [onError, onExpire, onVerify]);
 
   useEffect(() => {
     let cancelled = false;

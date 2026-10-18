@@ -1,7 +1,6 @@
 import { ApiClientError, getJson, postJson } from "@/lib/api-client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const originalFetch = globalThis.fetch;
 const createFetchMock = () => vi.fn<typeof fetch>();
 
 const createResponse = ({
@@ -48,12 +47,12 @@ describe("api-client", () => {
 
   beforeEach(() => {
     fetchMock = createFetchMock();
-    globalThis.fetch = fetchMock;
+    vi.stubGlobal("fetch", fetchMock);
     vi.stubEnv("NODE_ENV", "test");
   });
 
   afterEach(() => {
-    globalThis.fetch = originalFetch;
+    vi.unstubAllGlobals();
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });

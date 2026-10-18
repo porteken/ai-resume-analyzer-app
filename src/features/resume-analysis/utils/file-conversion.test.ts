@@ -65,12 +65,14 @@ const createMockFileReader = (): MockFileReaderInstance => {
   return reader;
 };
 
+function MockFileReader() {
+  return createMockFileReader();
+}
+
 describe("file conversion", () => {
   beforeEach(() => {
     fileReaderMode = "success";
-    globalThis.FileReader = function MockFileReader() {
-      return createMockFileReader();
-    } as unknown as typeof FileReader;
+    globalThis.FileReader = MockFileReader as unknown as typeof FileReader;
   });
 
   afterEach(() => {
